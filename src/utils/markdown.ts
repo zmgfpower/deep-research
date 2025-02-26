@@ -4,7 +4,7 @@ export function markdownCodeBlockToJson(markdownText: string): any | null {
   let inCodeBlock = false;
 
   for (const line of lines) {
-    if (line.startsWith("```json")) {
+    if (line.startsWith("```")) {
       inCodeBlock = true;
     } else if (line.startsWith("```") && inCodeBlock) {
       inCodeBlock = false;

@@ -1,8 +1,15 @@
-interface SearchQuery {
+interface SearchTask {
+  state: "unprocessed" | "processing" | "completed";
   query: string;
   researchGoal: string;
+  learning: string;
 }
 
-interface SearchQueries {
-  queries: SearchQuery[];
+interface PartialJson {
+  value: JSONValue | undefined;
+  state:
+    | "undefined-input"
+    | "successful-parse"
+    | "repaired-parse"
+    | "failed-parse";
 }

@@ -1,9 +1,12 @@
 "use client";
-import { generateText } from "ai";
+import { useState } from "react";
+import { parsePartialJson } from "@ai-sdk/ui-utils";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import zodToJsonSchema from "zod-to-json-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Plimit from "p-limit";
+import { LoaderCircle } from "lucide-react";
+import { generateSerpQueries, getSERPQuerySchema } from "@/lib/deep-research";
 import {
   Form,
   FormControl,
@@ -14,93 +17,101 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { google } from "@/lib/ai/providers";
-import { systemPrompt } from "@/utils/prompt";
-import { markdownCodeBlockToJson } from "@/utils/markdown";
+import { processSearchResult } from "@/lib/deep-research";
+import { useTaskStore } from "@/store/task";
+import { pick } from "radash";
 
 const formSchema = z.object({
   topic: z.string().min(2).max(200),
-  numQuestions: z.number().min(1).max(8),
-  depth: z.number().min(1).max(5),
+  numQuestions: z.number().int().positive().min(1).max(10),
+  numLearnings: z.number().int().positive().min(1).max(5),
 });
 
-async function generateSerpQueries({
-  query,
-  numQueries = 5,
-  learnings,
-}: {
-  query: string;
-  numQueries?: number;
-  // optional, if provided, the research will continue from the last learning
-  learnings?: string[];
-}) {
-  const outputSchema = zodToJsonSchema(
-    z.object({
-      queries: z
-        .array(
-          z
-            .object({
-              query: z.string().describe("The SERP query."),
-              researchGoal: z
-                .string()
-                .describe(
-                  "First talk about the goal of the research that this query is meant to accomplish, then go deeper into how to advance the research once the results are found, mention additional research directions. Be as specific as possible, especially for additional research directions. JSON reserved words should be escaped."
-                ),
-            })
-            .required({ query: true, researchGoal: true })
-        )
-        .describe(`List of SERP queries, max of ${numQueries}`),
-    })
-  );
-
-  const prompt = [
-    `Given the following prompt from the user, generate a list of SERP queries to research the topic. Return a maximum of ${numQueries} queries, but feel free to return less if the original prompt is clear. Make sure each query is unique and not similar to each other: <prompt>${query}</prompt>\n\n`,
-    learnings
-      ? `Here are some learnings from previous research, use them to generate more specific queries: ${learnings.join(
-          "\n"
-        )}`
-      : "",
-    `You MUST respond in JSON matching this JSON schema: \n${JSON.stringify(
-      outputSchema
-    )}`,
-  ].join("\n\n");
-
-  return generateText({
-    model: google("models/gemini-2.0-flash-thinking-exp"),
-    system: systemPrompt(),
-    prompt,
-  });
+function removeJsonMarkdown(text: string) {
+  text = text.trim();
+  if (text.startsWith("```json")) {
+    text = text.slice(7);
+  } else if (text.startsWith("json")) {
+    text = text.slice(4);
+  } else if (text.startsWith("```")) {
+    text = text.slice(3);
+  }
+  if (text.endsWith("```")) {
+    text = text.slice(0, -3);
+  }
+  return text.trim();
 }
 
-function ResearchTopic({
-  onResult,
-}: {
-  onResult: (queries: SearchQueries) => void;
-}) {
+function ResearchTopic() {
+  const taskStore = useTaskStore();
+  const [thinking, setThinking] = useState<boolean>(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       topic: "",
       numQuestions: 5,
-      depth: 2,
+      numLearnings: 5,
     },
   });
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
+    if (values.topic === "") return null;
+    setThinking(true);
+    taskStore.updateQuestion(values.topic);
     const result = await generateSerpQueries({
       query: values.topic,
       numQueries: values.numQuestions,
     });
-    const queries = markdownCodeBlockToJson(result.text);
-    if (queries) {
-      onResult(queries);
-    } else {
-      console.error("JSON Parsing failed");
+    let content = "";
+    const querySchema = getSERPQuerySchema();
+    for await (const textPart of result.textStream) {
+      content += textPart;
+      const data: PartialJson = parsePartialJson(removeJsonMarkdown(content));
+      if (querySchema.safeParse(data.value)) {
+        if (
+          data.state === "repaired-parse" ||
+          data.state === "successful-parse"
+        ) {
+          taskStore.update(
+            data.value.queries.map(
+              (item: { query: string; researchGoal: string }) => ({
+                state: "unprocessed",
+                learning: "",
+                ...pick(item, ["query", "researchGoal"]),
+              })
+            )
+          );
+        }
+        if (data.state === "successful-parse") {
+          const plimit = Plimit(1);
+
+          for await (const item of data.value.queries) {
+            await plimit(async () => {
+              let content = "";
+              taskStore.updateTask(item.query, { state: "processing" });
+              const searchResult = await processSearchResult({
+                ...pick(item, ["query", "researchGoal"]),
+              });
+              for await (const textPart of searchResult.textStream) {
+                content += textPart;
+                taskStore.updateTask(item.query, {
+                  state: "processing",
+                  learning: content,
+                });
+              }
+              taskStore.updateTask(item.query, { state: "completed" });
+              return content;
+            });
+          }
+        }
+      }
     }
+    setThinking(false);
   }
 
   return (
-    <section className="p-4 border rounded-md mt-10">
+    <section className="p-4 border rounded-md mt-6">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <FormField
@@ -129,26 +140,44 @@ function ResearchTopic({
                 <FormItem>
                   <FormLabel>Number of questions</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} />
+                    <Input
+                      type="number"
+                      {...field}
+                      {...form.register("numQuestions", {
+                        valueAsNumber: true,
+                      })}
+                    />
                   </FormControl>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="depth"
+              name="numLearnings"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Depth</FormLabel>
+                  <FormLabel>Number of learnings</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} />
+                    <Input
+                      type="number"
+                      {...field}
+                      {...form.register("numLearnings", {
+                        valueAsNumber: true,
+                      })}
+                    />
                   </FormControl>
                 </FormItem>
               )}
             />
           </div>
           <Button className="mt-4" type="submit">
-            Submit
+            {thinking ? (
+              <>
+                <LoaderCircle className="animate-spin" /> Research...
+              </>
+            ) : (
+              <>Start Research</>
+            )}
           </Button>
         </form>
       </Form>
