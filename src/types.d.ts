@@ -1,8 +1,16 @@
+interface Source {
+  sourceType: "url";
+  id: string;
+  url: string;
+  title?: string;
+}
+
 interface SearchTask {
   state: "unprocessed" | "processing" | "completed";
   query: string;
   researchGoal: string;
   learning: string;
+  sources: Source[];
 }
 
 interface PartialJson {

@@ -2,8 +2,9 @@ import dynamic from "next/dynamic";
 import { useMemo, memo } from "react";
 import Markdown, { type Options } from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeHighlight from "rehype-highlight";
 import remarkMath from "remark-math";
+import remarkBreaks from "remark-breaks";
+import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
 import { clsx } from "clsx";
 import { omit } from "radash";
@@ -27,7 +28,7 @@ function Magicdown({ children: content, ...rest }: Options) {
   return (
     <Markdown
       {...rest}
-      remarkPlugins={[remarkGfm, remarkMath, ...remarkPlugins]}
+      remarkPlugins={[remarkGfm, remarkMath, remarkBreaks, ...remarkPlugins]}
       rehypePlugins={[
         [rehypeHighlight, { detect: true, ignoreMissing: true }],
         rehypeKatex,

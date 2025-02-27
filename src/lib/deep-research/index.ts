@@ -1,10 +1,10 @@
-import { streamText } from "ai";
+import { streamText, smoothStream } from "ai";
 import { z } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 import { google } from "@/lib/ai/providers";
 import { systemPrompt } from "./prompt";
 
-export function getSERPQuerySchema(numQueries = 5) {
+export function getSERPQuerySchema(numQueries = 3) {
   return z.object({
     queries: z
       .array(
@@ -24,14 +24,11 @@ export function getSERPQuerySchema(numQueries = 5) {
 }
 
 export async function generateSerpQueries({
-  query,
-  numQueries = 5,
-  learnings,
+  question,
+  numQueries = 3,
 }: {
-  query: string;
+  question: string;
   numQueries?: number;
-  // optional, if provided, the research will continue from the last learning
-  learnings?: string[];
 }) {
   const SERPQuerySchema = getSERPQuerySchema(numQueries);
   const outputSchema = JSON.stringify(
@@ -41,12 +38,7 @@ export async function generateSerpQueries({
   );
 
   const prompt = [
-    `Given the following prompt from the user, generate a list of SERP queries to research the topic. Return a maximum of ${numQueries} queries, but feel free to return less if the original prompt is clear. Make sure each query is unique and not similar to each other: <prompt>${query}</prompt>\n\n`,
-    learnings
-      ? `Here are some learnings from previous research, use them to generate more specific queries: ${learnings.join(
-          "\n"
-        )}`
-      : "",
+    `Given the following question from the user, generate a list of SERP queries to research the topic. Return a maximum of ${numQueries} queries, but feel free to return less if the original question is clear. Make sure each query is unique and not similar to each other:\n<question>${question}</question>\n\n`,
     `You MUST respond in JSON matching this JSON schema: \n\`\`\`json\n${outputSchema}\n\`\`\``,
   ].join("\n\n");
 
@@ -54,6 +46,7 @@ export async function generateSerpQueries({
     model: google("gemini-2.0-flash-thinking-exp"),
     system: systemPrompt(),
     prompt,
+    experimental_transform: smoothStream(),
   });
 }
 
@@ -67,15 +60,51 @@ export async function processSearchResult({
   numLearnings?: number;
 }) {
   const prompt = [
-    `Use web search for the query: \n\n<query>${query}</query>`,
-    `You need to organize the searched information according to the following requirements: \n\n<researchGoal>\n${researchGoal}\n</researchGoal>`,
-    `Generate a list of learnings from the search results. Return a maximum of ${numLearnings} learnings, but feel free to return less if the contents are clear. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any exact metrics, numbers, or dates. The learnings will be used to research the topic further.`,
+    `Please use the following query to get the latest information via google search tool:\n<query>${query}</query>`,
+    `You need to organize the searched information according to the following requirements:\n<researchGoal>\n${researchGoal}\n</researchGoal>`,
+    `You need to think like a human researcher. Generate a list of learnings from the search results. Return a maximum of ${numLearnings} learnings, but feel free to return less if the contents are clear. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.`,
   ].join("\n\n");
 
   return streamText({
     model: google("gemini-2.0-flash-exp", { useSearchGrounding: true }),
     system: systemPrompt(),
     prompt,
+    experimental_transform: smoothStream(),
+  });
+}
+
+export async function reviewSerpQueries({
+  question,
+  learnings,
+  numQueries = 3,
+}: {
+  question: string;
+  learnings: string[];
+  numQueries?: number;
+}) {
+  const SERPQuerySchema = getSERPQuerySchema(numQueries);
+  const outputSchema = JSON.stringify(
+    zodToJsonSchema(SERPQuerySchema),
+    null,
+    4
+  );
+  const learningsString = learnings
+    .map((learning) => `<learning>\n${learning}\n</learning>`)
+    .join("\n");
+  const prompt = [
+    `Here are all the learnings from previous research:`,
+    `<learnings>\n${learningsString}\n</learnings>`,
+    `Based on previous research, determine whether further research is needed.`,
+    `If further research is needed, list of follow-up SERP queries to research the topic further, max of ${numQueries} queries. Make sure each query is unique and not similar to each other:\n<question>${question}</question>\n\n`,
+    `If you believe no further research is needed, you can output an empty SERP queries.`,
+    `You MUST respond in JSON matching this JSON schema: \n\`\`\`json\n${outputSchema}\n\`\`\``,
+  ].join("\n\n");
+
+  return streamText({
+    model: google("gemini-2.0-flash-thinking-exp"),
+    system: systemPrompt(),
+    prompt,
+    experimental_transform: smoothStream(),
   });
 }
 
@@ -94,12 +123,13 @@ export async function writeFinalReport({
     `<question>${question}</question>`,
     `Here are all the learnings from previous research:`,
     `<learnings>\n${learningsString}\n</learnings>`,
-    `Write the report using Markdown.`,
+    `You need to write this report like a human researcher.`,
   ].join("\n\n");
 
   return streamText({
     model: google("gemini-2.0-flash-thinking-exp"),
     system: systemPrompt(),
     prompt,
+    experimental_transform: smoothStream(),
   });
 }
