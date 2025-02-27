@@ -1,17 +1,12 @@
 "use client";
 import { useState } from "react";
+import { streamText, smoothStream } from "ai";
 import { parsePartialJson } from "@ai-sdk/ui-utils";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Plimit from "p-limit";
 import { LoaderCircle } from "lucide-react";
-import {
-  generateSerpQueries,
-  reviewSerpQueries,
-  writeFinalReport,
-  getSERPQuerySchema,
-} from "@/lib/deep-research";
 import {
   Form,
   FormControl,
@@ -22,7 +17,15 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { processSearchResult } from "@/lib/deep-research";
+import {
+  generateSerpQueriesPrompt,
+  processSearchResultPrompt,
+  reviewSerpQueriesPrompt,
+  writeFinalReportPrompt,
+  getSERPQuerySchema,
+} from "@/lib/deep-research";
+import { systemPrompt } from "@/lib/deep-research/prompt";
+import { useGoogleProvider } from "@/hooks/useAiProvider";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
 import { useTaskStore } from "@/store/task";
 import { pick, flat } from "radash";
@@ -55,6 +58,7 @@ function removeJsonMarkdown(text: string) {
 
 function ResearchTopic() {
   const taskStore = useTaskStore();
+  const google = useGoogleProvider();
   const {
     formattedTime,
     start: accurateTimerStart,
@@ -80,9 +84,14 @@ function ResearchTopic() {
         let content = "";
         const sources: Source[] = [];
         taskStore.updateTask(item.query, { state: "processing" });
-        const searchResult = await processSearchResult({
-          ...pick(item, ["query", "researchGoal"]),
-          numLearnings,
+        const searchResult = streamText({
+          model: google("gemini-2.0-flash-exp", { useSearchGrounding: true }),
+          system: systemPrompt(),
+          prompt: processSearchResultPrompt({
+            ...pick(item, ["query", "researchGoal"]),
+            numLearnings,
+          }),
+          experimental_transform: smoothStream(),
         });
         for await (const part of searchResult.fullStream) {
           if (part.type === "text-delta") {
@@ -105,10 +114,15 @@ function ResearchTopic() {
 
   async function reviewSearchResult() {
     const { question, tasks, numQuestions } = useTaskStore.getState();
-    const result = await reviewSerpQueries({
-      question: question,
-      learnings: tasks.map((item) => item.learning),
-      numQueries: numQuestions,
+    const result = streamText({
+      model: google("gemini-2.0-flash-thinking-exp"),
+      system: systemPrompt(),
+      prompt: reviewSerpQueriesPrompt({
+        question: question,
+        learnings: tasks.map((item) => item.learning),
+        numQueries: numQuestions,
+      }),
+      experimental_transform: smoothStream(),
     });
 
     const querySchema = getSERPQuerySchema();
@@ -140,9 +154,14 @@ function ResearchTopic() {
 
   async function handleWriteFinalReport() {
     const { question, tasks } = useTaskStore.getState();
-    const result = await writeFinalReport({
-      question: question,
-      learnings: tasks.map((item) => item.learning),
+    const result = streamText({
+      model: google("gemini-2.0-flash-thinking-exp"),
+      system: systemPrompt(),
+      prompt: writeFinalReportPrompt({
+        question: question,
+        learnings: tasks.map((item) => item.learning),
+      }),
+      experimental_transform: smoothStream(),
     });
     let content = "";
     for await (const textPart of result.textStream) {
@@ -172,9 +191,14 @@ function ResearchTopic() {
       let queries = [];
       if (values.topic !== question) {
         taskStore.updateQuestion(values.topic);
-        const result = await generateSerpQueries({
-          question: values.topic,
-          numQueries: values.numQuestions,
+        const result = streamText({
+          model: google("gemini-2.0-flash-thinking-exp"),
+          system: systemPrompt(),
+          prompt: generateSerpQueriesPrompt({
+            question: values.topic,
+            numQueries: values.numQuestions,
+          }),
+          experimental_transform: smoothStream(),
         });
 
         const querySchema = getSERPQuerySchema();

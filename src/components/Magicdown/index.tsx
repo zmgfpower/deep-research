@@ -44,7 +44,7 @@ function Magicdown({ children: content, ...rest }: Options) {
           );
         },
         code: (props) => {
-          const { children, className, node, ...rest } = props;
+          const { children, className, ...rest } = props;
           if (className?.includes("hljs")) {
             const lang = /language-(\w+)/.exec(className || "");
             if (lang && lang[1] === "mermaid") {
@@ -52,14 +52,20 @@ function Magicdown({ children: content, ...rest }: Options) {
             }
             return (
               <Code lang={lang ? lang[1] : ""}>
-                <code {...rest} className={clsx("break-all", className)}>
+                <code
+                  {...omit(rest, ["node"])}
+                  className={clsx("break-all", className)}
+                >
                   {children}
                 </code>
               </Code>
             );
           } else {
             return (
-              <code {...rest} className={clsx("break-all", className)}>
+              <code
+                {...omit(rest, ["node"])}
+                className={clsx("break-all", className)}
+              >
                 {children}
               </code>
             );

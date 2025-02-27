@@ -1,8 +1,12 @@
+"use client";
 import { useState } from "react";
+import { streamText, smoothStream } from "ai";
 import { LoaderCircle } from "lucide-react";
 import Magicdown from "@/components/Magicdown";
 import { Button } from "@/components/ui/button";
-import { writeFinalReport } from "@/lib/deep-research";
+import { writeFinalReportPrompt } from "@/lib/deep-research";
+import { systemPrompt } from "@/lib/deep-research/prompt";
+import { useGoogleProvider } from "@/hooks/useAiProvider";
 import { useTaskStore } from "@/store/task";
 import { downloadFile } from "@/utils/file";
 import { cn } from "@/utils/style";
@@ -10,14 +14,20 @@ import { flat } from "radash";
 
 function FinalReport() {
   const taskStore = useTaskStore();
+  const google = useGoogleProvider();
   const [thinking, setThinking] = useState<boolean>(false);
 
   async function handleWriteFinalReport() {
     const { question, tasks } = useTaskStore.getState();
     setThinking(true);
-    const result = await writeFinalReport({
-      question: question,
-      learnings: tasks.map((item) => item.learning),
+    const result = streamText({
+      model: google("gemini-2.0-flash-thinking-exp"),
+      system: systemPrompt(),
+      prompt: writeFinalReportPrompt({
+        question: question,
+        learnings: tasks.map((item) => item.learning),
+      }),
+      experimental_transform: smoothStream(),
     });
     let content = "";
     for await (const textPart of result.textStream) {
@@ -27,12 +37,14 @@ function FinalReport() {
     const sources = flat(
       tasks.map((item) => (item.sources ? item.sources : []))
     );
-    content += `---\n\n${sources
-      .map(
-        (source, idx) =>
-          `${idx}. [${source.title || source.url}](${source.url})`
-      )
-      .join("\n")}`;
+    if (sources.length > 0) {
+      content += `## Researched ${sources.length} websites\n\n${sources
+        .map(
+          (source, idx) =>
+            `${idx + 1}. [${source.title || source.url}](${source.url})`
+        )
+        .join("\n")}`;
+    }
     taskStore.updateFinalReport(content);
     setThinking(false);
   }
