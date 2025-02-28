@@ -54,7 +54,7 @@ function Setting({ open, onClose }: SettingProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent>
+      <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Setting</DialogTitle>
           <DialogDescription>

@@ -28,7 +28,9 @@ function ResearchResult() {
         hidden: taskStore.tasks.length === 0,
       })}
     >
-      <h3 className="font-semibold text-lg">Research Result</h3>
+      <h3 className="font-semibold text-lg border-b mb-2 leading-10">
+        Research Result
+      </h3>
       <Accordion type="single" collapsible>
         {taskStore.tasks.map((item, idx) => {
           return (
@@ -39,7 +41,7 @@ function ResearchResult() {
                   <span className="ml-1">{item.query}</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="prose">
+              <AccordionContent className="prose prose-slate dark:prose-invert">
                 <Magicdown>
                   {item.learning +
                     (item.sources

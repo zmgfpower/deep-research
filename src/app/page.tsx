@@ -16,8 +16,8 @@ function Home() {
 
   return (
     <div className="max-w-screen-md mx-auto px-4">
-      <header className="flex justify-between items-center">
-        <h1 className="text-center text-2xl font-bold my-6">Deep Research</h1>
+      <header className="flex justify-between items-center my-6">
+        <h1 className="text-center text-2xl font-bold">Deep Research</h1>
         <div className="flex gap-1">
           <ThemeToggle />
           <Button

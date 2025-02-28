@@ -38,7 +38,9 @@ function FinalReport() {
       tasks.map((item) => (item.sources ? item.sources : []))
     );
     if (sources.length > 0) {
-      content += `## Researched ${sources.length} websites\n\n${sources
+      content += `\n\n---\n\n## Researched ${
+        sources.length
+      } websites\n\n${sources
         .map(
           (source, idx) =>
             `${idx + 1}. [${source.title || source.url}](${source.url})`
@@ -55,11 +57,13 @@ function FinalReport() {
         hidden: taskStore.finalReport === "",
       })}
     >
-      <h3 className="font-semibold text-lg">Final Report</h3>
-      <div className="prose border-b mb-2">
+      <h3 className="font-semibold text-lg border-b mb-2 leading-10">
+        Final Report
+      </h3>
+      <div className="prose prose-slate dark:prose-invert mt-6">
         <Magicdown>{taskStore.finalReport}</Magicdown>
       </div>
-      <div className="flex gap-2 w-full">
+      <div className="flex gap-4 max-sm:gap-2 w-full border-t mt-4 pt-4">
         <Button
           className="w-full"
           variant="secondary"
