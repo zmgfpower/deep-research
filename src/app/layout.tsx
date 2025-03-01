@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ThemeProvider from "@/components/Theme/Provider";
+import I18Provider from "@/components/I18nProvider";
 
 import "./globals.css";
 
@@ -22,7 +23,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <I18Provider>{children}</I18Provider>
         </ThemeProvider>
       </body>
     </html>

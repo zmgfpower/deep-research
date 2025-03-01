@@ -1,0 +1,47 @@
+{
+  "title": "Deep Research",
+  "research": {
+    "common": {
+      "startThinking": "Start Thinking",
+      "thinkingQuestion": "Thinking Question...",
+      "startResearch": "Start Research",
+      "writingReport": "Writing Report",
+      "rewriteReport": "Rewrite Report",
+      "sources": "Sources",
+      "thinking": "Thinking...",
+      "research": "Research...",
+      "review": "Review...",
+      "writing": "Writing..."
+    },
+    "topic": {
+      "title": "1. Research Topics",
+      "topicLabel": "Research topics",
+      "topicPlaceholder": "Any questions you want to know..."
+    },
+    "feedback": {
+      "title": "2. Ask Question",
+      "emptyTip": "Waiting for research topic...",
+      "feedbackLabel": "Your Answer",
+      "feedbackPlaceholder": "You can answer whatever you want..."
+    },
+    "searchResult": {
+      "title": "3. Information Collection",
+      "emptyTip": "Waiting for research task..."
+    },
+    "finalReport": {
+      "title": "4. Final Report",
+      "emptyTip": "Waiting for data to be collated...",
+      "researchedInfor": "Researched {total} websites"
+    }
+  },
+  "setting": {
+    "title": "Setting",
+    "description": "All settings are saved in the user's browser.",
+    "apiKeyLabel": "Gemini Api Key",
+    "apiKeyPlaceholder": "Please enter the Gemini Api Key",
+    "apiProxyLabel": "Api Proxy Url",
+    "language": "Language",
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}
