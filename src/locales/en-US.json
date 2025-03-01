@@ -31,7 +31,7 @@
     "finalReport": {
       "title": "4. Final Report",
       "emptyTip": "Waiting for data to be collated...",
-      "researchedInfor": "Researched {total} websites"
+      "researchedInfor": "Researched {{total}} websites"
     }
   },
   "setting": {

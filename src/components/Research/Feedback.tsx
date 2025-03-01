@@ -1,3 +1,4 @@
+"use client";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -45,7 +46,7 @@ function Feedback() {
       `Follow-up Questions: ${questions}`,
       `Follow-up Feedback: ${values.feedback}`,
     ].join("\n\n");
-    taskStore.updateQuestion(prompt);
+    taskStore.updateQuery(prompt);
     accurateTimerStart();
     await deepResearch();
     accurateTimerStop();

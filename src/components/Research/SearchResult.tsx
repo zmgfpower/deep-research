@@ -1,3 +1,4 @@
+"use client";
 import { useTranslation } from "react-i18next";
 import { LoaderCircle, CircleCheck, TextSearch } from "lucide-react";
 import Magicdown from "@/components/Magicdown";

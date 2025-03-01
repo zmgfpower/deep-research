@@ -3,6 +3,7 @@ import resourcesToBackend from "i18next-resources-to-backend";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 import locales from "@/constants/locales";
+import { keys } from "radash";
 
 const normalizeLocale = (locale: string) => {
   if (locale.startsWith("en")) {
@@ -19,7 +20,7 @@ export function detectLanguage() {
   languageDetector.init();
   const detectedLang = languageDetector.detect();
   let lang: string = "en-US";
-  const localeLang = Object.keys(locales);
+  const localeLang = keys(locales);
   if (Array.isArray(detectedLang)) {
     detectedLang.reverse().forEach((langCode) => {
       if (localeLang.includes(langCode)) {
@@ -42,7 +43,7 @@ i18next
     })
   )
   .init({
-    debug: true,
+    supportedLngs: keys(locales),
     fallbackLng: "en-US",
   });
 
