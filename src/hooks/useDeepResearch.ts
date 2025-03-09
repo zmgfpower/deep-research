@@ -43,17 +43,19 @@ function useDeepResearch() {
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [status, setStatus] = useState<string>(t("research.common.thinking"));
 
-  async function askQuestions(topic: string) {
+  async function askQuestions() {
     const { language } = useSettingStore.getState();
+    const { question } = useTaskStore.getState();
     setStatus(t("research.common.thinking"));
     const result = streamText({
       model: google("gemini-2.0-flash-thinking-exp"),
       system: getSystemPrompt(),
       prompt:
-        generateQuestionsPrompt(topic) + getResponseLanguagePrompt(language),
+        generateQuestionsPrompt(question) + getResponseLanguagePrompt(language),
       experimental_transform: smoothStream(),
     });
     let content = "";
+    taskStore.updateQuestion(question);
     for await (const textPart of result.textStream) {
       content += textPart;
       taskStore.updateQuestions(content);

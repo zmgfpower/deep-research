@@ -15,6 +15,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import useDeepResearch from "@/hooks/useDeepResearch";
+import { useTaskStore } from "@/store/task";
 
 const formSchema = z.object({
   topic: z.string().min(2).max(200),
@@ -33,8 +34,10 @@ function Topic() {
   });
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
+    const { updateQuestion } = useTaskStore.getState();
     setIsThinking(true);
-    await askQuestions(values.topic);
+    updateQuestion(values.topic);
+    await askQuestions();
     setIsThinking(false);
   }
 

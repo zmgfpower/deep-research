@@ -47,9 +47,12 @@ function Feedback() {
       `Follow-up Feedback: ${values.feedback}`,
     ].join("\n\n");
     taskStore.updateQuery(prompt);
-    accurateTimerStart();
-    await deepResearch();
-    accurateTimerStop();
+    try {
+      accurateTimerStart();
+      await deepResearch();
+    } finally {
+      accurateTimerStop();
+    }
   }
 
   return (
