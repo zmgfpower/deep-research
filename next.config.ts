@@ -13,7 +13,9 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/ai/google/v1beta/:path*",
-        destination: `${API_PROXY_BASE_URL}/v1beta/:path*?key=${GOOGLE_GENERATIVE_AI_API_KEY}`,
+        destination: `${
+          API_PROXY_BASE_URL || "https://generativelanguage.googleapis.com"
+        }/v1beta/:path*?key=${GOOGLE_GENERATIVE_AI_API_KEY}`,
       },
     ];
   },
