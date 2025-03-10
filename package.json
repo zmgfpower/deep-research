@@ -1,6 +1,6 @@
 {
   "name": "deep-research",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -61,7 +61,7 @@
     "typescript": "^5"
   },
   "engines": {
-    "npm": ">=9.8.0",
-    "node": ">=18.18.0"
+    "npm": ">= 9.8.0",
+    "node": ">= 18.18.0"
   }
 }
