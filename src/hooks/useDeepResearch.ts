@@ -41,7 +41,7 @@ function useDeepResearch() {
   const taskStore = useTaskStore();
   const google = useGoogleProvider();
   const [isThinking, setIsThinking] = useState<boolean>(false);
-  const [status, setStatus] = useState<string>(t("research.common.thinking"));
+  const [status, setStatus] = useState<string>("");
 
   async function askQuestions() {
     const { language } = useSettingStore.getState();
@@ -175,6 +175,7 @@ function useDeepResearch() {
     const { language } = useSettingStore.getState();
     const { query } = useTaskStore.getState();
     setIsThinking(true);
+    setStatus(t("research.common.thinking"));
     try {
       let queries = [];
 
