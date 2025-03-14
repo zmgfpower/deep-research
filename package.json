@@ -1,11 +1,12 @@
 {
   "name": "deep-research",
   "description": "Deep Research with Google Gemini Models",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:export": "cross-env BUILD_MODE=export next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -56,6 +57,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "19.0.0-beta-e1e972c-20250221",
+    "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "postcss": "^8",

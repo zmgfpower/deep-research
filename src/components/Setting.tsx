@@ -29,11 +29,14 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useSettingStore } from "@/store/setting";
+import { cn } from "@/utils/style";
 
 type SettingProps = {
   open: boolean;
   onClose: () => void;
 };
+
+const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE;
 
 const formSchema = z.object({
   apiKey: z.string().optional(),
@@ -76,7 +79,11 @@ function Setting({ open, onClose }: SettingProps) {
         <Form {...form}>
           <form className="space-y-4">
             <Tabs defaultValue="local">
-              <TabsList className="w-full mb-1">
+              <TabsList
+                className={cn("w-full mb-1", {
+                  hidden: BUILD_MODE === "export",
+                })}
+              >
                 <TabsTrigger className="w-1/2" value="local">
                   {t("setting.local")}
                 </TabsTrigger>

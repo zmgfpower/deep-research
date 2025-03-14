@@ -49,15 +49,16 @@ Follow these steps to get Deep Research up and running on your local browser.
 
    ```env
    # (Optional) Server-side Gemini API Key (Required for server API calls)
-   GOOGLE_GENERATIVE_AI_API_KEY=YOUR_GOOGLE_GENERATIVE_AI_API_KEY
+   GOOGLE_GENERATIVE_AI_API_KEY=
 
    # (Optional) Server API Proxy URL
-   API_PROXY_BASE_URL=YOUR_API_PROXY_URL
+   API_PROXY_BASE_URL=
 
    # (Optional) Server API Access Password for enhanced security
-   ACCESS_PASSWORD=YOUR_ACCESS_PASSWORD
+   ACCESS_PASSWORD=
 
-   # (Optional)
+   # (Optional) Injected script code can be used for statistics or error tracking.
+   HEAD_SCRIPTS=
    ```
 
    **Important Notes on Environment Variables:**

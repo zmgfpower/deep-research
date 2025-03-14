@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main # your default branch for releases
+  tags:
+    - "v*" # Trigger release tag format, such as v1.0.0
+  workflow_dispatch: # Allow manual triggering of workflow
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*" # Use the latest LTS version of Node.js
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: "latest" # Or specify the pnpm version
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build and Export Next.js
+        run: pnpm build:export
+
+      - name: Zip out directory
+        run: |
+          zip -r release.zip out
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }} # Use the tag that triggers the workflow as the release tag
+          release_name: Release ${{ github.ref_name }} # Release Title
+          body: |
+            Automatically build and package the Release package.
+            Please see the commit record for details.
+          draft: false
+          prerelease: ${{ startsWith(github.ref_name, 'v') == false }} # If the tag does not start with 'v', it is marked as pre-release
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # Get the upload_url from the create-release step
+          asset_path: release.zip
+          asset_name: ${{ github.name }}_${{ github.ref_name }}_static-web.zip
+          asset_content_type: application/zip

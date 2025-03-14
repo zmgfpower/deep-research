@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const API_PROXY_BASE_URL = process.env.API_PROXY_BASE_URL as string;
 const GOOGLE_GENERATIVE_AI_API_KEY = process.env
   .GOOGLE_GENERATIVE_AI_API_KEY as string;
+const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE;
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -27,5 +28,11 @@ const nextConfig: NextConfig = {
     ];
   },
 };
+
+if (BUILD_MODE === "export") {
+  nextConfig.output = "export";
+  // Only used for static deployment, the default deployment directory is the root directory
+  nextConfig.basePath = "";
+}
 
 export default nextConfig;
