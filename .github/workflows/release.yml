@@ -29,11 +29,12 @@ jobs:
         run: pnpm install
 
       - name: Build and Export Next.js
-        run: pnpm build:export
+        run: |
+          pnpm build:export
 
       - name: Zip out directory
         run: |
-          zip -r release.zip out
+          zip -r ./release.zip ./out
 
       - name: Create Release
         uses: actions/create-release@v1

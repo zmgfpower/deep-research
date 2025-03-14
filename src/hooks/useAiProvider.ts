@@ -7,7 +7,9 @@ export function useGoogleProvider() {
   return createGoogleGenerativeAI(
     apiKey
       ? {
-          baseURL: `${apiProxy}/v1beta`,
+          baseURL: `${
+            apiProxy || "https://generativelanguage.googleapis.com"
+          }/v1beta`,
           apiKey,
         }
       : {
