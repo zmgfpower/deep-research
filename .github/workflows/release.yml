@@ -4,9 +4,8 @@ on:
   push:
     branches:
       - main # your default branch for releases
-  tags:
-    - "v*" # Trigger release tag format, such as v1.0.0
-  workflow_dispatch: # Allow manual triggering of workflow
+    tags:
+      - "v*" # Trigger release tag format, such as v1.0.0
 
 jobs:
   build-and-release:
