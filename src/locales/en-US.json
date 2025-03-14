@@ -37,9 +37,13 @@
   "setting": {
     "title": "Setting",
     "description": "All settings are saved in the user's browser.",
+    "local": "Local",
+    "server": "Server",
     "apiKeyLabel": "Gemini Api Key",
     "apiKeyPlaceholder": "Please enter the Gemini Api Key",
     "apiProxyLabel": "Api Proxy Url",
+    "accessPassword": "Access Password",
+    "accessPasswordPlaceholder": "Please enter the server access password",
     "language": "Language",
     "save": "Save",
     "cancel": "Cancel"

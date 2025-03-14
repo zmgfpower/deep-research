@@ -15,6 +15,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import useDeepResearch from "@/hooks/useDeepResearch";
+import { useGlobalStore } from "@/store/global";
+import { useSettingStore } from "@/store/setting";
 import { useTaskStore } from "@/store/task";
 
 const formSchema = z.object({
@@ -34,11 +36,17 @@ function Topic() {
   });
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
-    const { updateQuestion } = useTaskStore.getState();
-    setIsThinking(true);
-    updateQuestion(values.topic);
-    await askQuestions();
-    setIsThinking(false);
+    const { apiKey, accessPassword } = useSettingStore.getState();
+    if (apiKey || accessPassword) {
+      const { updateQuestion } = useTaskStore.getState();
+      setIsThinking(true);
+      updateQuestion(values.topic);
+      await askQuestions();
+      setIsThinking(false);
+    } else {
+      const { setOpenSetting } = useGlobalStore.getState();
+      setOpenSetting(true);
+    }
   }
 
   return (

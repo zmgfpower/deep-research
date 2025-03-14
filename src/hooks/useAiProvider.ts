@@ -2,10 +2,17 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { useSettingStore } from "@/store/setting";
 
 export function useGoogleProvider() {
-  const { apiKey, apiProxy } = useSettingStore();
+  const { apiKey, apiProxy, accessPassword } = useSettingStore();
 
-  return createGoogleGenerativeAI({
-    baseURL: `${apiProxy || "/ai/google"}/v1beta`,
-    apiKey,
-  });
+  return createGoogleGenerativeAI(
+    apiKey
+      ? {
+          baseURL: `${apiProxy}/v1beta`,
+          apiKey,
+        }
+      : {
+          baseURL: "/api/ai/google/v1beta",
+          apiKey: accessPassword,
+        }
+  );
 }

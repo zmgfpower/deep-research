@@ -4,6 +4,7 @@ import { persist } from "zustand/middleware";
 interface SettingStore {
   apiKey: string;
   apiProxy: string;
+  accessPassword: string;
   language: string;
 }
 
@@ -16,6 +17,7 @@ export const useSettingStore = create(
     (set) => ({
       apiKey: "",
       apiProxy: "",
+      accessPassword: "",
       language: "",
       update: (values) => set(values),
     }),

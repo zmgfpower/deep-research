@@ -19,10 +19,10 @@
       "topicPlaceholder": "任何您想了解的问题..."
     },
     "feedback": {
-      "title": "2. 提出你的想法",
+      "title": "2. 提出您的想法",
       "emptyTip": "等待确定研究主题...",
-      "feedbackLabel": "你的回答",
-      "feedbackPlaceholder": "畅所欲言，分享你的见解..."
+      "feedbackLabel": "您的回答",
+      "feedbackPlaceholder": "畅所欲言，谈谈您的见解..."
     },
     "searchResult": {
       "title": "3. 信息搜集",
@@ -37,9 +37,13 @@
   "setting": {
     "title": "设置",
     "description": "所有设置都将保存在您的浏览器中。",
+    "local": "本地",
+    "server": "服务器",
     "apiKeyLabel": "Gemini API 密钥",
     "apiKeyPlaceholder": "请在此处输入您的 Gemini API 密钥",
     "apiProxyLabel": "API 代理 URL",
+    "accessPassword": "访问密码",
+    "accessPasswordPlaceholder": "请输入服务器访问密码",
     "language": "系统语言",
     "save": "保存",
     "cancel": "取消"

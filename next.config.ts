@@ -12,7 +12,14 @@ const nextConfig: NextConfig = {
   rewrites: async () => {
     return [
       {
-        source: "/ai/google/v1beta/:path*",
+        source: "/api/ai/google/v1beta/:path*",
+        has: [
+          {
+            type: "header",
+            key: "x-goog-api-key",
+            value: "(?<key>.*)",
+          },
+        ],
         destination: `${
           API_PROXY_BASE_URL || "https://generativelanguage.googleapis.com"
         }/v1beta/:path*?key=${GOOGLE_GENERATIVE_AI_API_KEY}`,

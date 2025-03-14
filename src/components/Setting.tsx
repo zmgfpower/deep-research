@@ -11,6 +11,7 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Form,
   FormControl,
@@ -35,8 +36,9 @@ type SettingProps = {
 };
 
 const formSchema = z.object({
-  apiKey: z.string(),
+  apiKey: z.string().optional(),
   apiProxy: z.string().optional(),
+  accessPassword: z.string().optional(),
   language: z.string().optional(),
 });
 
@@ -47,8 +49,9 @@ function Setting({ open, onClose }: SettingProps) {
     resolver: zodResolver(formSchema),
     defaultValues: async () => {
       return new Promise((resolve) => {
-        const { apiKey, apiProxy, language } = useSettingStore.getState();
-        resolve({ apiKey, apiProxy, language });
+        const { apiKey, apiProxy, accessPassword, language } =
+          useSettingStore.getState();
+        resolve({ apiKey, apiProxy, accessPassword, language });
       });
     },
   });
@@ -72,40 +75,74 @@ function Setting({ open, onClose }: SettingProps) {
         </DialogHeader>
         <Form {...form}>
           <form className="space-y-4">
-            <FormField
-              control={form.control}
-              name="apiKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {t("setting.apiKeyLabel")}
-                    <span className="ml-1 text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder={t("setting.apiKeyPlaceholder")}
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="apiProxy"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("setting.apiProxyLabel")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://generativelanguage.googleapis.com"
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <Tabs defaultValue="local">
+              <TabsList className="w-full mb-1">
+                <TabsTrigger className="w-1/2" value="local">
+                  {t("setting.local")}
+                </TabsTrigger>
+                <TabsTrigger className="w-1/2" value="server">
+                  {t("setting.server")}
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent className="space-y-4" value="local">
+                <FormField
+                  control={form.control}
+                  name="apiKey"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t("setting.apiKeyLabel")}
+                        <span className="ml-1 text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder={t("setting.apiKeyPlaceholder")}
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="apiProxy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("setting.apiProxyLabel")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://generativelanguage.googleapis.com"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+              <TabsContent className="space-y-4" value="server">
+                <FormField
+                  control={form.control}
+                  name="accessPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t("setting.accessPassword")}
+                        <span className="ml-1 text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder={t("setting.accessPasswordPlaceholder")}
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+            </Tabs>
+
             <FormField
               control={form.control}
               name="language"
