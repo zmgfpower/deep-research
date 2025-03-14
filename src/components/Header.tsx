@@ -14,7 +14,12 @@ function Header() {
   return (
     <>
       <header className="flex justify-between items-center my-6">
-        <h1 className="text-center text-2xl font-bold">{t("title")}</h1>
+        <a href="https://github.com/u14app/deep-research" target="_blank">
+          <h1 className="text-center text-2xl font-bold">
+            {t("title")}
+            <small className="ml-2 font-normal text-base">v0.4.0</small>
+          </h1>
+        </a>
         <div className="flex gap-1">
           <ThemeToggle />
           <a href="https://github.com/u14app/deep-research" target="_blank">

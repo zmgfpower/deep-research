@@ -48,7 +48,7 @@ Follow these steps to get Deep Research up and running on your local browser.
    Create a `.env` or `.env.local` file in the root directory of your project and configure the following environment variables:
 
    ```env
-   # Server-side Gemini API Key (Required for server API calls)
+   # (Optional) Server-side Gemini API Key (Required for server API calls)
    GOOGLE_GENERATIVE_AI_API_KEY=YOUR_GOOGLE_GENERATIVE_AI_API_KEY
 
    # (Optional) Server API Proxy URL
@@ -56,13 +56,16 @@ Follow these steps to get Deep Research up and running on your local browser.
 
    # (Optional) Server API Access Password for enhanced security
    ACCESS_PASSWORD=YOUR_ACCESS_PASSWORD
+
+   # (Optional)
    ```
 
    **Important Notes on Environment Variables:**
 
-   - `GOOGLE_GENERATIVE_AI_API_KEY`: **Required for using the server-side API.** You need to obtain a Google Generative AI API key from [Google AI Studio](https://aistudio.google.com/). This key should be kept secret and **never committed to your public repository.**
+   - `GOOGLE_GENERATIVE_AI_API_KEY`: **Optional but required for using the server-side API.** You need to obtain a Google Generative AI API key from [Google AI Studio](https://aistudio.google.com/). This key should be kept secret and **never committed to your public repository.**
    - `API_PROXY_BASE_URL`: **Optional.** If you need to use a proxy server for API requests, configure this variable with your proxy server's base URL. This is relevant for server-side API calls.
    - `ACCESS_PASSWORD`: **Optional but highly recommended for server-side deployments.** Set a strong password to protect your server-side API endpoints. This password will be required to access server-side API functionalities.
+   - `HEAD_SCRIPTS`: **Optional** Injected script code can be used for statistics or error tracking.
 
    **Privacy Reminder:** These environment variables are primarily used for **server-side API calls**. When using the **local API mode**, no API keys or server-side configurations are needed, further enhancing your privacy.
 
@@ -97,6 +100,7 @@ Deep Research is released under the [MIT License](LICENSE). This license allows 
 - [Next.js](https://nextjs.org/) - The React framework for building performant web applications.
 - [Shadcn UI](https://ui.shadcn.com/) - Beautifully designed components that helped streamline the UI development.
 - [Google Gemini](https://ai.google.dev/gemini-api) - Powering the intelligent research capabilities of Deep Research.
+- [Deep Research](https://github.com/dzhng/deep-research) - Thanks to the project `dzhng/deep-research` for inspiration.
 
 ## 🤝 Contributing
 
