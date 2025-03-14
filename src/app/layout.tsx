@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import ThemeProvider from "@/components/Theme/Provider";
 import I18Provider from "@/components/I18nProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
 
@@ -31,6 +32,7 @@ export default function RootLayout({
         >
           <I18Provider>{children}</I18Provider>
         </ThemeProvider>
+        <Toaster richColors toastOptions={{ duration: 2000 }} />
       </body>
     </html>
   );

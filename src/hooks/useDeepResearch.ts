@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { streamText, smoothStream } from "ai";
+import { streamText, smoothStream, type APICallError } from "ai";
 import { parsePartialJson } from "@ai-sdk/ui-utils";
 import { useTranslation } from "react-i18next";
 import Plimit from "p-limit";
@@ -15,7 +15,8 @@ import {
 import { useGoogleProvider } from "@/hooks/useAiProvider";
 import { useTaskStore } from "@/store/task";
 import { useSettingStore } from "@/store/setting";
-import { pick, flat } from "radash";
+import { toast } from "sonner";
+import { pick, flat, isString, isObject } from "radash";
 
 function getResponseLanguagePrompt(lang: string) {
   return `\n\n**Respond in ${lang}**\n\n`;
@@ -36,6 +37,15 @@ function removeJsonMarkdown(text: string) {
   return text.trim();
 }
 
+function handleError(err: unknown) {
+  console.error(err);
+  if (isString(err)) toast(err);
+  if (isObject(err)) {
+    const { error } = err as { error: APICallError };
+    toast.error(`[${error.name}]: ${error.message}`);
+  }
+}
+
 function useDeepResearch() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
@@ -53,6 +63,7 @@ function useDeepResearch() {
       prompt:
         generateQuestionsPrompt(question) + getResponseLanguagePrompt(language),
       experimental_transform: smoothStream(),
+      onError: handleError,
     });
     let content = "";
     taskStore.updateQuestion(question);
@@ -78,6 +89,7 @@ function useDeepResearch() {
             processSearchResultPrompt(item.query, item.researchGoal) +
             getResponseLanguagePrompt(language),
           experimental_transform: smoothStream(),
+          onError: handleError,
         });
         for await (const part of searchResult.fullStream) {
           if (part.type === "text-delta") {
@@ -107,6 +119,7 @@ function useDeepResearch() {
         reviewSerpQueriesPrompt(query, learnings) +
         getResponseLanguagePrompt(language),
       experimental_transform: smoothStream(),
+      onError: handleError,
     });
 
     const querySchema = getSERPQuerySchema();
@@ -148,6 +161,7 @@ function useDeepResearch() {
         writeFinalReportPrompt(query, learnings) +
         getResponseLanguagePrompt(language),
       experimental_transform: smoothStream(),
+      onError: handleError,
     });
     let content = "";
     for await (const textPart of result.textStream) {
@@ -186,6 +200,7 @@ function useDeepResearch() {
           generateSerpQueriesPrompt(query) +
           getResponseLanguagePrompt(language),
         experimental_transform: smoothStream(),
+        onError: handleError,
       });
 
       const querySchema = getSERPQuerySchema();

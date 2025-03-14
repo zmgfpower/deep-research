@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import pkg from "./package.json";
 
 const API_PROXY_BASE_URL = process.env.API_PROXY_BASE_URL as string;
 const GOOGLE_GENERATIVE_AI_API_KEY = process.env
@@ -9,6 +10,9 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     reactCompiler: true,
+  },
+  env: {
+    NEXT_PUBLIC_VERSION: pkg.version,
   },
   rewrites: async () => {
     return [

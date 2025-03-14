@@ -20,7 +20,7 @@ import { useSettingStore } from "@/store/setting";
 import { useTaskStore } from "@/store/task";
 
 const formSchema = z.object({
-  topic: z.string().min(2).max(500),
+  topic: z.string().min(2),
 });
 
 function Topic() {

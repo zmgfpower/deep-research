@@ -2,8 +2,6 @@ name: Release
 
 on:
   push:
-    branches:
-      - main # your default branch for releases
     tags:
       - "v*" # Trigger release tag format, such as v1.0.0
 
@@ -29,12 +27,13 @@ jobs:
         run: pnpm install
 
       - name: Build and Export Next.js
-        run: |
-          pnpm build:export
+        id: export
+        run: pnpm build:export
 
       - name: Zip out directory
         run: |
-          zip -r ./release.zip ./out
+          cd ${{ steps.export.outputs }}
+          zip -r release.zip out
 
       - name: Create Release
         uses: actions/create-release@v1
@@ -56,6 +55,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # Get the upload_url from the create-release step
-          asset_path: release.zip
+          asset_path: ${{ steps.export.outputs }}/release.zip
           asset_name: ${{ github.name }}_${{ github.ref_name }}_static-web.zip
           asset_content_type: application/zip
