@@ -1,7 +1,15 @@
-# Deep Research
+<div align="center">
+<h1>Deep Research</h1>
 
+![GitHub Release](https://img.shields.io/github/v/release/u14app/deep-research)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js 15](https://img.shields.io/badge/Next.js-15-blueviolet)](https://nextjs.org/)
+
+[![Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=flat&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
+[![Next](https://img.shields.io/badge/Next.js-111111?style=flat&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![shadcn/ui](https://img.shields.io/badge/shadcn/ui-111111?style=flat&logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
+
+</div>
 
 **Lightning-Fast Deep Research Reports Powered by Google Gemini**
 
@@ -20,6 +28,17 @@ Deep Research is a cutting-edge project built with Next.js 15, leveraging the po
 - **MIT Licensed:** Open-source and freely available for personal and commercial use under the MIT License.
 
 ## 🚀 Getting Started
+
+1. Get [Gemini API Key](https://aistudio.google.com/app/apikey)
+2. One-click deployment of the project, you can choose to deploy to Vercel or Cloudflare
+
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fu14app%2Fdeep-research&project-name=deep-research&repository-name=deep-research)
+
+   Currently the project supports deployment to Cloudflare, but you need to follow [How to deploy to Cloudflare Pages](./docs/How-to-deploy-to-Cloudflare-Pages.md) to do it.
+
+3. Start using
+
+## ⌨️ Development
 
 Follow these steps to get Deep Research up and running on your local browser.
 
