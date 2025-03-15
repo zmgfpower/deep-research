@@ -19,7 +19,7 @@ import useAccurateTimer from "@/hooks/useAccurateTimer";
 import { useTaskStore } from "@/store/task";
 
 const formSchema = z.object({
-  feedback: z.string().min(2),
+  feedback: z.string(),
 });
 
 function Feedback() {

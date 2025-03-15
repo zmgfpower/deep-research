@@ -21,3 +21,11 @@ interface PartialJson {
     | "repaired-parse"
     | "failed-parse";
 }
+
+interface GeminiError {
+  error: {
+    code: number;
+    message: string;
+    status: string;
+  };
+}

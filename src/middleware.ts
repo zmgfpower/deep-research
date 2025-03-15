@@ -17,7 +17,13 @@ export function middleware(request: NextRequest) {
       const authorization = request.headers.get("x-goog-api-key");
       if (isEqual(authorization, null) || authorization !== accessPassword) {
         return NextResponse.json(
-          { code: 403, message: "No permissions" },
+          {
+            error: {
+              code: 403,
+              message: "No permissions",
+              status: "FORBIDDEN",
+            },
+          },
           { status: 403 }
         );
       }

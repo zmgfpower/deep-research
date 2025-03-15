@@ -30,31 +30,9 @@ jobs:
         id: export
         run: pnpm build:export
 
-      - name: Zip out directory
-        run: |
-          cd ${{ steps.export.outputs }}
-          zip -r release.zip out
-
-      - name: Create Release
-        uses: actions/create-release@v1
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Archive Static Web Release
+        uses: thedoctor0/zip-release@0.7.5
         with:
-          tag_name: ${{ github.ref_name }} # Use the tag that triggers the workflow as the release tag
-          release_name: Release ${{ github.ref_name }} # Release Title
-          body: |
-            Automatically build and package the Release package.
-            Please see the commit record for details.
-          draft: false
-          prerelease: ${{ startsWith(github.ref_name, 'v') == false }} # If the tag does not start with 'v', it is marked as pre-release
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # Get the upload_url from the create-release step
-          asset_path: ${{ steps.export.outputs }}/release.zip
-          asset_name: ${{ github.name }}_${{ github.ref_name }}_static-web.zip
-          asset_content_type: application/zip
+          type: "zip"
+          filename: static-web_${{ github.ref_name }}.zip
+          path: "./out"

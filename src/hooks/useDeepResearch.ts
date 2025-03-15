@@ -39,10 +39,15 @@ function removeJsonMarkdown(text: string) {
 
 function handleError(err: unknown) {
   console.error(err);
-  if (isString(err)) toast(err);
+  if (isString(err)) toast.error(err);
   if (isObject(err)) {
     const { error } = err as { error: APICallError };
-    toast.error(`[${error.name}]: ${error.message}`);
+    if (error.responseBody) {
+      const response = JSON.parse(error.responseBody) as GeminiError;
+      toast.error(`[${response.error.status}]: ${response.error.message}`);
+    } else {
+      toast.error(`[${error.name}]: ${error.message}`);
+    }
   }
 }
 
