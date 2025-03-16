@@ -37,6 +37,8 @@ if (BUILD_MODE === "export") {
   nextConfig.output = "export";
   // Only used for static deployment, the default deployment directory is the root directory
   nextConfig.basePath = "";
+} else if (BUILD_MODE === "standalone") {
+  nextConfig.output = "standalone";
 }
 
 export default nextConfig;
