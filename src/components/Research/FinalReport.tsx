@@ -1,24 +1,22 @@
 "use client";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { LoaderCircle } from "lucide-react";
-import Magicdown from "@/components/Magicdown";
-import { Button } from "@/components/ui/button";
-import useDeepResearch from "@/hooks/useDeepResearch";
+import { Download, FileText, Signature } from "lucide-react";
+import MilkdownEditor from "@/components/MilkdownEditor";
+import Artifact from "@/components/Artifact";
+import { Button } from "@/components/Button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 import { useTaskStore } from "@/store/task";
 import { downloadFile } from "@/utils/file";
 
 function FinalReport() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const { status, writeFinalReport } = useDeepResearch();
-  const [isWriting, setIsWriting] = useState<boolean>(false);
-
-  async function handleWriteFinalReport() {
-    setIsWriting(true);
-    await writeFinalReport();
-    setIsWriting(false);
-  }
 
   async function handleDownloadPDF() {
     const { default: printJS } = await import("print-js");
@@ -40,38 +38,62 @@ function FinalReport() {
         <>
           <article
             id="final-report"
-            className="prose prose-slate dark:prose-invert mt-6 mx-2"
+            className="prose prose-slate dark:prose-invert max-w-full relative mt-6 mx-2"
           >
-            <Magicdown>{taskStore.finalReport}</Magicdown>
-          </article>
-          <div className="grid grid-cols-3 gap-4 max-sm:gap-2 w-full border-t mt-4 pt-4">
-            <Button
-              variant="secondary"
-              disabled={isWriting}
-              onClick={() => handleWriteFinalReport()}
-            >
-              {isWriting ? (
+            <MilkdownEditor
+              className="prose prose-slate dark:prose-invert max-w-full mt-6 min-h-72"
+              value={taskStore.finalReport}
+              onChange={(value) => taskStore.updateFinalReport(value)}
+              tools={
                 <>
-                  <LoaderCircle className="animate-spin" />
-                  <span className="mx-1">{status}</span>
+                  <div className="px-1">
+                    <Separator className="dark:bg-slate-700" />
+                  </div>
+                  <Artifact
+                    buttonClassName="float-menu-button"
+                    dropdownMenuSideOffset={8}
+                    tooltipSideOffset={8}
+                  />
+                  <div className="px-1">
+                    <Separator className="dark:bg-slate-700" />
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        className="float-menu-button"
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        title="Export"
+                        side="left"
+                        sideoffset={8}
+                      >
+                        <Download />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="left" sideOffset={8}>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          downloadFile(
+                            taskStore.finalReport,
+                            taskStore.title,
+                            "text/markdown;charset=utf-8"
+                          )
+                        }
+                      >
+                        <FileText />
+                        <span>Markdown</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDownloadPDF()}>
+                        <Signature />
+                        <span>PDF</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
-              ) : (
-                t("research.common.rewriteReport")
-              )}
-            </Button>
-            <Button
-              onClick={() =>
-                downloadFile(
-                  taskStore.finalReport,
-                  taskStore.title,
-                  "text/markdown;charset=utf-8"
-                )
               }
-            >
-              Markdown
-            </Button>
-            <Button onClick={() => handleDownloadPDF()}>PDF</Button>
-          </div>
+            />
+          </article>
         </>
       )}
     </section>

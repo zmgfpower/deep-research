@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle, CircleCheck, TextSearch } from "lucide-react";
-import Magicdown from "@/components/Magicdown";
+import MilkdownEditor from "@/components/MilkdownEditor";
 import {
   Form,
   FormControl,
@@ -99,8 +99,9 @@ function SearchResult() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="prose prose-slate dark:prose-invert">
-                    <Magicdown>
-                      {[
+                    <MilkdownEditor
+                      className="prose prose-slate dark:prose-invert max-w-full mt-6 min-h-20"
+                      value={[
                         `> ${item.researchGoal}`,
                         item.learning,
                         item.sources?.length > 0
@@ -116,7 +117,8 @@ function SearchResult() {
                               .join("\n")}`
                           : "",
                       ].join("\n\n")}
-                    </Magicdown>
+                      onChange={(value) => taskStore.updateFinalReport(value)}
+                    ></MilkdownEditor>
                   </AccordionContent>
                 </AccordionItem>
               );

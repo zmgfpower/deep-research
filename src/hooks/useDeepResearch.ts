@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { streamText, smoothStream, type APICallError } from "ai";
+import { streamText, smoothStream } from "ai";
 import { parsePartialJson } from "@ai-sdk/ui-utils";
 import { useTranslation } from "react-i18next";
 import Plimit from "p-limit";
+import { toast } from "sonner";
+import { useGoogleProvider } from "@/hooks/useAiProvider";
+import { useTaskStore } from "@/store/task";
+import { useSettingStore } from "@/store/setting";
 import {
   getSystemPrompt,
   generateQuestionsPrompt,
@@ -12,11 +16,8 @@ import {
   writeFinalReportPrompt,
   getSERPQuerySchema,
 } from "@/utils/deep-research";
-import { useGoogleProvider } from "@/hooks/useAiProvider";
-import { useTaskStore } from "@/store/task";
-import { useSettingStore } from "@/store/setting";
-import { toast } from "sonner";
-import { pick, flat, isString, isObject } from "radash";
+import { parseError } from "@/utils/error";
+import { pick, flat } from "radash";
 
 function getResponseLanguagePrompt(lang: string) {
   return `\n\n**Respond in ${lang}**\n\n`;
@@ -37,18 +38,9 @@ function removeJsonMarkdown(text: string) {
   return text.trim();
 }
 
-function handleError(err: unknown) {
-  console.error(err);
-  if (isString(err)) toast.error(err);
-  if (isObject(err)) {
-    const { error } = err as { error: APICallError };
-    if (error.responseBody) {
-      const response = JSON.parse(error.responseBody) as GeminiError;
-      toast.error(`[${response.error.status}]: ${response.error.message}`);
-    } else {
-      toast.error(`[${error.name}]: ${error.message}`);
-    }
-  }
+function handleError(error: unknown) {
+  const errorMessage = parseError(error);
+  toast.error(errorMessage);
 }
 
 function useDeepResearch() {

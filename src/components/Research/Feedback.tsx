@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
-import Magicdown from "@/components/Magicdown";
+import MilkdownEditor from "@/components/MilkdownEditor";
 import {
   Form,
   FormControl,
@@ -68,9 +68,11 @@ function Feedback() {
         <div>{t("research.feedback.emptyTip")}</div>
       ) : (
         <div>
-          <article className="prose prose-slate dark:prose-invert mt-6">
-            <Magicdown>{taskStore.questions}</Magicdown>
-          </article>
+          <MilkdownEditor
+            className="prose prose-slate dark:prose-invert max-w-full mt-6 min-h-20"
+            value={taskStore.questions}
+            onChange={(value) => taskStore.updateFinalReport(value)}
+          ></MilkdownEditor>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
               <FormField
