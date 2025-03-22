@@ -35,6 +35,12 @@
       "title": "4. Final Report",
       "emptyTip": "Waiting for data to be collated...",
       "researchedInfor": "Researched {{total}} websites"
+    },
+    "history": {
+      "title": "History",
+      "emptyTip": "No history records",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to delete?"
     }
   },
   "setting": {

@@ -22,7 +22,7 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from "@/components/ui/table";
+} from "../ui/table";
 import { useTaskStore } from "@/store/task";
 import { useSettingStore } from "@/store/setting";
 
