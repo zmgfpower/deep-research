@@ -38,9 +38,10 @@
     },
     "history": {
       "title": "历史记录",
-      "emptyTip": "没有历史记录",
-      "delete": "删除",
-      "deleteConfirm": "确定删除吗？"
+      "date": "请求时间",
+      "actions": "操作",
+      "close": "关闭",
+      "noHistory": "没有历史记录"
     }
   },
   "setting": {

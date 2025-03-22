@@ -124,7 +124,7 @@ export function HistoryDialog({ open, onClose }: HistoryDialogProps) {
         </div>
         <div className="flex justify-end">
           <Button variant="outline" onClick={onClose}>
-            {t("common.close")}
+            {t("research.history.close")}
           </Button>
         </div>
       </DialogContent>
