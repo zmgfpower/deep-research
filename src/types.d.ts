@@ -13,6 +13,20 @@ interface SearchTask {
   sources: Source[];
 }
 
+// 历史记录类型
+interface TaskHistory {
+  id: string;
+  createdAt: number;
+  title: string;
+  question: string;
+  questions: string;
+  finalReport: string;
+  query: string;
+  suggestion: string;
+  tasks: SearchTask[];
+  feedback: string;
+}
+
 interface PartialJson {
   value: JSONValue | undefined;
   state:
