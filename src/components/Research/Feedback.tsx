@@ -37,13 +37,12 @@ function Feedback() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      feedback: taskStore.feedback || "",
+      feedback: taskStore.feedback,
     },
   });
 
-  // 当taskStore.feedback变化时更新表单值
   useEffect(() => {
-    form.setValue("feedback", taskStore.feedback || "");
+    form.setValue("feedback", taskStore.feedback);
   }, [taskStore.feedback, form]);
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {

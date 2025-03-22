@@ -13,8 +13,7 @@ interface SearchTask {
   sources: Source[];
 }
 
-// 历史记录类型
-interface TaskHistory {
+interface ResearchHistory {
   id: string;
   createdAt: number;
   title: string;

@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { cn } from "../../utils/cn"
+import { cn } from "@/utils/style"
 
 const Table = React.forwardRef<
   HTMLTableElement,
@@ -117,4 +117,4 @@ export {
   TableRow,
   TableCell,
   TableCaption,
-} 
+}

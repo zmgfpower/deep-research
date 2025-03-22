@@ -54,13 +54,12 @@ function SearchResult() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      suggestion: taskStore.suggestion || "",
+      suggestion: taskStore.suggestion,
     },
   });
 
-  // 当taskStore.suggestion变化时更新表单值
   useEffect(() => {
-    form.setValue("suggestion", taskStore.suggestion || "");
+    form.setValue("suggestion", taskStore.suggestion);
   }, [taskStore.suggestion, form]);
 
   async function handleWriteFinalReport() {

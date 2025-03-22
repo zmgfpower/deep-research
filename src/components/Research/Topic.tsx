@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { LoaderCircle, History, PlusCircle } from "lucide-react";
+import { LoaderCircle, PlusCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { HistoryDialog } from "@/components/Research/History";
 import useDeepResearch from "@/hooks/useDeepResearch";
 import { useGlobalStore } from "@/store/global";
 import { useSettingStore } from "@/store/setting";
@@ -29,18 +28,16 @@ function Topic() {
   const { askQuestions } = useDeepResearch();
   const taskStore = useTaskStore();
   const [isThinking, setIsThinking] = useState<boolean>(false);
-  const [showHistory, setShowHistory] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      topic: taskStore.question || "",
+      topic: taskStore.question,
     },
   });
 
-  // 当taskStore.question变化时更新表单值
   useEffect(() => {
-    form.setValue("topic", taskStore.question || "");
+    form.setValue("topic", taskStore.question);
   }, [taskStore.question, form]);
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
@@ -57,11 +54,9 @@ function Topic() {
     }
   }
 
-  // 创建新对话的处理函数
-  function handleNewConversation() {
-    const { clearAll } = useTaskStore.getState();
-    clearAll();
-    form.reset(); // 重置表单
+  function createNewResearch() {
+    taskStore.reset();
+    form.reset();
   }
 
   return (
@@ -70,22 +65,14 @@ function Topic() {
         <h3 className="font-semibold text-lg leading-10">
           {t("research.topic.title")}
         </h3>
-        <div className="flex space-x-2">
+        <div className="flex gap-1">
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleNewConversation}
-            title={t("research.common.newConversation")}
+            onClick={() => createNewResearch()}
+            title={t("research.common.newResearch")}
           >
             <PlusCircle className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowHistory(true)}
-            title={t("research.history.title")}
-          >
-            <History className="h-5 w-5" />
           </Button>
         </div>
       </div>
@@ -121,7 +108,6 @@ function Topic() {
           </Button>
         </form>
       </Form>
-      <HistoryDialog open={showHistory} onClose={() => setShowHistory(false)} />
     </section>
   );
 }
