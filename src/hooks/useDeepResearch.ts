@@ -188,6 +188,7 @@ function useDeepResearch() {
         .join("\n")}`;
     }
     taskStore.updateFinalReport(content);
+    taskStore.saveToHistory();
     return content;
   }
 

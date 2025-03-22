@@ -35,6 +35,13 @@
       "title": "4. 最终报告",
       "emptyTip": "等待数据汇总...",
       "researchedInfor": "已研究 {{total}} 个网站"
+    },
+    "history": {
+      "title": "历史记录",
+      "date": "请求时间",
+      "actions": "操作",
+      "close": "关闭",
+      "noHistory": "没有历史记录"
     }
   },
   "setting": {

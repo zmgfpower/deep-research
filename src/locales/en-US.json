@@ -35,6 +35,14 @@
       "title": "4. Final Report",
       "emptyTip": "Waiting for data to be collated...",
       "researchedInfor": "Researched {{total}} websites"
+    },
+    "history": {
+      "title": "History",
+      "emptyTip": "No history records",
+      "date": "Date",
+      "actions": "Action",
+      "close": "Close",
+      "noHistory": "No history records"
     }
   },
   "setting": {
