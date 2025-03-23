@@ -6,6 +6,7 @@ import Plimit from "p-limit";
 import { toast } from "sonner";
 import { useGoogleProvider } from "@/hooks/useAiProvider";
 import { useTaskStore } from "@/store/task";
+import { useHistoryStore } from "@/store/history";
 import { useSettingStore } from "@/store/setting";
 import {
   getSystemPrompt,
@@ -148,6 +149,7 @@ function useDeepResearch() {
   async function writeFinalReport() {
     const { language } = useSettingStore.getState();
     const { query, tasks, setTitle } = useTaskStore.getState();
+    const { save } = useHistoryStore.getState();
     setStatus(t("research.common.writing"));
     const learnings = tasks.map((item) => item.learning);
     const result = streamText({
@@ -180,6 +182,7 @@ function useDeepResearch() {
         .join("\n")}`;
     }
     taskStore.updateFinalReport(content);
+    save(taskStore.backup());
     return content;
   }
 
