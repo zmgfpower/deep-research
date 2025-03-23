@@ -15,99 +15,125 @@
   --crepe-color-inline-area: #d8dae0;
 
   @apply bg-transparent;
-}
 
-.milkdown .ProseMirror {
-  @apply p-0;
-}
+  ol,
+  ul,
+  dl {
+    @apply ps-0;
+  }
 
-.milkdown milkdown-list-item-block p {
-  @apply mt-0 mb-0;
-}
+  h1,
+  h2 {
+    @apply mt-6;
+  }
 
-.milkdown milkdown-toolbar,
-.milkdown milkdown-link-edit,
-.milkdown milkdown-link-preview,
-.milkdown milkdown-latex-inline-edit {
-  @apply bg-slate-50 shadow-md dark:bg-slate-800 rounded-md;
-}
+  hr {
+    @apply my-8;
+  }
 
-.milkdown milkdown-toolbar .toolbar-item svg {
-  @apply dark:fill-slate-400 fill-slate-500;
-}
+  .milkdown-editor {
+    @apply p-0;
+    &[contenteditable="false"] > p:last-child {
+      @apply hidden;
+    }
+  }
 
-.milkdown milkdown-toolbar .toolbar-item.active svg {
-  @apply dark:fill-slate-50 fill-slate-800;
-}
+  milkdown-list-item-block {
+    li .label-wrapper .label {
+      @apply p-0;
+    }
+    p {
+      @apply mt-0 mb-0;
+    }
+  }
 
-.milkdown milkdown-toolbar .divider {
-  @apply bg-slate-300;
-}
+  milkdown-list-item-block milkdown-toolbar,
+  milkdown-link-edit,
+  milkdown-link-preview,
+  milkdown-latex-inline-edit {
+    @apply bg-slate-50 shadow-md dark:bg-slate-800 rounded-md;
+  }
 
-.milkdown .cm-activeLineGutter,
-.milkdown milkdown-code-block .cm-editor {
-  @apply bg-transparent;
-}
+  milkdown-toolbar .toolbar-item {
+    &.active {
+      svg {
+        @apply dark:fill-slate-50 fill-slate-800;
+      }
+    }
+    svg {
+      @apply dark:fill-slate-400 fill-slate-500;
+    }
+  }
 
-.milkdown milkdown-code-block .cm-gutters {
-  @apply bg-slate-50 dark:bg-slate-800;
-}
+  milkdown-toolbar .divider {
+    @apply bg-slate-300;
+  }
 
-.milkdown milkdown-table-block svg,
-.milkdown milkdown-link-edit > .link-edit > .button > svg,
-.milkdown milkdown-link-preview > .link-preview > .link-icon > svg,
-.milkdown milkdown-link-preview > .link-preview > .button > svg,
-.milkdown milkdown-block-handle .operation-item svg {
-  @apply dark:fill-slate-400 fill-slate-500;
-}
+  .cm-activeLineGutter,
+  milkdown-code-block .cm-editor {
+    @apply bg-transparent;
+  }
 
-.milkdown milkdown-list-item-block li .label-wrapper svg {
-  @apply fill-slate-300 dark:fill-slate-500;
-}
+  milkdown-code-block .cm-gutters {
+    @apply bg-slate-50 dark:bg-slate-800;
+  }
 
-.milkdown milkdown-code-block {
-  @apply bg-slate-50 dark:bg-slate-800 rounded-md pt-2 p-4 max-sm:pt-1 max-sm:p-2;
-}
+  milkdown-table-block svg,
+  milkdown-link-edit > .link-edit > .button > svg,
+  milkdown-link-preview > .link-preview > .link-icon > svg,
+  milkdown-link-preview > .link-preview > .button > svg,
+  milkdown-block-handle .operation-item svg {
+    @apply dark:fill-slate-400 fill-slate-500;
+  }
 
-.milkdown milkdown-code-block .list-wrapper,
-.milkdown milkdown-slash-menu {
-  @apply bg-slate-100 dark:bg-slate-900 shadow-md;
-}
+  milkdown-list-item-block li .label-wrapper svg {
+    @apply fill-slate-300 dark:fill-slate-500;
+  }
 
-.milkdown milkdown-slash-menu .tab-group ul,
-.milkdown milkdown-slash-menu .tab-group ul li,
-.milkdown milkdown-slash-menu ul,
-.milkdown milkdown-slash-menu .tab-group ul li {
-  @apply mt-0 mb-0;
-}
+  milkdown-code-block {
+    @apply bg-slate-50 dark:bg-slate-800 rounded-md pt-2 p-4 max-sm:pt-1 max-sm:p-2;
+  }
 
-.milkdown milkdown-slash-menu {
-  @apply rounded-sm block;
-}
+  milkdown-code-block .list-wrapper,
+  milkdown-slash-menu {
+    @apply bg-slate-100 dark:bg-slate-900 shadow-md;
+  }
 
-.milkdown milkdown-slash-menu ul {
-  @apply ps-0;
-}
+  milkdown-slash-menu .tab-group ul,
+  milkdown-slash-menu .tab-group ul li,
+  milkdown-slash-menu ul,
+  milkdown-slash-menu .tab-group ul li {
+    @apply mt-0 mb-0;
+  }
 
-.milkdown milkdown-slash-menu .tab-group ul li.selected {
-  @apply bg-slate-200;
-}
+  milkdown-slash-menu {
+    @apply rounded-sm block;
+  }
 
-.milkdown milkdown-slash-menu .menu-groups .menu-group li.hover,
-.milkdown milkdown-slash-menu .menu-groups .menu-group li.active {
-  @apply bg-slate-200 transition-colors;
-}
+  milkdown-slash-menu ul {
+    @apply ps-0;
+  }
 
-.milkdown milkdown-table-block .cell-handle {
-  @apply bg-slate-100 dark:bg-slate-900;
-}
+  milkdown-slash-menu .tab-group ul li.selected {
+    @apply bg-slate-200;
+  }
 
-.milkdown milkdown-block-handle {
-  @apply hidden;
-}
+  milkdown-slash-menu .menu-groups .menu-group li.hover,
+  milkdown-slash-menu .menu-groups .menu-group li.active {
+    @apply bg-slate-200 transition-colors;
+  }
 
-.milkdown [data-placeholder] {
-  @apply text-slate-400;
+  milkdown-table-block .cell-handle {
+    @apply bg-slate-100 dark:bg-slate-900;
+  }
+
+  milkdown-block-handle {
+    @apply hidden;
+  }
+
+  [data-placeholder] {
+    @apply text-slate-400;
+  }
 }
 
 milkdown-slash-menu {

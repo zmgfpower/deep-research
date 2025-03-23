@@ -2,7 +2,6 @@ import { useState } from "react";
 import { streamText, smoothStream } from "ai";
 import { toast } from "sonner";
 import { useGoogleProvider } from "@/hooks/useAiProvider";
-import { useTaskStore } from "@/store/task";
 import {
   AIWritePrompt,
   changeLanguagePrompt,
@@ -11,121 +10,119 @@ import {
   continuationPrompt,
   addEmojisPrompt,
 } from "@/utils/artifact";
-import { getSystemPrompt } from "@/utils/deep-research";
 import { parseError } from "@/utils/error";
+
+type ArtifactProps = {
+  value: string;
+  onChange: (value: string) => void;
+};
 
 function handleError(error: unknown) {
   const errorMessage = parseError(error);
   toast.error(errorMessage);
 }
 
-function useArtifact() {
+function useArtifact({ value, onChange }: ArtifactProps) {
   const google = useGoogleProvider();
   const [loadingAction, setLoadingAction] = useState<string>("");
 
-  async function AIWrite(prompt: string) {
-    const { finalReport, updateFinalReport } = useTaskStore.getState();
+  async function AIWrite(prompt: string, systemInstruction?: string) {
     setLoadingAction("aiWrite");
     const result = streamText({
       model: google("gemini-2.0-flash-thinking-exp"),
-      prompt: AIWritePrompt(finalReport, prompt, getSystemPrompt()),
+      prompt: AIWritePrompt(value, prompt, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
     });
     let text = "";
     for await (const textPart of result.textStream) {
       text += textPart;
-      updateFinalReport(text);
+      onChange(text);
     }
     text = "";
     setLoadingAction("");
   }
 
-  async function translate(lang: string) {
-    const { finalReport, updateFinalReport } = useTaskStore.getState();
+  async function translate(lang: string, systemInstruction?: string) {
     setLoadingAction("translate");
     const result = streamText({
       model: google("gemini-2.0-flash-thinking-exp"),
-      prompt: changeLanguagePrompt(finalReport, lang, getSystemPrompt()),
+      prompt: changeLanguagePrompt(value, lang, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
     });
     let text = "";
     for await (const textPart of result.textStream) {
       text += textPart;
-      updateFinalReport(text);
+      onChange(text);
     }
     text = "";
     setLoadingAction("");
   }
 
-  async function changeReadingLevel(level: string) {
-    const { finalReport, updateFinalReport } = useTaskStore.getState();
+  async function changeReadingLevel(level: string, systemInstruction?: string) {
     setLoadingAction("readingLevel");
     const result = streamText({
       model: google("gemini-2.0-flash-thinking-exp"),
-      prompt: changeReadingLevelPrompt(finalReport, level, getSystemPrompt()),
+      prompt: changeReadingLevelPrompt(value, level, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
     });
     let text = "";
     for await (const textPart of result.textStream) {
       text += textPart;
-      updateFinalReport(text);
+      onChange(text);
     }
     text = "";
     setLoadingAction("");
   }
 
-  async function adjustLength(length: string) {
-    const { finalReport, updateFinalReport } = useTaskStore.getState();
+  async function adjustLength(length: string, systemInstruction?: string) {
     setLoadingAction("adjustLength");
     const result = streamText({
       model: google("gemini-2.0-flash-thinking-exp"),
-      prompt: adjustLengthPrompt(finalReport, length, getSystemPrompt()),
+      prompt: adjustLengthPrompt(value, length, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
     });
     let text = "";
     for await (const textPart of result.textStream) {
       text += textPart;
-      updateFinalReport(text);
+      onChange(text);
     }
     text = "";
     setLoadingAction("");
   }
 
-  async function continuation() {
-    const { finalReport, updateFinalReport } = useTaskStore.getState();
+  async function continuation(systemInstruction?: string) {
     setLoadingAction("continuation");
     const result = streamText({
       model: google("gemini-2.0-flash-thinking-exp"),
-      prompt: continuationPrompt(finalReport, getSystemPrompt()),
+      prompt: continuationPrompt(value, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
     });
     let text = "";
     for await (const textPart of result.textStream) {
       text += textPart;
-      updateFinalReport(text);
+      onChange(text);
     }
     text = "";
     setLoadingAction("");
   }
 
-  async function addEmojis() {
-    const { finalReport, updateFinalReport } = useTaskStore.getState();
+  async function addEmojis(systemInstruction?: string) {
     setLoadingAction("addEmojis");
     const result = streamText({
       model: google("gemini-2.0-flash-thinking-exp"),
-      prompt: addEmojisPrompt(finalReport, getSystemPrompt()),
+      prompt: addEmojisPrompt(value, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
     });
     let text = "";
     for await (const textPart of result.textStream) {
       text += textPart;
-      updateFinalReport(text);
+      onChange(text);
     }
     text = "";
     setLoadingAction("");

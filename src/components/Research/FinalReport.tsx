@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { useTaskStore } from "@/store/task";
+import { getSystemPrompt } from "@/utils/deep-research";
 import { downloadFile } from "@/utils/file";
 
 function FinalReport() {
@@ -37,12 +38,9 @@ function FinalReport() {
         <div>{t("research.finalReport.emptyTip")}</div>
       ) : (
         <>
-          <article
-            id="final-report"
-            className="prose prose-slate dark:prose-invert max-w-full relative mt-6"
-          >
+          <article id="final-report">
             <MilkdownEditor
-              className="prose prose-slate dark:prose-invert max-w-full mt-6 min-h-72"
+              className="prose prose-slate dark:prose-invert max-w-full min-h-72"
               value={taskStore.finalReport}
               onChange={(value) => taskStore.updateFinalReport(value)}
               tools={
@@ -51,6 +49,9 @@ function FinalReport() {
                     <Separator className="dark:bg-slate-700" />
                   </div>
                   <Artifact
+                    value={taskStore.finalReport}
+                    systemInstruction={getSystemPrompt()}
+                    onChange={taskStore.updateFinalReport}
                     buttonClassName="float-menu-button"
                     dropdownMenuSideOffset={8}
                     tooltipSideOffset={8}

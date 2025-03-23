@@ -1,10 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle, CircleCheck, TextSearch } from "lucide-react";
+import { Crepe } from "@milkdown/crepe";
+import { replaceAll, getHTML } from "@milkdown/kit/utils";
 import MilkdownEditor from "@/components/MilkdownEditor";
 import {
   Form,
@@ -48,6 +50,7 @@ function SearchResult() {
     start: accurateTimerStart,
     stop: accurateTimerStop,
   } = useAccurateTimer();
+  const [mlkdownEditor, setMilkdownEditor] = useState<Crepe>();
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [isWriting, setIsWriting] = useState<boolean>(false);
 
@@ -63,9 +66,31 @@ function SearchResult() {
   }, [taskStore.suggestion, form]);
 
   async function handleWriteFinalReport() {
-    setIsWriting(true);
-    await writeFinalReport();
-    setIsWriting(false);
+    try {
+      accurateTimerStart();
+      setIsWriting(true);
+      await writeFinalReport();
+      setIsWriting(false);
+    } finally {
+      accurateTimerStop();
+    }
+  }
+
+  function renderMarkdown(markdown: string) {
+    if (mlkdownEditor) {
+      replaceAll(markdown)(mlkdownEditor.editor.ctx);
+      const html = getHTML()(mlkdownEditor.editor.ctx);
+      return (
+        <blockquote className="hidden-empty-p">
+          <div
+            dangerouslySetInnerHTML={{
+              __html: html,
+            }}
+          ></div>
+        </blockquote>
+      );
+    }
+    return null;
   }
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
@@ -82,6 +107,26 @@ function SearchResult() {
       accurateTimerStop();
     }
   }
+
+  useLayoutEffect(() => {
+    const crepe = new Crepe({
+      defaultValue: "",
+      root: document.createDocumentFragment(),
+      features: {
+        [Crepe.Feature.ImageBlock]: false,
+        [Crepe.Feature.BlockEdit]: false,
+        [Crepe.Feature.Toolbar]: false,
+        [Crepe.Feature.LinkTooltip]: false,
+      },
+    });
+
+    crepe.setReadonly(true).create();
+    setMilkdownEditor(crepe);
+
+    return () => {
+      crepe.destroy();
+    };
+  }, []);
 
   return (
     <section className="p-4 border rounded-md mt-4">
@@ -102,27 +147,31 @@ function SearchResult() {
                       <span className="ml-1">{item.query}</span>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="prose prose-slate dark:prose-invert">
+                  <AccordionContent className="prose prose-slate dark:prose-invert max-w-full min-h-20">
+                    {renderMarkdown(item.researchGoal)}
                     <MilkdownEditor
-                      className="prose prose-slate dark:prose-invert max-w-full mt-6 min-h-20"
-                      value={[
-                        `> ${item.researchGoal}`,
-                        item.learning,
-                        item.sources?.length > 0
-                          ? `\n\n#### ${t(
-                              "research.common.sources"
-                            )}\n\n${item.sources
-                              .map(
-                                (source) =>
-                                  `- [${source.title || source.url}](${
-                                    source.url
-                                  })`
-                              )
-                              .join("\n")}`
-                          : "",
-                      ].join("\n\n")}
-                      onChange={(value) => taskStore.updateFinalReport(value)}
+                      value={item.learning}
+                      onChange={(value) =>
+                        taskStore.updateTask(item.query, { learning: value })
+                      }
                     ></MilkdownEditor>
+                    {item.sources?.length > 0 ? (
+                      <>
+                        <hr className="my-6" />
+                        <h4>{t("research.common.sources")}</h4>
+                        <ol>
+                          {item.sources.map((source, idx) => {
+                            return (
+                              <li key={idx}>
+                                <a href={source.url} target="_blank">
+                                  {source.title || source.url}
+                                </a>
+                              </li>
+                            );
+                          })}
+                        </ol>
+                      </>
+                    ) : null}
                   </AccordionContent>
                 </AccordionItem>
               );
@@ -171,6 +220,7 @@ function SearchResult() {
                     <>
                       <LoaderCircle className="animate-spin" />
                       <span className="mx-1">{status}</span>
+                      <small className="font-mono">{formattedTime}</small>
                     </>
                   ) : (
                     t("research.common.writeReport")

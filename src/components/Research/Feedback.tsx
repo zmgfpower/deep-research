@@ -76,7 +76,7 @@ function Feedback() {
           <MilkdownEditor
             className="prose prose-slate dark:prose-invert max-w-full mt-6 min-h-20"
             value={taskStore.questions}
-            onChange={(value) => taskStore.updateFinalReport(value)}
+            onChange={(value) => taskStore.updateQuestions(value)}
           ></MilkdownEditor>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>

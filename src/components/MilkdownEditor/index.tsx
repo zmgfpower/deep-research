@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Pencil, PencilOff, CodeXml, Eye } from "lucide-react";
 import { Crepe } from "@milkdown/crepe";
-import { editorViewOptionsCtx } from "@milkdown/kit/core";
+import { editorViewOptionsCtx, defaultValueCtx } from "@milkdown/kit/core";
 import FloatingMenu from "@/components/FloatingMenu";
 import { Button } from "@/components/Button";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,13 +25,14 @@ type EditorProps = {
 };
 
 function MilkdownEditor(props: EditorProps) {
-  const { className, value, onChange, tools } = props;
+  const { className, value: defaultValue, onChange, tools } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const markdownRef = useRef<HTMLTextAreaElement>(null);
   const [milkdownEditor, setMilkdownEditor] = useState<Crepe>();
   const [mode, setMode] = useState<"markdown" | "WYSIWYM">("WYSIWYM");
   const [editable, setEditable] = useState<boolean>(false);
+  const [markdown, setMarkdown] = useState<string>(defaultValue);
 
   function handleEditable(enable: boolean) {
     milkdownEditor?.setReadonly(!enable);
@@ -48,30 +49,44 @@ function MilkdownEditor(props: EditorProps) {
           markdownEditor.style.height = markdownEditor.scrollHeight + "px";
         }, 50);
       }
-      setMode(mode);
     } else if (mode === "WYSIWYM") {
-      setMode(mode);
+      milkdownEditor?.editor.config((ctx) => {
+        ctx.set(defaultValueCtx, markdown);
+      });
     }
+    setMode(mode);
+    if (!editable) handleEditable(true);
+  }
+
+  function save() {
+    changeMode("WYSIWYM");
+    handleEditable(false);
+    onChange(markdown);
   }
 
   useEffect(() => {
-    const markdownEditor = markdownRef.current;
-    const updateMarkdownEditorHeight = () => {
-      if (markdownRef.current) {
-        markdownRef.current.style.height =
-          markdownRef.current.scrollHeight + "px";
-      }
-    };
-    markdownEditor?.addEventListener("input", updateMarkdownEditorHeight);
-    return () => {
-      markdownEditor?.removeEventListener("input", updateMarkdownEditorHeight);
-    };
-  }, []);
+    if (mode === "markdown") {
+      const markdownEditor = markdownRef.current;
+      const updateMarkdownEditorHeight = () => {
+        if (markdownRef.current) {
+          markdownRef.current.style.height =
+            markdownRef.current.scrollHeight + "px";
+        }
+      };
+      markdownEditor?.addEventListener("input", updateMarkdownEditorHeight);
+      return () => {
+        markdownEditor?.removeEventListener(
+          "input",
+          updateMarkdownEditorHeight
+        );
+      };
+    }
+  }, [mode]);
 
   useLayoutEffect(() => {
     const crepe = new Crepe({
       root: editorRef.current,
-      defaultValue: value,
+      defaultValue,
       features: {
         [Crepe.Feature.ImageBlock]: false,
       },
@@ -117,25 +132,27 @@ function MilkdownEditor(props: EditorProps) {
     setMilkdownEditor(crepe);
 
     crepe.on((listener) => {
-      listener.markdownUpdated((ctx, markdown) => onChange(markdown));
+      listener.markdownUpdated((ctx, markdown) => {
+        setMarkdown(markdown);
+      });
     });
 
     return () => {
       crepe.destroy();
     };
-  }, [value, onChange]);
+  }, [defaultValue, setMarkdown]);
 
   return (
     <div className={cn("relative", className)} ref={containerRef}>
-      <div ref={editorRef} hidden={mode !== "WYSIWYM"}></div>
+      <div className={cn({ hidden: mode !== "WYSIWYM" })} ref={editorRef}></div>
       <Textarea
         className={cn(
           "overflow-y-hidden border-none outline-none focus-visible:ring-0 px-0 py-0 resize-none text-base md:text-base",
           { hidden: mode !== "markdown" }
         )}
         ref={markdownRef}
-        defaultValue={value}
-        onChange={(ev) => onChange(ev.target.value)}
+        value={markdown}
+        onChange={(ev) => setMarkdown(ev.target.value)}
       ></Textarea>
       <FloatingMenu targetRef={containerRef} fixedTopOffset={16}>
         <div className="flex flex-col gap-1 border rounded-full py-2 p-1 bg-white/90 dark:bg-slate-800/80">
@@ -165,12 +182,12 @@ function MilkdownEditor(props: EditorProps) {
           {editable ? (
             <Button
               className="float-menu-button"
-              title="Close Edit"
+              title="Save"
               side="left"
               sideoffset={8}
               size="icon"
               variant="ghost"
-              onClick={() => handleEditable(false)}
+              onClick={() => save()}
             >
               <PencilOff />
             </Button>
