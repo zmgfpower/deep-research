@@ -75,7 +75,7 @@
   }
 
   milkdown-code-block .cm-gutters {
-    @apply bg-slate-50 dark:bg-slate-800;
+    @apply hidden;
   }
 
   milkdown-table-block svg,
@@ -133,6 +133,25 @@
 
   [data-placeholder] {
     @apply text-slate-400;
+  }
+
+  span[data-type="math_inline"] {
+    @apply text-inherit;
+  }
+
+  milkdown-code-block {
+    @apply p-0;
+
+    .tools {
+      @apply py-2 px-4 bg-slate-100 rounded-t-sm;
+      .language-button {
+        @apply opacity-100 mb-0;
+      }
+    }
+
+    .codemirror-host {
+      @apply py-2 px-4;
+    }
   }
 }
 

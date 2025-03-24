@@ -1,7 +1,10 @@
 <div align="center">
 <h1>Deep Research</h1>
 
+![GitHub deployments](https://img.shields.io/github/deployments/u14app/gemini-next-chat/Production)
 ![GitHub Release](https://img.shields.io/github/v/release/u14app/deep-research)
+![Docker Image Size](https://img.shields.io/docker/image-size/xiangfa/deep-research/latest)
+![Docker Pulls](https://img.shields.io/docker/pulls/xiangfa/deep-research)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [![Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=flat&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
@@ -21,6 +24,7 @@ Deep Research is a cutting-edge project built with Next.js 15, leveraging the po
 - **Multi-platform Support**: Supports rapid deployment to Vercel, Cloudflare and other platforms.
 - **Powered by Google Gemini:** Utilizes the advanced Google Gemini models for accurate and insightful analysis.
 - **Thinking & Flash Models:** Employs sophisticated "Thinking" and "Flash" models to balance depth and speed, ensuring high-quality results quickly.
+- **Research History:** Support preservation of research history, you can review previous research results at any time and conduct in-depth research again.
 - **Local & Server API Support:** Offers flexibility with both local and server-side API calling options to suit your needs.
 - **Privacy-Focused:** Your data remains private and secure, as all data is stored locally on your browser.
 - **Multi-language Support**: English、简体中文.

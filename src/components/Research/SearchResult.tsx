@@ -50,7 +50,7 @@ function SearchResult() {
     start: accurateTimerStart,
     stop: accurateTimerStop,
   } = useAccurateTimer();
-  const [mlkdownEditor, setMilkdownEditor] = useState<Crepe>();
+  const [milkdownEditor, setMilkdownEditor] = useState<Crepe>();
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [isWriting, setIsWriting] = useState<boolean>(false);
 
@@ -77,9 +77,9 @@ function SearchResult() {
   }
 
   function renderMarkdown(markdown: string) {
-    if (mlkdownEditor) {
-      replaceAll(markdown)(mlkdownEditor.editor.ctx);
-      const html = getHTML()(mlkdownEditor.editor.ctx);
+    if (milkdownEditor) {
+      replaceAll(markdown)(milkdownEditor.editor.ctx);
+      const html = getHTML()(milkdownEditor.editor.ctx);
       return (
         <blockquote className="hidden-empty-p">
           <div

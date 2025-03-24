@@ -78,7 +78,7 @@ function FinalReport() {
                         onClick={() =>
                           downloadFile(
                             taskStore.finalReport,
-                            taskStore.title,
+                            `${taskStore.title}.md`,
                             "text/markdown;charset=utf-8"
                           )
                         }

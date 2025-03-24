@@ -8,7 +8,10 @@ import {
 } from "react";
 import { Pencil, PencilOff, CodeXml, Eye } from "lucide-react";
 import { Crepe } from "@milkdown/crepe";
-import { editorViewOptionsCtx, defaultValueCtx } from "@milkdown/kit/core";
+import { editorViewOptionsCtx } from "@milkdown/kit/core";
+import { replaceAll } from "@milkdown/kit/utils";
+import { diagram } from "@xiangfa/milkdown-plugin-diagram";
+import { math } from "@xiangfa/milkdown-plugin-math";
 import FloatingMenu from "@/components/FloatingMenu";
 import { Button } from "@/components/Button";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,9 +53,7 @@ function MilkdownEditor(props: EditorProps) {
         }, 50);
       }
     } else if (mode === "WYSIWYM") {
-      milkdownEditor?.editor.config((ctx) => {
-        ctx.set(defaultValueCtx, markdown);
-      });
+      if (milkdownEditor) replaceAll(markdown)(milkdownEditor.editor.ctx);
     }
     setMode(mode);
     if (!editable) handleEditable(true);
@@ -89,6 +90,7 @@ function MilkdownEditor(props: EditorProps) {
       defaultValue,
       features: {
         [Crepe.Feature.ImageBlock]: false,
+        [Crepe.Feature.Latex]: false,
       },
       featureConfigs: {
         [Crepe.Feature.Placeholder]: {
@@ -129,6 +131,7 @@ function MilkdownEditor(props: EditorProps) {
     });
 
     crepe.setReadonly(true).create();
+    crepe.editor.use(diagram).use(math);
     setMilkdownEditor(crepe);
 
     crepe.on((listener) => {
