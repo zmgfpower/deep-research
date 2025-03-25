@@ -15,7 +15,7 @@ function Header() {
 
   return (
     <>
-      <header className="flex justify-between items-center my-6">
+      <header className="flex justify-between items-center my-6 print:hidden">
         <a href="https://github.com/u14app/deep-research" target="_blank">
           <h1 className="text-center text-2xl font-bold">
             {t("title")}

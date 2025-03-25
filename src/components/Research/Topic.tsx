@@ -60,7 +60,7 @@ function Topic() {
   }
 
   return (
-    <section className="p-4 border rounded-md mt-4">
+    <section className="p-4 border rounded-md mt-4 print:hidden">
       <div className="flex justify-between items-center border-b mb-2">
         <h3 className="font-semibold text-lg leading-10">
           {t("research.topic.title")}

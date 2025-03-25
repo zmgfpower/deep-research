@@ -1,4 +1,5 @@
 "use client";
+import dynamic from "next/dynamic";
 import { useState, useEffect, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
@@ -7,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle, CircleCheck, TextSearch } from "lucide-react";
 import { Crepe } from "@milkdown/crepe";
 import { replaceAll, getHTML } from "@milkdown/kit/utils";
-import MilkdownEditor from "@/components/MilkdownEditor";
 import {
   Form,
   FormControl,
@@ -26,6 +26,8 @@ import { Button } from "@/components/ui/button";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
 import useDeepResearch from "@/hooks/useDeepResearch";
 import { useTaskStore } from "@/store/task";
+
+const MilkdownEditor = dynamic(() => import("@/components/MilkdownEditor"));
 
 const formSchema = z.object({
   suggestion: z.string(),
@@ -129,7 +131,7 @@ function SearchResult() {
   }, []);
 
   return (
-    <section className="p-4 border rounded-md mt-4">
+    <section className="p-4 border rounded-md mt-4 print:hidden">
       <h3 className="font-semibold text-lg border-b mb-2 leading-10">
         {t("research.searchResult.title")}
       </h3>

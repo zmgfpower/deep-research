@@ -1,8 +1,7 @@
 "use client";
+import dynamic from "next/dynamic";
 import { useTranslation } from "react-i18next";
 import { Download, FileText, Signature } from "lucide-react";
-import MilkdownEditor from "@/components/MilkdownEditor";
-import Artifact from "@/components/Artifact";
 import { Button } from "@/components/Button";
 import {
   DropdownMenu,
@@ -15,23 +14,23 @@ import { useTaskStore } from "@/store/task";
 import { getSystemPrompt } from "@/utils/deep-research";
 import { downloadFile } from "@/utils/file";
 
+const MilkdownEditor = dynamic(() => import("@/components/MilkdownEditor"));
+const Artifact = dynamic(() => import("@/components/Artifact"));
+
 function FinalReport() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
 
   async function handleDownloadPDF() {
-    const { default: printJS } = await import("print-js");
-    printJS({
-      printable: "final-report",
-      type: "html",
-      documentTitle: taskStore.title,
-      targetStyles: ["prose", "max-w-full"],
-    });
+    const originalTitle = document.title;
+    document.title = taskStore.title;
+    window.print();
+    document.title = originalTitle;
   }
 
   return (
-    <section className="p-4 border rounded-md mt-4">
-      <h3 className="font-semibold text-lg border-b mb-2 leading-10">
+    <section className="p-4 border rounded-md mt-4 print:border-none">
+      <h3 className="font-semibold text-lg border-b mb-2 leading-10 print:hidden">
         {t("research.finalReport.title")}
       </h3>
       {taskStore.finalReport === "" ? (
@@ -40,7 +39,7 @@ function FinalReport() {
         <>
           <article id="final-report">
             <MilkdownEditor
-              className="prose prose-slate dark:prose-invert max-w-full min-h-72"
+              className="min-h-72"
               value={taskStore.finalReport}
               onChange={(value) => taskStore.updateFinalReport(value)}
               tools={
@@ -73,7 +72,11 @@ function FinalReport() {
                         <Download />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent side="left" sideOffset={8}>
+                    <DropdownMenuContent
+                      className="print:hidden"
+                      side="left"
+                      sideOffset={8}
+                    >
                       <DropdownMenuItem
                         onClick={() =>
                           downloadFile(

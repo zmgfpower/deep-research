@@ -1,11 +1,11 @@
 "use client";
+import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
-import MilkdownEditor from "@/components/MilkdownEditor";
 import {
   Form,
   FormControl,
@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import useDeepResearch from "@/hooks/useDeepResearch";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
 import { useTaskStore } from "@/store/task";
+
+const MilkdownEditor = dynamic(() => import("@/components/MilkdownEditor"));
 
 const formSchema = z.object({
   feedback: z.string(),
@@ -65,7 +67,7 @@ function Feedback() {
   }
 
   return (
-    <section className="p-4 border rounded-md mt-4">
+    <section className="p-4 border rounded-md mt-4 print:hidden">
       <h3 className="font-semibold text-lg border-b mb-2 leading-10">
         {t("research.feedback.title")}
       </h3>

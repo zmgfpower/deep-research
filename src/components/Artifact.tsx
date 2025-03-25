@@ -76,7 +76,7 @@ function Artifact(props: Props) {
             type="button"
             size="icon"
             variant="ghost"
-            title={t("AIWrite")}
+            title={t("artifact.AIWrite")}
             side={tooltipSide}
             sideoffset={tooltipSideOffset}
             disabled={loadingAction !== ""}
@@ -91,7 +91,7 @@ function Artifact(props: Props) {
         <PopoverContent className="flex gap-2 p-2">
           <Input
             className="h-8"
-            placeholder={t("writingPromptTip")}
+            placeholder={t("artifact.writingPromptTip")}
             value={prompt}
             onChange={(ev) => setPrompt(ev.target.value)}
           />
@@ -100,7 +100,7 @@ function Artifact(props: Props) {
               className="h-8"
               size="icon"
               variant="secondary"
-              title={t("send")}
+              title={t("artifact.send")}
               onClick={() => AIWrite(prompt, systemInstruction)}
             >
               <SendHorizontal />
@@ -115,7 +115,7 @@ function Artifact(props: Props) {
             type="button"
             size="icon"
             variant="ghost"
-            title={t("readingLevel")}
+            title={t("artifact.readingLevel")}
             side={tooltipSide}
             sideoffset={tooltipSideOffset}
             disabled={loadingAction !== ""}
@@ -135,7 +135,7 @@ function Artifact(props: Props) {
             onClick={() => changeReadingLevel("PhD student", systemInstruction)}
           >
             <GraduationCap />
-            <span>{t("PhD")}</span>
+            <span>{t("artifact.PhD")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() =>
@@ -143,7 +143,7 @@ function Artifact(props: Props) {
             }
           >
             <School />
-            <span>{t("college")}</span>
+            <span>{t("artifact.college")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() =>
@@ -151,7 +151,7 @@ function Artifact(props: Props) {
             }
           >
             <PersonStanding />
-            <span>{t("teenager")}</span>
+            <span>{t("artifact.teenager")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() =>
@@ -159,13 +159,13 @@ function Artifact(props: Props) {
             }
           >
             <Baby />
-            <span>{t("child")}</span>
+            <span>{t("artifact.child")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => changeReadingLevel("pirate", systemInstruction)}
           >
             <Swords />
-            <span>{t("pirate")}</span>
+            <span>{t("artifact.pirate")}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -176,7 +176,7 @@ function Artifact(props: Props) {
             type="button"
             size="icon"
             variant="ghost"
-            title={t("adjustLength")}
+            title={t("artifact.adjustLength")}
             side={tooltipSide}
             sideoffset={tooltipSideOffset}
             disabled={loadingAction !== ""}
@@ -201,7 +201,7 @@ function Artifact(props: Props) {
             }
           >
             <ChevronsUp />
-            <span>{t("longest")}</span>
+            <span>{t("artifact.longest")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() =>
@@ -212,7 +212,7 @@ function Artifact(props: Props) {
             }
           >
             <ChevronUp />
-            <span>{t("long")}</span>
+            <span>{t("artifact.long")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() =>
@@ -223,7 +223,7 @@ function Artifact(props: Props) {
             }
           >
             <ChevronDown />
-            <span>{t("shorter")}</span>
+            <span>{t("artifact.shorter")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() =>
@@ -234,7 +234,7 @@ function Artifact(props: Props) {
             }
           >
             <ChevronsDown />
-            <span>{t("shortest")}</span>
+            <span>{t("artifact.shortest")}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -245,7 +245,7 @@ function Artifact(props: Props) {
             type="button"
             size="icon"
             variant="ghost"
-            title={t("translate")}
+            title={t("artifact.translate")}
             side={tooltipSide}
             sideoffset={tooltipSideOffset}
             disabled={loadingAction !== ""}
