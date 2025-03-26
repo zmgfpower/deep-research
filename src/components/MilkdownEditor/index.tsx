@@ -1,5 +1,11 @@
 "use client";
-import { useRef, useLayoutEffect, useState, type ReactNode } from "react";
+import {
+  useRef,
+  useLayoutEffect,
+  useState,
+  type ReactNode,
+  useEffect,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { Pencil, PencilOff, CodeXml, Eye } from "lucide-react";
 import { Crepe } from "@milkdown/crepe";
@@ -39,12 +45,20 @@ function MilkdownEditor(props: EditorProps) {
     setEditable(enable);
   }
 
-  function changeMode(mode: "markdown" | "WYSIWYM") {
+  function updateContent(content: string) {
     if (mode === "WYSIWYM") {
-      if (milkdownEditor) replaceAll(markdown)(milkdownEditor.editor.ctx);
+      if (milkdownEditor?.editor.status === "Created") {
+        replaceAll(content)(milkdownEditor.editor.ctx);
+      }
     } else if (mode === "markdown") {
-      if (markdownEditor) markdownEditor.update(markdown);
+      if (markdownEditor?.status === "create") {
+        markdownEditor.update(content);
+      }
     }
+  }
+
+  function changeMode(mode: "markdown" | "WYSIWYM") {
+    updateContent(markdown);
     setMode(mode);
     if (!editable) handleEditable(true);
   }
@@ -55,10 +69,24 @@ function MilkdownEditor(props: EditorProps) {
     onChange(markdown);
   }
 
+  // Update editor content when external data changes, such as data streams received from a server
+  useEffect(() => {
+    if (mode === "WYSIWYM") {
+      if (milkdownEditor?.editor.status === "Created") {
+        replaceAll(defaultValue)(milkdownEditor.editor.ctx);
+      }
+    } else if (mode === "markdown") {
+      if (markdownEditor?.status === "create") {
+        markdownEditor.update(defaultValue);
+      }
+    }
+  }, [mode, milkdownEditor, markdownEditor, defaultValue]);
+
+  // Initialize the WYSIWYM editor
   useLayoutEffect(() => {
     const crepe = new Crepe({
       root: milkdownEditorRef.current,
-      defaultValue,
+      defaultValue: "",
       features: {
         [Crepe.Feature.ImageBlock]: false,
         [Crepe.Feature.Latex]: false,
@@ -101,9 +129,13 @@ function MilkdownEditor(props: EditorProps) {
       }));
     });
 
-    crepe.setReadonly(true).create();
+    crepe
+      .setReadonly(true)
+      .create()
+      .then(() => {
+        setMilkdownEditor(crepe);
+      });
     crepe.editor.use(diagram).use(math);
-    setMilkdownEditor(crepe);
 
     crepe.on((listener) => {
       listener.markdownUpdated((ctx, markdown) => {
@@ -114,24 +146,26 @@ function MilkdownEditor(props: EditorProps) {
     return () => {
       crepe.destroy();
     };
-  }, [defaultValue, t]);
+  }, [t]);
 
+  // Initialize the Markdown editor
   useLayoutEffect(() => {
     const editor = new MarkdownEditor({
       root: markdownEditorRef.current,
-      defaultValue,
+      defaultValue: "",
       onChange: (value) => {
         setMarkdown(value);
       },
     });
 
-    editor.create();
-    setMarkdownEditor(editor);
+    editor.create().then(() => {
+      setMarkdownEditor(editor);
+    });
 
     return () => {
       editor.destroy();
     };
-  }, [defaultValue]);
+  }, []);
 
   return (
     <div className={cn("relative", className)} ref={containerRef}>

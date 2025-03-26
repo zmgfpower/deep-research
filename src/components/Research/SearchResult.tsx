@@ -5,9 +5,10 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderCircle, CircleCheck, TextSearch } from "lucide-react";
+import { LoaderCircle, CircleCheck, TextSearch, Download } from "lucide-react";
 import { Crepe } from "@milkdown/crepe";
 import { replaceAll, getHTML } from "@milkdown/kit/utils";
+import { Button } from "@/components/Button";
 import {
   Form,
   FormControl,
@@ -22,10 +23,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
 import useDeepResearch from "@/hooks/useDeepResearch";
 import { useTaskStore } from "@/store/task";
+import { downloadFile } from "@/utils/file";
 
 const MilkdownEditor = dynamic(() => import("@/components/MilkdownEditor"));
 
@@ -95,6 +97,18 @@ function SearchResult() {
     return null;
   }
 
+  function getSearchResultContent(item: SearchTask) {
+    return [
+      `> ${item.researchGoal}\n---`,
+      item.learning,
+      item.sources?.length > 0
+        ? `#### ${t("research.common.sources")}\n${item.sources
+            .map((source) => `- [${source.title || source.url}](${source.url})`)
+            .join("\n")}`
+        : "",
+    ].join("\n\n");
+  }
+
   async function handleSubmit(values: z.infer<typeof formSchema>) {
     const { setSuggestion } = useTaskStore.getState();
     setSuggestion(values.suggestion);
@@ -139,7 +153,7 @@ function SearchResult() {
         <div>{t("research.searchResult.emptyTip")}</div>
       ) : (
         <div>
-          <Accordion className="mb-4" type="single" collapsible>
+          <Accordion className="mb-4" type="multiple">
             {taskStore.tasks.map((item, idx) => {
               return (
                 <AccordionItem key={idx} value={item.query}>
@@ -155,6 +169,31 @@ function SearchResult() {
                       value={item.learning}
                       onChange={(value) =>
                         taskStore.updateTask(item.query, { learning: value })
+                      }
+                      tools={
+                        <>
+                          <div className="px-1">
+                            <Separator className="dark:bg-slate-700" />
+                          </div>
+                          <Button
+                            className="float-menu-button"
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            title={t("editor.export")}
+                            side="left"
+                            sideoffset={8}
+                            onClick={() =>
+                              downloadFile(
+                                getSearchResultContent(item),
+                                `${item.query}.md`,
+                                "text/markdown;charset=utf-8"
+                              )
+                            }
+                          >
+                            <Download />
+                          </Button>
+                        </>
                       }
                     ></MilkdownEditor>
                     {item.sources?.length > 0 ? (

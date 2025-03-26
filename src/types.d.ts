@@ -13,6 +13,11 @@ interface SearchTask {
   sources: Source[];
 }
 
+interface Source {
+  title?: string;
+  url: string;
+}
+
 interface ResearchHistory {
   id: string;
   createdAt: number;
@@ -23,6 +28,7 @@ interface ResearchHistory {
   query: string;
   suggestion: string;
   tasks: SearchTask[];
+  sources: Source[];
   feedback: string;
 }
 

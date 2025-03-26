@@ -51,11 +51,11 @@ function useDeepResearch() {
   const [status, setStatus] = useState<string>("");
 
   async function askQuestions() {
-    const { language } = useSettingStore.getState();
+    const { thinkingModel, language } = useSettingStore.getState();
     const { question } = useTaskStore.getState();
     setStatus(t("research.common.thinking"));
     const result = streamText({
-      model: google("gemini-2.0-flash-thinking-exp"),
+      model: google(thinkingModel),
       system: getSystemPrompt(),
       prompt:
         generateQuestionsPrompt(question) + getResponseLanguagePrompt(language),
@@ -105,12 +105,12 @@ function useDeepResearch() {
   }
 
   async function reviewSearchResult() {
-    const { language } = useSettingStore.getState();
+    const { thinkingModel, language } = useSettingStore.getState();
     const { query, tasks, suggestion } = useTaskStore.getState();
     setStatus(t("research.common.research"));
     const learnings = tasks.map((item) => item.learning);
     const result = streamText({
-      model: google("gemini-2.0-flash-thinking-exp"),
+      model: google(thinkingModel),
       system: getSystemPrompt(),
       prompt:
         reviewSerpQueriesPrompt(query, learnings, suggestion) +
@@ -147,13 +147,13 @@ function useDeepResearch() {
   }
 
   async function writeFinalReport() {
-    const { language } = useSettingStore.getState();
-    const { query, tasks, setTitle } = useTaskStore.getState();
+    const { thinkingModel, language } = useSettingStore.getState();
+    const { query, tasks, setTitle, setSources } = useTaskStore.getState();
     const { save } = useHistoryStore.getState();
     setStatus(t("research.common.writing"));
     const learnings = tasks.map((item) => item.learning);
     const result = streamText({
-      model: google("gemini-2.0-flash-thinking-exp"),
+      model: google(thinkingModel),
       system: getSystemPrompt(),
       prompt:
         writeFinalReportPrompt(query, learnings) +
@@ -171,30 +171,20 @@ function useDeepResearch() {
     const sources = flat(
       tasks.map((item) => (item.sources ? item.sources : []))
     );
-    if (sources.length > 0) {
-      content += `\n\n---\n\n## ${t("research.finalReport.researchedInfor", {
-        total: sources.length,
-      })}\n\n${sources
-        .map(
-          (source, idx) =>
-            `${idx + 1}. [${source.title || source.url}](${source.url})`
-        )
-        .join("\n")}`;
-    }
-    taskStore.updateFinalReport(content);
+    setSources(sources);
     save(taskStore.backup());
     return content;
   }
 
   async function deepResearch() {
-    const { language } = useSettingStore.getState();
+    const { thinkingModel, language } = useSettingStore.getState();
     const { query } = useTaskStore.getState();
     setStatus(t("research.common.thinking"));
     try {
       let queries = [];
 
       const result = streamText({
-        model: google("gemini-2.0-flash-thinking-exp"),
+        model: google(thinkingModel),
         system: getSystemPrompt(),
         prompt:
           generateSerpQueriesPrompt(query) +

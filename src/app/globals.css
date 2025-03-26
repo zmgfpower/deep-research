@@ -121,3 +121,7 @@
 .hidden-empty-p p:empty {
   @apply hidden;
 }
+
+.from-item {
+  @apply grid grid-cols-4 gap-4 space-y-0 items-center;
+}

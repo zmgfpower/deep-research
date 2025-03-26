@@ -21,6 +21,28 @@ function FinalReport() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
 
+  function getFinakReportContent() {
+    const { finalReport, sources } = useTaskStore.getState();
+
+    return [
+      finalReport,
+      sources.length > 0
+        ? [
+            "\n\n---",
+            `## ${t("research.finalReport.researchedInfor", {
+              total: sources.length,
+            })}`,
+            `${sources
+              .map(
+                (source, idx) =>
+                  `${idx + 1}. [${source.title || source.url}](${source.url})`
+              )
+              .join("\n")}`,
+          ].join("\n\n")
+        : "",
+    ].join("\n\n");
+  }
+
   async function handleDownloadPDF() {
     const originalTitle = document.title;
     document.title = taskStore.title;
@@ -65,7 +87,7 @@ function FinalReport() {
                         type="button"
                         size="icon"
                         variant="ghost"
-                        title="Export"
+                        title={t("editor.export")}
                         side="left"
                         sideoffset={8}
                       >
@@ -80,7 +102,7 @@ function FinalReport() {
                       <DropdownMenuItem
                         onClick={() =>
                           downloadFile(
-                            taskStore.finalReport,
+                            getFinakReportContent(),
                             `${taskStore.title}.md`,
                             "text/markdown;charset=utf-8"
                           )
@@ -98,6 +120,27 @@ function FinalReport() {
                 </>
               }
             />
+            {taskStore.sources?.length > 0 ? (
+              <div className="prose prose-slate dark:prose-invert">
+                <hr className="my-6" />
+                <h2>
+                  {t("research.finalReport.researchedInfor", {
+                    total: taskStore.sources.length,
+                  })}
+                </h2>
+                <ol>
+                  {taskStore.sources.map((source, idx) => {
+                    return (
+                      <li key={idx}>
+                        <a href={source.url} target="_blank">
+                          {source.title || source.url}
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            ) : null}
           </article>
         </>
       )}

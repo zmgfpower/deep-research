@@ -1,9 +1,6 @@
 "use client";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Sparkles,
-  SendHorizontal,
   BookOpen,
   GraduationCap,
   School,
@@ -25,13 +22,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  PopoverClose,
-} from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
 import useArtifact from "@/hooks/useArtifact";
 
 type Props = {
@@ -57,57 +47,11 @@ function Artifact(props: Props) {
     tooltipSideOffset = 0,
   } = props;
   const { t } = useTranslation();
-  const {
-    loadingAction,
-    AIWrite,
-    translate,
-    changeReadingLevel,
-    adjustLength,
-  } = useArtifact({ value, onChange });
-
-  const [prompt, setPrompt] = useState<string>("");
+  const { loadingAction, translate, changeReadingLevel, adjustLength } =
+    useArtifact({ value, onChange });
 
   return (
     <>
-      <Popover onOpenChange={(open) => open && setPrompt("")}>
-        <PopoverTrigger asChild>
-          <Button
-            className={buttonClassName}
-            type="button"
-            size="icon"
-            variant="ghost"
-            title={t("artifact.AIWrite")}
-            side={tooltipSide}
-            sideoffset={tooltipSideOffset}
-            disabled={loadingAction !== ""}
-          >
-            {loadingAction === "aiWrite" ? (
-              <LoaderCircle className="animate-spin" />
-            ) : (
-              <Sparkles />
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="flex gap-2 p-2">
-          <Input
-            className="h-8"
-            placeholder={t("artifact.writingPromptTip")}
-            value={prompt}
-            onChange={(ev) => setPrompt(ev.target.value)}
-          />
-          <PopoverClose asChild>
-            <Button
-              className="h-8"
-              size="icon"
-              variant="secondary"
-              title={t("artifact.send")}
-              onClick={() => AIWrite(prompt, systemInstruction)}
-            >
-              <SendHorizontal />
-            </Button>
-          </PopoverClose>
-        </PopoverContent>
-      </Popover>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

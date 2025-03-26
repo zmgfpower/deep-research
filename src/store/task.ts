@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { pick } from "radash";
 
-export type TaskStore = {
+export interface TaskStore {
   question: string;
   questions: string;
   finalReport: string;
@@ -9,8 +9,9 @@ export type TaskStore = {
   title: string;
   suggestion: string;
   tasks: SearchTask[];
+  sources: Source[];
   feedback: string;
-};
+}
 
 type TaskFunction = {
   update: (tasks: SearchTask[]) => void;
@@ -21,6 +22,7 @@ type TaskFunction = {
   setQuestion: (question: string) => void;
   updateQuestions: (questions: string) => void;
   updateFinalReport: (report: string) => void;
+  setSources: (sources: Source[]) => void;
   setFeedback: (feedback: string) => void;
   clear: () => void;
   reset: () => void;
@@ -36,6 +38,7 @@ const defaultValues: TaskStore = {
   title: "",
   suggestion: "",
   tasks: [],
+  sources: [],
   feedback: "",
 };
 
@@ -54,6 +57,7 @@ export const useTaskStore = create<TaskStore & TaskFunction>((set, get) => ({
   setQuestion: (question) => set(() => ({ question })),
   updateQuestions: (questions) => set(() => ({ questions })),
   updateFinalReport: (report) => set(() => ({ finalReport: report })),
+  setSources: (sources) => set(() => ({ sources })),
   setFeedback: (feedback) => set(() => ({ feedback })),
   clear: () => set(() => ({ tasks: [] })),
   reset: () => set(() => ({ ...defaultValues })),
