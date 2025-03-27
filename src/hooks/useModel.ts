@@ -36,7 +36,7 @@ function useModel() {
           : "/api/ai/google/v1beta/models",
         {
           headers: {
-            "x-goog-api-key": apiKeys.length > 0 ? apiKey[0] : accessPassword,
+            "x-goog-api-key": apiKeys.length > 0 ? apiKeys[0] : accessPassword,
           },
         }
       );

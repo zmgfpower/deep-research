@@ -1,5 +1,5 @@
 "use client";
-import { useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -80,6 +80,21 @@ function Setting({ open, onClose }: SettingProps) {
     update(values);
     onClose();
   }
+
+  useEffect(() => {
+    const { apiKey, apiProxy, accessPassword } = useSettingStore.getState();
+    const { unsubscribe } = form.watch((values) => {
+      console.log(values);
+      if (
+        values.apiKey !== apiKey ||
+        values.apiProxy !== apiProxy ||
+        values.accessPassword !== accessPassword
+      ) {
+        refresh();
+      }
+    });
+    return () => unsubscribe();
+  }, [form, refresh]);
 
   useLayoutEffect(() => {
     refresh();
