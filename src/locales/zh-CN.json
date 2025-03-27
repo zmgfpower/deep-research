@@ -1,5 +1,7 @@
 {
   "title": "深度研究",
+  "theme": "主题",
+  "openSource": "开源代码",
   "copyright": "{{name}} 团队用 ❤️ 构建",
   "research": {
     "common": {
@@ -13,7 +15,8 @@
       "thinking": "思考中...",
       "research": "研究中...",
       "writing": "撰写中...",
-      "newResearch": "开始新的研究"
+      "newResearch": "开始新的研究",
+      "delete": "删除"
     },
     "topic": {
       "title": "1. 研究方向",

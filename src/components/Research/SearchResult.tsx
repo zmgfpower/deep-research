@@ -5,7 +5,13 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderCircle, CircleCheck, TextSearch, Download } from "lucide-react";
+import {
+  LoaderCircle,
+  CircleCheck,
+  TextSearch,
+  Download,
+  Trash,
+} from "lucide-react";
 import { Crepe } from "@milkdown/crepe";
 import { replaceAll, getHTML } from "@milkdown/kit/utils";
 import { Button } from "@/components/Button";
@@ -45,10 +51,39 @@ function TaskState({ state }: { state: SearchTask["state"] }) {
   }
 }
 
+function ResearchGoal({
+  milkdownEditor,
+  goal,
+}: {
+  milkdownEditor?: Crepe;
+  goal: string;
+}) {
+  const [html, setHtml] = useState<string>("");
+
+  useEffect(() => {
+    if (milkdownEditor && goal) {
+      replaceAll(goal)(milkdownEditor.editor.ctx);
+      const html = getHTML()(milkdownEditor.editor.ctx);
+      setHtml(html);
+    }
+  }, [milkdownEditor, goal]);
+
+  return html !== "" ? (
+    <blockquote className="hidden-empty-p">
+      <div
+        dangerouslySetInnerHTML={{
+          __html: html,
+        }}
+      ></div>
+    </blockquote>
+  ) : null;
+}
+
 function SearchResult() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const { status, reviewSearchResult, writeFinalReport } = useDeepResearch();
+  const { status, runSearchTask, reviewSearchResult, writeFinalReport } =
+    useDeepResearch();
   const {
     formattedTime,
     start: accurateTimerStart,
@@ -74,27 +109,10 @@ function SearchResult() {
       accurateTimerStart();
       setIsWriting(true);
       await writeFinalReport();
-      setIsWriting(false);
     } finally {
+      setIsWriting(false);
       accurateTimerStop();
     }
-  }
-
-  function renderMarkdown(markdown: string) {
-    if (milkdownEditor) {
-      replaceAll(markdown)(milkdownEditor.editor.ctx);
-      const html = getHTML()(milkdownEditor.editor.ctx);
-      return (
-        <blockquote className="hidden-empty-p">
-          <div
-            dangerouslySetInnerHTML={{
-              __html: html,
-            }}
-          ></div>
-        </blockquote>
-      );
-    }
-    return null;
   }
 
   function getSearchResultContent(item: SearchTask) {
@@ -102,7 +120,7 @@ function SearchResult() {
       `> ${item.researchGoal}\n---`,
       item.learning,
       item.sources?.length > 0
-        ? `#### ${t("research.common.sources")}\n${item.sources
+        ? `#### ${t("research.common.sources")}\n\n${item.sources
             .map((source) => `- [${source.title || source.url}](${source.url})`)
             .join("\n")}`
         : "",
@@ -110,18 +128,28 @@ function SearchResult() {
   }
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
-    const { setSuggestion } = useTaskStore.getState();
-    setSuggestion(values.suggestion);
+    const { setSuggestion, tasks } = useTaskStore.getState();
+    const unfinishedTasks = tasks.filter((task) => task.state !== "completed");
     try {
       accurateTimerStart();
       setIsThinking(true);
-      await reviewSearchResult();
-      // Clear previous research suggestions
-      setSuggestion("");
-      setIsThinking(false);
+      if (unfinishedTasks.length > 0) {
+        await runSearchTask(unfinishedTasks);
+      } else {
+        setSuggestion(values.suggestion);
+        await reviewSearchResult();
+        // Clear previous research suggestions
+        setSuggestion("");
+      }
     } finally {
+      setIsThinking(false);
       accurateTimerStop();
     }
+  }
+
+  function handleRemove(query: string) {
+    const { removeTask } = useTaskStore.getState();
+    removeTask(query);
   }
 
   useLayoutEffect(() => {
@@ -136,8 +164,12 @@ function SearchResult() {
       },
     });
 
-    crepe.setReadonly(true).create();
-    setMilkdownEditor(crepe);
+    crepe
+      .setReadonly(true)
+      .create()
+      .then(() => {
+        setMilkdownEditor(crepe);
+      });
 
     return () => {
       crepe.destroy();
@@ -164,7 +196,10 @@ function SearchResult() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="prose prose-slate dark:prose-invert max-w-full min-h-20">
-                    {renderMarkdown(item.researchGoal)}
+                    <ResearchGoal
+                      milkdownEditor={milkdownEditor}
+                      goal={item.researchGoal}
+                    />
                     <MilkdownEditor
                       value={item.learning}
                       onChange={(value) =>
@@ -172,6 +207,18 @@ function SearchResult() {
                       }
                       tools={
                         <>
+                          <Button
+                            className="float-menu-button"
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            title={t("research.common.delete")}
+                            side="left"
+                            sideoffset={8}
+                            onClick={() => handleRemove(item.query)}
+                          >
+                            <Trash />
+                          </Button>
                           <div className="px-1">
                             <Separator className="dark:bg-slate-700" />
                           </div>
@@ -246,7 +293,7 @@ function SearchResult() {
                   {isThinking ? (
                     <>
                       <LoaderCircle className="animate-spin" />
-                      <span className="mx-1">{status}</span>
+                      <span>{status}</span>
                       <small className="font-mono">{formattedTime}</small>
                     </>
                   ) : (
@@ -260,7 +307,7 @@ function SearchResult() {
                   {isWriting ? (
                     <>
                       <LoaderCircle className="animate-spin" />
-                      <span className="mx-1">{status}</span>
+                      <span>{status}</span>
                       <small className="font-mono">{formattedTime}</small>
                     </>
                   ) : (

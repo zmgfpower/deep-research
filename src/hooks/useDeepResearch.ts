@@ -10,6 +10,7 @@ import { useHistoryStore } from "@/store/history";
 import { useSettingStore } from "@/store/setting";
 import {
   getSystemPrompt,
+  getOutputGuidelinesPrompt,
   generateQuestionsPrompt,
   generateSerpQueriesPrompt,
   processSearchResultPrompt,
@@ -21,7 +22,7 @@ import { parseError } from "@/utils/error";
 import { pick, flat } from "radash";
 
 function getResponseLanguagePrompt(lang: string) {
-  return `\n\n**Respond in ${lang}**\n\n`;
+  return `**Respond in ${lang}**`;
 }
 
 function removeJsonMarkdown(text: string) {
@@ -57,8 +58,10 @@ function useDeepResearch() {
     const result = streamText({
       model: google(thinkingModel),
       system: getSystemPrompt(),
-      prompt:
-        generateQuestionsPrompt(question) + getResponseLanguagePrompt(language),
+      prompt: [
+        generateQuestionsPrompt(question),
+        getResponseLanguagePrompt(language),
+      ].join("\n\n"),
       experimental_transform: smoothStream(),
       onError: handleError,
     });
@@ -82,9 +85,10 @@ function useDeepResearch() {
         const searchResult = streamText({
           model: google("gemini-2.0-flash-exp", { useSearchGrounding: true }),
           system: getSystemPrompt(),
-          prompt:
-            processSearchResultPrompt(item.query, item.researchGoal) +
+          prompt: [
+            processSearchResultPrompt(item.query, item.researchGoal),
             getResponseLanguagePrompt(language),
+          ].join("\n\n"),
           experimental_transform: smoothStream(),
           onError: handleError,
         });
@@ -112,9 +116,10 @@ function useDeepResearch() {
     const result = streamText({
       model: google(thinkingModel),
       system: getSystemPrompt(),
-      prompt:
-        reviewSerpQueriesPrompt(query, learnings, suggestion) +
+      prompt: [
+        reviewSerpQueriesPrompt(query, learnings, suggestion),
         getResponseLanguagePrompt(language),
+      ].join("\n\n"),
       experimental_transform: smoothStream(),
       onError: handleError,
     });
@@ -148,16 +153,18 @@ function useDeepResearch() {
 
   async function writeFinalReport() {
     const { thinkingModel, language } = useSettingStore.getState();
-    const { query, tasks, setTitle, setSources } = useTaskStore.getState();
+    const { query, tasks, setId, setTitle, setSources } =
+      useTaskStore.getState();
     const { save } = useHistoryStore.getState();
     setStatus(t("research.common.writing"));
     const learnings = tasks.map((item) => item.learning);
     const result = streamText({
       model: google(thinkingModel),
-      system: getSystemPrompt(),
-      prompt:
-        writeFinalReportPrompt(query, learnings) +
+      system: [getSystemPrompt(), getOutputGuidelinesPrompt()].join("\n\n"),
+      prompt: [
+        writeFinalReportPrompt(query, learnings),
         getResponseLanguagePrompt(language),
+      ].join("\n\n"),
       experimental_transform: smoothStream(),
       onError: handleError,
     });
@@ -166,13 +173,18 @@ function useDeepResearch() {
       content += textPart;
       taskStore.updateFinalReport(content);
     }
-    const title = content.split("\n\n")[0].replaceAll("#", "").trim();
+    const title = content
+      .split("\n\n")[0]
+      .replaceAll("#", "")
+      .replaceAll("**", "")
+      .trim();
     setTitle(title);
     const sources = flat(
       tasks.map((item) => (item.sources ? item.sources : []))
     );
     setSources(sources);
-    save(taskStore.backup());
+    const id = save(taskStore.backup());
+    setId(id);
     return content;
   }
 
@@ -186,9 +198,10 @@ function useDeepResearch() {
       const result = streamText({
         model: google(thinkingModel),
         system: getSystemPrompt(),
-        prompt:
-          generateSerpQueriesPrompt(query) +
+        prompt: [
+          generateSerpQueriesPrompt(query),
           getResponseLanguagePrompt(language),
+        ].join("\n\n"),
         experimental_transform: smoothStream(),
         onError: handleError,
       });

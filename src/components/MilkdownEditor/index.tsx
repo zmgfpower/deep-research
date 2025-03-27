@@ -7,7 +7,7 @@ import {
   useEffect,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { Pencil, PencilOff, CodeXml, Eye } from "lucide-react";
+import { Pencil, Save, CodeXml, Eye } from "lucide-react";
 import { Crepe } from "@milkdown/crepe";
 import { editorViewOptionsCtx } from "@milkdown/kit/core";
 import { replaceAll } from "@milkdown/kit/utils";
@@ -220,7 +220,7 @@ function MilkdownEditor(props: EditorProps) {
               variant="ghost"
               onClick={() => save()}
             >
-              <PencilOff />
+              <Save />
             </Button>
           ) : (
             <Button

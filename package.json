@@ -12,8 +12,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/google": "^1.1.17",
-    "@ai-sdk/ui-utils": "^1.1.16",
+    "@ai-sdk/google": "^1.2.3",
+    "@ai-sdk/ui-utils": "^1.2.1",
     "@hookform/resolvers": "^4.1.2",
     "@milkdown/crepe": "^7.6.4",
     "@milkdown/kit": "^7.6.4",
@@ -30,7 +30,7 @@
     "@xiangfa/mdeditor": "^0.1.8",
     "@xiangfa/milkdown-plugin-diagram": "^7.6.10",
     "@xiangfa/milkdown-plugin-math": "^7.6.5",
-    "ai": "^4.1.46",
+    "ai": "^4.2.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
@@ -63,7 +63,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "babel-plugin-react-compiler": "19.0.0-beta-e1e972c-20250221",
+    "babel-plugin-react-compiler": "19.0.0-beta-aeaed83-20250323",
     "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",

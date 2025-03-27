@@ -1,5 +1,7 @@
 {
   "title": "Deep Research",
+  "theme": "Theme",
+  "openSource": "Open Source",
   "copyright": "Created with ❤️ by {{name}} team",
   "research": {
     "common": {
@@ -13,7 +15,8 @@
       "thinking": "Thinking...",
       "research": "Research...",
       "writing": "Writing...",
-      "newResearch": "New Research"
+      "newResearch": "New Research",
+      "delete": "Delete"
     },
     "topic": {
       "title": "1. Research Topics",

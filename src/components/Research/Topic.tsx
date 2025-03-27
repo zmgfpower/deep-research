@@ -5,6 +5,7 @@ import { LoaderCircle, PlusCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/Button";
 import {
   Form,
   FormControl,
@@ -13,11 +14,11 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import useDeepResearch from "@/hooks/useDeepResearch";
 import { useGlobalStore } from "@/store/global";
 import { useSettingStore } from "@/store/setting";
 import { useTaskStore } from "@/store/task";
+import { useHistoryStore } from "@/store/history";
 
 const formSchema = z.object({
   topic: z.string().min(2),
@@ -55,7 +56,10 @@ function Topic() {
   }
 
   function createNewResearch() {
-    taskStore.reset();
+    const { id, backup, reset } = useTaskStore.getState();
+    const { update } = useHistoryStore.getState();
+    if (id) update(id, backup());
+    reset();
     form.reset();
   }
 

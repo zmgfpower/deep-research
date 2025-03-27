@@ -109,7 +109,7 @@ function Feedback() {
                 {isThinking ? (
                   <>
                     <LoaderCircle className="animate-spin" />
-                    <span className="mx-1">{status}</span>
+                    <span>{status}</span>
                     <small className="font-mono">{formattedTime}</small>
                   </>
                 ) : (

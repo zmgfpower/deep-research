@@ -21,6 +21,7 @@ interface Source {
 interface ResearchHistory {
   id: string;
   createdAt: number;
+  updatedAt?: number;
   title: string;
   question: string;
   questions: string;
