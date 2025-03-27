@@ -18,7 +18,7 @@ const GOOGLE_GENERATIVE_AI_API_KEY = process.env
 const API_PROXY_BASE_URL =
   process.env.API_PROXY_BASE_URL || "https://generativelanguage.googleapis.com";
 
-export async function handle(req: NextRequest) {
+async function handler(req: NextRequest) {
   let body;
   if (req.method.toUpperCase() !== "GET") {
     body = await req.json();
@@ -55,18 +55,4 @@ export async function handle(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
-  return handle(req);
-}
-
-export async function POST(req: NextRequest) {
-  return handle(req);
-}
-
-export async function PUT(req: NextRequest) {
-  return handle(req);
-}
-
-export async function DELETE(req: NextRequest) {
-  return handle(req);
-}
+export { handler as GET, handler as POST, handler as PUT, handler as DELETE };
