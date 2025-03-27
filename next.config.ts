@@ -24,7 +24,10 @@ if (BUILD_MODE === "export") {
 } else if (BUILD_MODE === "standalone") {
   nextConfig.output = "standalone";
 } else {
-  if (GOOGLE_GENERATIVE_AI_API_KEY?.split(",").length === 1) {
+  if (
+    GOOGLE_GENERATIVE_AI_API_KEY &&
+    !GOOGLE_GENERATIVE_AI_API_KEY.includes(",")
+  ) {
     nextConfig.rewrites = async () => {
       return [
         {
