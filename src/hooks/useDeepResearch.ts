@@ -4,7 +4,7 @@ import { parsePartialJson } from "@ai-sdk/ui-utils";
 import { useTranslation } from "react-i18next";
 import Plimit from "p-limit";
 import { toast } from "sonner";
-import { useGoogleProvider } from "@/hooks/useAiProvider";
+import { useModelProvider } from "@/hooks/useAiProvider";
 import { useTaskStore } from "@/store/task";
 import { useHistoryStore } from "@/store/history";
 import { useSettingStore } from "@/store/setting";
@@ -48,15 +48,16 @@ function handleError(error: unknown) {
 function useDeepResearch() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const google = useGoogleProvider();
+  const { createProvider } = useModelProvider();
   const [status, setStatus] = useState<string>("");
 
   async function askQuestions() {
     const { thinkingModel, language } = useSettingStore.getState();
     const { question } = useTaskStore.getState();
     setStatus(t("research.common.thinking"));
+    const provider = createProvider("google");
     const result = streamText({
-      model: google(thinkingModel),
+      model: provider(thinkingModel),
       system: getSystemPrompt(),
       prompt: [
         generateQuestionsPrompt(question),
@@ -82,8 +83,9 @@ function useDeepResearch() {
         let content = "";
         const sources: Source[] = [];
         taskStore.updateTask(item.query, { state: "processing" });
+        const provider = createProvider("google");
         const searchResult = streamText({
-          model: google("gemini-2.0-flash-exp", { useSearchGrounding: true }),
+          model: provider("gemini-2.0-flash-exp", { useSearchGrounding: true }),
           system: getSystemPrompt(),
           prompt: [
             processSearchResultPrompt(item.query, item.researchGoal),
@@ -113,8 +115,9 @@ function useDeepResearch() {
     const { query, tasks, suggestion } = useTaskStore.getState();
     setStatus(t("research.common.research"));
     const learnings = tasks.map((item) => item.learning);
+    const provider = createProvider("google");
     const result = streamText({
-      model: google(thinkingModel),
+      model: provider(thinkingModel),
       system: getSystemPrompt(),
       prompt: [
         reviewSerpQueriesPrompt(query, learnings, suggestion),
@@ -158,8 +161,9 @@ function useDeepResearch() {
     const { save } = useHistoryStore.getState();
     setStatus(t("research.common.writing"));
     const learnings = tasks.map((item) => item.learning);
+    const provider = createProvider("google");
     const result = streamText({
-      model: google(thinkingModel),
+      model: provider(thinkingModel),
       system: [getSystemPrompt(), getOutputGuidelinesPrompt()].join("\n\n"),
       prompt: [
         writeFinalReportPrompt(query, learnings),
@@ -194,9 +198,9 @@ function useDeepResearch() {
     setStatus(t("research.common.thinking"));
     try {
       let queries = [];
-
+      const provider = createProvider("google");
       const result = streamText({
-        model: google(thinkingModel),
+        model: provider(thinkingModel),
         system: getSystemPrompt(),
         prompt: [
           generateSerpQueriesPrompt(query),
