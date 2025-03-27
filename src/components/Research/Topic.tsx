@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { LoaderCircle, PlusCircle } from "lucide-react";
+import { LoaderCircle, SquarePlus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,8 +44,12 @@ function Topic() {
   async function handleSubmit(values: z.infer<typeof formSchema>) {
     const { apiKey, accessPassword } = useSettingStore.getState();
     if (apiKey || accessPassword) {
-      const { setQuestion } = useTaskStore.getState();
+      const { id, setQuestion } = useTaskStore.getState();
       setIsThinking(true);
+      if (id !== "") {
+        createNewResearch();
+        form.setValue("topic", values.topic);
+      }
       setQuestion(values.topic);
       await askQuestions();
       setIsThinking(false);
@@ -76,7 +80,7 @@ function Topic() {
             onClick={() => createNewResearch()}
             title={t("research.common.newResearch")}
           >
-            <PlusCircle className="h-5 w-5" />
+            <SquarePlus />
           </Button>
         </div>
       </div>
