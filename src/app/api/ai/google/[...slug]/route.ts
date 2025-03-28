@@ -33,7 +33,7 @@ async function handler(req: NextRequest) {
   try {
     let url = `${API_PROXY_BASE_URL}/${path.join("/")}`;
     if (params) url += `?${params}`;
-    const response = await fetch(url, {
+    const payload: RequestInit = {
       method: req.method,
       headers: {
         "Content-Type": req.headers.get("Content-Type") || "application/json",
@@ -41,8 +41,9 @@ async function handler(req: NextRequest) {
           req.headers.get("x-goog-api-client") || "genai-js/0.24.0",
         "x-goog-api-key": apiKeys[0],
       },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    };
+    if (body) payload.body = JSON.stringify(body);
+    const response = await fetch(url, payload);
     return new NextResponse(response.body, response);
   } catch (error) {
     if (error instanceof Error) {
@@ -55,4 +56,18 @@ async function handler(req: NextRequest) {
   }
 }
 
-export { handler as GET, handler as POST, handler as PUT, handler as DELETE };
+export async function GET(req: NextRequest) {
+  return handler(req);
+}
+
+export async function POST(req: NextRequest) {
+  return handler(req);
+}
+
+export async function PUT(req: NextRequest) {
+  return handler(req);
+}
+
+export async function DELETE(req: NextRequest) {
+  return handler(req);
+}
