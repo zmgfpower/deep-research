@@ -107,7 +107,7 @@ function Setting({ open, onClose }: SettingProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md print:hidden">
         <DialogHeader>
           <DialogTitle>{t("setting.title")}</DialogTitle>
           <DialogDescription>{t("setting.description")}</DialogDescription>
