@@ -49,6 +49,7 @@ const formSchema = z.object({
   thinkingModel: z.string(),
   networkingModel: z.string(),
   language: z.string().optional(),
+  theme: z.string().optional(),
 });
 
 function convertModelName(name: string) {
@@ -301,6 +302,33 @@ function Setting({ open, onClose }: SettingProps) {
                       <SelectContent className="max-sm:max-h-48">
                         <SelectItem value="en-US">English</SelectItem>
                         <SelectItem value="zh-CN">简体中文</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="theme"
+              render={({ field }) => (
+                <FormItem className="from-item">
+                  <FormLabel className="col-span-1">{t("theme")}</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-sm:max-h-48">
+                        <SelectItem value="system">
+                          {t("setting.system")}
+                        </SelectItem>
+                        <SelectItem value="light">
+                          {t("setting.light")}
+                        </SelectItem>
+                        <SelectItem value="dark">
+                          {t("setting.dark")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
