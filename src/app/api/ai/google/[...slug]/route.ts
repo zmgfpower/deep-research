@@ -13,8 +13,8 @@ export const preferredRegion = [
   "kix1",
 ];
 
-const GOOGLE_GENERATIVE_AI_API_KEY = process.env
-  .GOOGLE_GENERATIVE_AI_API_KEY as string;
+const GOOGLE_GENERATIVE_AI_API_KEY =
+  process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
 const API_PROXY_BASE_URL =
   process.env.API_PROXY_BASE_URL || "https://generativelanguage.googleapis.com";
 
@@ -28,10 +28,10 @@ async function handler(req: NextRequest) {
   searchParams.delete("slug");
   const params = searchParams.toString();
   // Support multi-key polling,
-  const apiKeys = shuffle(GOOGLE_GENERATIVE_AI_API_KEY?.split(",") || []);
+  const apiKeys = shuffle(GOOGLE_GENERATIVE_AI_API_KEY.split(","));
 
   try {
-    let url = `${API_PROXY_BASE_URL}/${path.join("/")}`;
+    let url = `${API_PROXY_BASE_URL}/${decodeURIComponent(path.join("/"))}`;
     if (params) url += `?${params}`;
     const payload: RequestInit = {
       method: req.method,
@@ -56,18 +56,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
-  return handler(req);
-}
-
-export async function POST(req: NextRequest) {
-  return handler(req);
-}
-
-export async function PUT(req: NextRequest) {
-  return handler(req);
-}
-
-export async function DELETE(req: NextRequest) {
-  return handler(req);
-}
+export { handler as GET, handler as POST, handler as PUT, handler as DELETE };
