@@ -12,6 +12,10 @@ export function isNetworkingModel(model: string) {
   );
 }
 
+export function isOpenRouterFreeModel(model: string) {
+  return model.endsWith(":free");
+}
+
 export function filterThinkingModelList(modelList: string[]) {
   const thinkingModelList: string[] = [];
   const nonThinkingModelList: string[] = [];
@@ -36,4 +40,17 @@ export function filterNetworkingModelList(modelList: string[]) {
     }
   });
   return [networkingModelList, nonNetworkingModelList];
+}
+
+export function filterOpenRouterModelList(modelList: string[]) {
+  const freeModelList: string[] = [];
+  const paidModelList: string[] = [];
+  modelList.filter((model) => {
+    if (isOpenRouterFreeModel(model)) {
+      freeModelList.push(model);
+    } else {
+      paidModelList.push(model);
+    }
+  });
+  return [freeModelList, paidModelList];
 }

@@ -56,7 +56,7 @@ function useDeepResearch() {
     const { thinkingModel, language } = useSettingStore.getState();
     const { question } = useTaskStore.getState();
     setStatus(t("research.common.thinking"));
-    const provider = createProvider("google");
+    const provider = createProvider();
     const result = streamText({
       model: provider(thinkingModel),
       system: getSystemPrompt(),
@@ -84,7 +84,7 @@ function useDeepResearch() {
         let content = "";
         const sources: Source[] = [];
         taskStore.updateTask(item.query, { state: "processing" });
-        const provider = createProvider("google");
+        const provider = createProvider();
         const searchResult = streamText({
           model: provider(
             networkingModel,
@@ -121,7 +121,7 @@ function useDeepResearch() {
     const { query, tasks, suggestion } = useTaskStore.getState();
     setStatus(t("research.common.research"));
     const learnings = tasks.map((item) => item.learning);
-    const provider = createProvider("google");
+    const provider = createProvider();
     const result = streamText({
       model: provider(thinkingModel),
       system: getSystemPrompt(),
@@ -167,7 +167,7 @@ function useDeepResearch() {
     const { save } = useHistoryStore.getState();
     setStatus(t("research.common.writing"));
     const learnings = tasks.map((item) => item.learning);
-    const provider = createProvider("google");
+    const provider = createProvider();
     const result = streamText({
       model: provider(thinkingModel),
       system: [getSystemPrompt(), getOutputGuidelinesPrompt()].join("\n\n"),
@@ -204,7 +204,7 @@ function useDeepResearch() {
     setStatus(t("research.common.thinking"));
     try {
       let queries = [];
-      const provider = createProvider("google");
+      const provider = createProvider();
       const result = streamText({
         model: provider(thinkingModel),
         system: getSystemPrompt(),

@@ -33,7 +33,7 @@ interface ResearchHistory {
   feedback: string;
 }
 
-interface Model {
+interface GeminiModel {
   name: string;
   description: string;
   displayName: string;
@@ -45,6 +45,35 @@ interface Model {
   topP?: number;
   supportedGenerationMethods: string[];
   version: string;
+}
+
+interface OpenRouterModel {
+  id: string;
+  name: string;
+  created: number;
+  description: string;
+  context_length: number;
+  architecture: {
+    modality: string;
+    tokenizer: string;
+    instruct_type?: string;
+  };
+  top_provider: {
+    context_length: number;
+    max_completion_tokens: number;
+    is_moderated: boolean;
+  };
+  pricing: {
+    prompt: string;
+    completion: string;
+    image: string;
+    request: string;
+    input_cache_read: string;
+    input_cache_write: string;
+    web_search: string;
+    internal_reasoning: string;
+  };
+  per_request_limits: Record<string, string> | null;
 }
 
 interface PartialJson {

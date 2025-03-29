@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSettingStore } from "@/store/setting";
+import { GEMINI_BASE_URL, OPENROUTER_BASE_URL } from "@/constants/urls";
 import { shuffle } from "radash";
 
 function useModel() {
@@ -7,6 +8,7 @@ function useModel() {
 
   async function refresh(): Promise<string[]> {
     const {
+      provider,
       apiKey = "",
       apiProxy,
       accessPassword,
@@ -14,31 +16,51 @@ function useModel() {
     const apiKeys = shuffle(apiKey.split(","));
 
     if (apiKey || accessPassword) {
-      const response = await fetch(
-        apiKeys[0]
-          ? `${
-              apiProxy || "https://generativelanguage.googleapis.com"
-            }/v1beta/models`
-          : "/api/ai/google/v1beta/models",
-        {
-          headers: {
-            "x-goog-api-key": apiKeys[0] ? apiKeys[0] : accessPassword,
-          },
-        }
-      );
-      const { models = [] } = await response.json();
-      const newModelList = (models as Model[])
-        .filter(
-          (item) =>
-            item.name.startsWith("models/gemini") &&
-            item.supportedGenerationMethods.includes("generateContent")
-        )
-        .map((item) => item.name.replace("models/", ""));
-      setModelList(newModelList);
-      return newModelList;
-    } else {
-      return [];
+      if (provider === "google") {
+        const response = await fetch(
+          apiKeys[0]
+            ? `${apiProxy || GEMINI_BASE_URL}${
+                apiProxy.includes("/v1") ? "" : "/v1beta"
+              }/models`
+            : "/api/ai/google/v1beta/models",
+          {
+            headers: {
+              "x-goog-api-key": apiKeys[0] ? apiKeys[0] : accessPassword,
+            },
+          }
+        );
+        const { models = [] } = await response.json();
+        const newModelList = (models as GeminiModel[])
+          .filter(
+            (item) =>
+              item.name.startsWith("models/gemini") &&
+              item.supportedGenerationMethods.includes("generateContent")
+          )
+          .map((item) => item.name.replace("models/", ""));
+        setModelList(newModelList);
+        return newModelList;
+      } else if (provider === "openrouter") {
+        const response = await fetch(
+          apiKeys[0]
+            ? `${apiProxy || OPENROUTER_BASE_URL}${
+                apiProxy.includes("/v1") ? "" : "/v1"
+              }/models`
+            : "/api/ai/openrouter/api/v1/models",
+          {
+            headers: {
+              authorization: `Bearer ${
+                apiKeys[0] ? apiKeys[0] : accessPassword
+              }`,
+            },
+          }
+        );
+        const { data = [] } = await response.json();
+        const newModelList = (data as OpenRouterModel[]).map((item) => item.id);
+        setModelList(newModelList);
+        return newModelList;
+      }
     }
+    return [];
   }
 
   return {

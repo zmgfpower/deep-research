@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface SettingStore {
+  provider: string;
+  mode: string;
   apiKey: string;
   apiProxy: string;
   accessPassword: string;
@@ -16,6 +18,8 @@ interface SettingFunction {
 }
 
 export const defaultValues: SettingStore = {
+  provider: "google",
+  mode: "",
   apiKey: "",
   apiProxy: "",
   accessPassword: "",
