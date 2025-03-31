@@ -15,7 +15,7 @@ import {
   ChevronsDown,
   LoaderCircle,
 } from "lucide-react";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/Internal/Button";
 import {
   DropdownMenu,
   DropdownMenuContent,

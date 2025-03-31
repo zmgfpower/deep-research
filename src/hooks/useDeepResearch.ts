@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { streamText, smoothStream } from "ai";
 import { parsePartialJson } from "@ai-sdk/ui-utils";
+import { openai } from "@ai-sdk/openai";
 import { useTranslation } from "react-i18next";
 import Plimit from "p-limit";
 import { toast } from "sonner";
@@ -56,9 +57,8 @@ function useDeepResearch() {
     const { thinkingModel, language } = useSettingStore.getState();
     const { question } = useTaskStore.getState();
     setStatus(t("research.common.thinking"));
-    const provider = createProvider();
     const result = streamText({
-      model: provider(thinkingModel),
+      model: createProvider(thinkingModel),
       system: getSystemPrompt(),
       prompt: [
         generateQuestionsPrompt(question),
@@ -76,27 +76,60 @@ function useDeepResearch() {
   }
 
   async function runSearchTask(queries: SearchTask[]) {
-    const { networkingModel, language } = useSettingStore.getState();
+    const { provider, networkingModel, language } = useSettingStore.getState();
     setStatus(t("research.common.research"));
     const plimit = Plimit(1);
+    const getModel = (model: string) => {
+      if (provider === "google" && isNetworkingModel(model)) {
+        return createProvider(model, { useSearchGrounding: true });
+      } else if (provider === "openai" && model.startsWith("gpt-4o")) {
+        return createProvider(model);
+      } else {
+        return createProvider(model);
+      }
+    };
+    const getTools = (model: string) => {
+      if (provider === "openai" && model.startsWith("gpt-4o")) {
+        return {
+          web_search_preview: openai.tools.webSearchPreview({
+            // optional configuration:
+            searchContextSize: "high",
+          }),
+        };
+      } else {
+        return undefined;
+      }
+    };
+    const getProviderOptions = () => {
+      if (provider === "openrouter") {
+        return {
+          openrouter: {
+            plugins: [
+              {
+                id: "web",
+                max_results: 5, // Defaults to 5
+              },
+            ],
+          },
+        };
+      } else {
+        return undefined;
+      }
+    };
     for await (const item of queries) {
       await plimit(async () => {
         let content = "";
         const sources: Source[] = [];
         taskStore.updateTask(item.query, { state: "processing" });
-        const provider = createProvider();
         const searchResult = streamText({
-          model: provider(
-            networkingModel,
-            isNetworkingModel(networkingModel)
-              ? { useSearchGrounding: true }
-              : {}
-          ),
+          model: getModel(networkingModel),
           system: getSystemPrompt(),
           prompt: [
             processSearchResultPrompt(item.query, item.researchGoal),
             getResponseLanguagePrompt(language),
           ].join("\n\n"),
+          tools: getTools(networkingModel),
+          providerOptions: getProviderOptions(),
           experimental_transform: smoothStream(),
           onError: handleError,
         });
@@ -121,9 +154,8 @@ function useDeepResearch() {
     const { query, tasks, suggestion } = useTaskStore.getState();
     setStatus(t("research.common.research"));
     const learnings = tasks.map((item) => item.learning);
-    const provider = createProvider();
     const result = streamText({
-      model: provider(thinkingModel),
+      model: createProvider(thinkingModel),
       system: getSystemPrompt(),
       prompt: [
         reviewSerpQueriesPrompt(query, learnings, suggestion),
@@ -167,9 +199,8 @@ function useDeepResearch() {
     const { save } = useHistoryStore.getState();
     setStatus(t("research.common.writing"));
     const learnings = tasks.map((item) => item.learning);
-    const provider = createProvider();
     const result = streamText({
-      model: provider(thinkingModel),
+      model: createProvider(thinkingModel),
       system: [getSystemPrompt(), getOutputGuidelinesPrompt()].join("\n\n"),
       prompt: [
         writeFinalReportPrompt(query, learnings),
@@ -204,9 +235,8 @@ function useDeepResearch() {
     setStatus(t("research.common.thinking"));
     try {
       let queries = [];
-      const provider = createProvider();
       const result = streamText({
-        model: provider(thinkingModel),
+        model: createProvider(thinkingModel),
         system: getSystemPrompt(),
         prompt: [
           generateSerpQueriesPrompt(query),

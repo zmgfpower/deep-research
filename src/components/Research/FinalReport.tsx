@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import { useTranslation } from "react-i18next";
 import { Download, FileText, Signature } from "lucide-react";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/Internal/Button";
 import {
   DropdownMenu,
   DropdownMenuContent,

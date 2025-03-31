@@ -9,6 +9,11 @@ export interface SettingStore {
   accessPassword: string;
   thinkingModel: string;
   networkingModel: string;
+  enableSearch: string;
+  searchProvider: string;
+  searchApiKey: string;
+  searchApiProxy: string;
+  searchMaxResult: number;
   language: string;
   theme: string;
 }
@@ -25,6 +30,11 @@ export const defaultValues: SettingStore = {
   accessPassword: "",
   thinkingModel: "gemini-2.0-flash-thinking-exp",
   networkingModel: "gemini-2.0-flash-exp",
+  enableSearch: "1",
+  searchProvider: "model",
+  searchApiKey: "",
+  searchApiProxy: "",
+  searchMaxResult: 5,
   language: "",
   theme: "system",
 };

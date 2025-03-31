@@ -1,10 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { GEMINI_BASE_URL } from "@/constants/urls";
+import { OPENAI_BASE_URL } from "@/constants/urls";
 
 const API_PROXY_BASE_URL =
-  process.env.API_PROXY_BASE_URL ||
-  process.env.GOOGLE_GENERATIVE_AI_API_BASE_URL ||
-  GEMINI_BASE_URL;
+  process.env.OPENAI_API_PROXY_BASE_URL || OPENAI_BASE_URL;
 
 async function handler(req: NextRequest) {
   let body;
@@ -23,9 +21,7 @@ async function handler(req: NextRequest) {
       method: req.method,
       headers: {
         "Content-Type": req.headers.get("Content-Type") || "application/json",
-        "x-goog-api-client":
-          req.headers.get("x-goog-api-client") || "genai-js/0.24.0",
-        "x-goog-api-key": req.headers.get("x-goog-api-key") || "",
+        Authorization: req.headers.get("Authorization") || "",
       },
     };
     if (body) payload.body = JSON.stringify(body);

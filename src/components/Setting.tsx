@@ -5,6 +5,7 @@ import { RefreshCw } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Password } from "@/components/Internal/PasswordInput";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +36,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import useModel from "@/hooks/useModel";
 import { useSettingStore } from "@/store/setting";
-import { GEMINI_BASE_URL, OPENROUTER_BASE_URL } from "@/constants/urls";
+import {
+  GEMINI_BASE_URL,
+  OPENROUTER_BASE_URL,
+  OPENAI_BASE_URL,
+  TAVILY_BASE_URL,
+  FIRECRAWL_BASE_URL,
+} from "@/constants/urls";
 import {
   filterThinkingModelList,
   filterNetworkingModelList,
@@ -60,6 +67,11 @@ const formSchema = z.object({
   accessPassword: z.string().optional(),
   thinkingModel: z.string(),
   networkingModel: z.string(),
+  enableSearch: z.string(),
+  searchProvider: z.string().optional(),
+  searchApiKey: z.string().optional(),
+  searchApiProxy: z.string().optional(),
+  searchMaxResult: z.number().optional(),
   language: z.string().optional(),
   theme: z.string().optional(),
 });
@@ -76,7 +88,7 @@ let preLoading = false;
 
 function Setting({ open, onClose }: SettingProps) {
   const { t } = useTranslation();
-  const { mode, provider, update } = useSettingStore();
+  const { mode, provider, searchProvider, update } = useSettingStore();
   const { modelList, refresh } = useModel();
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const thinkingModelList = useMemo(() => {
@@ -102,10 +114,21 @@ function Setting({ open, onClose }: SettingProps) {
       return GEMINI_BASE_URL;
     } else if (provider === "openrouter") {
       return OPENROUTER_BASE_URL;
+    } else if (provider === "openai") {
+      return OPENAI_BASE_URL;
     } else {
       return t("setting.apiUrlPlaceholder");
     }
   }, [provider, t]);
+  const searchBaseUrlPlaceholder = useMemo(() => {
+    if (searchProvider === "tavily") {
+      return TAVILY_BASE_URL;
+    } else if (searchProvider === "firecrawl") {
+      return FIRECRAWL_BASE_URL;
+    } else {
+      return t("setting.apiUrlPlaceholder");
+    }
+  }, [searchProvider, t]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -152,6 +175,10 @@ function Setting({ open, onClose }: SettingProps) {
     await fetchModelList();
   }
 
+  async function handleSearchProviderChange(searchProvider: string) {
+    update({ searchProvider });
+  }
+
   useLayoutEffect(() => {
     if (open && !preLoading) {
       fetchModelList();
@@ -183,10 +210,13 @@ function Setting({ open, onClose }: SettingProps) {
                   hidden: BUILD_MODE === "export",
                 })}
               >
-                <TabsTrigger className="w-1/2" value="llm">
+                <TabsTrigger className="w-1/3" value="llm">
                   {t("setting.model")}
                 </TabsTrigger>
-                <TabsTrigger className="w-1/2" value="general">
+                <TabsTrigger className="w-1/3" value="search">
+                  Search
+                </TabsTrigger>
+                <TabsTrigger className="w-1/3" value="general">
                   {t("setting.general")}
                 </TabsTrigger>
               </TabsList>
@@ -244,13 +274,17 @@ function Setting({ open, onClose }: SettingProps) {
                           <SelectTrigger className="col-span-3">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="max-sm:max-h-48">
+                          <SelectContent>
                             <SelectItem value="google">
                               Google AI Studio
+                            </SelectItem>
+                            <SelectItem value="openai">
+                              OpenAI Compatible
                             </SelectItem>
                             <SelectItem value="openrouter">
                               OpenRouter
                             </SelectItem>
+                            <SelectItem value="deepseek">DeepSeek</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -272,8 +306,8 @@ function Setting({ open, onClose }: SettingProps) {
                           <span className="ml-1 text-red-500">*</span>
                         </FormLabel>
                         <FormControl className="col-span-3">
-                          <Input
-                            type="password"
+                          <Password
+                            type="text"
                             placeholder={t("setting.apiKeyPlaceholder")}
                             {...field}
                             onBlur={() => handleValueChange()}
@@ -317,8 +351,8 @@ function Setting({ open, onClose }: SettingProps) {
                           <span className="ml-1 text-red-500">*</span>
                         </FormLabel>
                         <FormControl className="col-span-3">
-                          <Input
-                            type="password"
+                          <Password
+                            type="text"
                             placeholder={t("setting.accessPasswordPlaceholder")}
                             {...field}
                             onBlur={() => handleValueChange()}
@@ -338,23 +372,45 @@ function Setting({ open, onClose }: SettingProps) {
                         <span className="ml-1 text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <div className="col-span-3 flex gap-1">
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
+                        <div className="col-span-3 w-full">
+                          <div
+                            className={
+                              ["google", "openrouter"].includes(provider)
+                                ? ""
+                                : "hidden"
+                            }
                           >
-                            <SelectTrigger
-                              className={cn({ hidden: modelList.length === 0 })}
+                            <Select
+                              defaultValue={field.value}
+                              onValueChange={field.onChange}
                             >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="max-sm:max-h-72">
-                              {thinkingModelList[0].length > 0 ? (
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {thinkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {thinkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
                                 <SelectGroup>
                                   <SelectLabel>
-                                    {t("setting.recommendedModels")}
+                                    {t("setting.otherModels")}
                                   </SelectLabel>
-                                  {thinkingModelList[0].map((name) => {
+                                  {thinkingModelList[1].map((name) => {
                                     return (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
@@ -362,34 +418,31 @@ function Setting({ open, onClose }: SettingProps) {
                                     );
                                   })}
                                 </SelectGroup>
-                              ) : null}
-                              <SelectGroup>
-                                <SelectLabel>
-                                  {t("setting.otherModels")}
-                                </SelectLabel>
-                                {thinkingModelList[1].map((name) => {
-                                  return (
-                                    <SelectItem key={name} value={name}>
-                                      {convertModelName(name)}
-                                    </SelectItem>
-                                  );
-                                })}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            className={cn("w-full", {
-                              hidden: modelList.length > 0,
-                            })}
-                            type="button"
-                            variant="outline"
-                            onClick={() => fetchModelList()}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              onClick={() => fetchModelList()}
+                            >
+                              <RefreshCw
+                                className={isRefreshing ? "animate-spin" : ""}
+                              />{" "}
+                              {t("setting.refresh")}
+                            </Button>
+                          </div>
+                          <div
+                            className={
+                              ["google", "openrouter"].includes(provider)
+                                ? "hidden"
+                                : ""
+                            }
                           >
-                            <RefreshCw
-                              className={isRefreshing ? "animate-spin" : ""}
-                            />{" "}
-                            {t("setting.refresh")}
-                          </Button>
+                            <Input placeholder="" {...field} />
+                          </div>
                         </div>
                       </FormControl>
                     </FormItem>
@@ -405,23 +458,45 @@ function Setting({ open, onClose }: SettingProps) {
                         <span className="ml-1 text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <div className="col-span-3 flex gap-1">
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
+                        <div className="col-span-3 w-full">
+                          <div
+                            className={
+                              ["google", "openrouter"].includes(provider)
+                                ? ""
+                                : "hidden"
+                            }
                           >
-                            <SelectTrigger
-                              className={cn({ hidden: modelList.length === 0 })}
+                            <Select
+                              defaultValue={field.value}
+                              onValueChange={field.onChange}
                             >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="max-sm:max-h-72">
-                              {networkingModelList[0].length > 0 ? (
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {networkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {networkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
                                 <SelectGroup>
                                   <SelectLabel>
-                                    {t("setting.recommendedModels")}
+                                    {t("setting.otherModels")}
                                   </SelectLabel>
-                                  {networkingModelList[0].map((name) => {
+                                  {networkingModelList[1].map((name) => {
                                     return (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
@@ -429,35 +504,147 @@ function Setting({ open, onClose }: SettingProps) {
                                     );
                                   })}
                                 </SelectGroup>
-                              ) : null}
-                              <SelectGroup>
-                                <SelectLabel>
-                                  {t("setting.otherModels")}
-                                </SelectLabel>
-                                {networkingModelList[1].map((name) => {
-                                  return (
-                                    <SelectItem key={name} value={name}>
-                                      {convertModelName(name)}
-                                    </SelectItem>
-                                  );
-                                })}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            className={cn("w-full", {
-                              hidden: modelList.length > 0,
-                            })}
-                            type="button"
-                            variant="outline"
-                            onClick={() => fetchModelList()}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              onClick={() => fetchModelList()}
+                            >
+                              <RefreshCw
+                                className={isRefreshing ? "animate-spin" : ""}
+                              />{" "}
+                              {t("setting.refresh")}
+                            </Button>
+                          </div>
+                          <div
+                            className={
+                              ["google", "openrouter"].includes(provider)
+                                ? "hidden"
+                                : ""
+                            }
                           >
-                            <RefreshCw
-                              className={isRefreshing ? "animate-spin" : ""}
-                            />{" "}
-                            {t("setting.refresh")}
-                          </Button>
+                            <Input
+                              placeholder="Please enter the model id"
+                              {...field}
+                            />
+                          </div>
                         </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+              <TabsContent className="space-y-4" value="search">
+                <FormField
+                  control={form.control}
+                  name="enableSearch"
+                  render={({ field }) => (
+                    <FormItem className="from-item">
+                      <FormLabel className="col-span-1">Web Search</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">Enable</SelectItem>
+                            <SelectItem value="0">Disable</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="searchProvider"
+                  render={({ field }) => (
+                    <FormItem className="from-item">
+                      <FormLabel className="col-span-1">
+                        Search Provider
+                      </FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            handleSearchProviderChange(value);
+                          }}
+                        >
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="model">Model</SelectItem>
+                            <SelectItem value="tavily">Tavily</SelectItem>
+                            <SelectItem value="firecrawl">Firecrawl</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="searchApiKey"
+                  render={({ field }) => (
+                    <FormItem className="from-item">
+                      <FormLabel className="col-span-1">
+                        {t("setting.apiKeyLabel")}
+                        <span className="ml-1 text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl className="col-span-3">
+                        <Password
+                          type="text"
+                          placeholder="Please enter your Api Key"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="searchApiProxy"
+                  render={({ field }) => (
+                    <FormItem className="from-item">
+                      <FormLabel className="col-span-1">
+                        {t("setting.apiUrlLabel")}
+                      </FormLabel>
+                      <FormControl className="col-span-3">
+                        <Input
+                          placeholder={searchBaseUrlPlaceholder}
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="searchMaxResult"
+                  render={({ field }) => (
+                    <FormItem className="from-item">
+                      <FormLabel className="col-span-1">
+                        Search Results
+                      </FormLabel>
+                      <FormControl className="col-span-3">
+                        <Input
+                          type="number"
+                          max={10}
+                          min={1}
+                          {...field}
+                          {...form.register("searchMaxResult", {
+                            setValueAs: (value) => Number(value),
+                          })}
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -480,7 +667,7 @@ function Setting({ open, onClose }: SettingProps) {
                           <SelectTrigger className="col-span-3">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="max-sm:max-h-48">
+                          <SelectContent>
                             <SelectItem value="en-US">English</SelectItem>
                             <SelectItem value="zh-CN">简体中文</SelectItem>
                           </SelectContent>
@@ -503,7 +690,7 @@ function Setting({ open, onClose }: SettingProps) {
                           <SelectTrigger className="col-span-3">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="max-sm:max-h-48">
+                          <SelectContent>
                             <SelectItem value="system">
                               {t("setting.system")}
                             </SelectItem>

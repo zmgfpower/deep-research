@@ -42,10 +42,10 @@ function useModel() {
       } else if (provider === "openrouter") {
         const response = await fetch(
           apiKeys[0]
-            ? `${apiProxy || OPENROUTER_BASE_URL}${
+            ? `${apiProxy || `${OPENROUTER_BASE_URL}/api`}${
                 apiProxy.includes("/v1") ? "" : "/v1"
               }/models`
-            : "/api/ai/openrouter/api/v1/models",
+            : "/api/ai/openrouter/v1/models",
           {
             headers: {
               authorization: `Bearer ${

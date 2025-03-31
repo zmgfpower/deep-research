@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Crepe } from "@milkdown/crepe";
 import { replaceAll, getHTML } from "@milkdown/kit/utils";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/Internal/Button";
 import {
   Form,
   FormControl,

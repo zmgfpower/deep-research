@@ -3,7 +3,15 @@ import pkg from "./package.json";
 
 const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE;
 const API_PROXY_BASE_URL =
-  process.env.API_PROXY_BASE_URL || "https://generativelanguage.googleapis.com";
+  process.env.API_PROXY_BASE_URL ||
+  process.env.GOOGLE_GENERATIVE_AI_API_BASE_URL ||
+  "https://generativelanguage.googleapis.com";
+const OPENROUTER_API_PROXY_BASE_URL =
+  process.env.OPENROUTER_API_PROXY_BASE_URL || "https://openrouter.ai/api";
+const OPENAI_API_PROXY_BASE_URL =
+  process.env.OPENAI_API_PROXY_BASE_URL || "https://api.openai.com";
+const DEEPSEEK_API_PROXY_BASE_URL =
+  process.env.DEEPSEEK_API_PROXY_BASE_URL || "https://api.deepseek.com";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -42,7 +50,15 @@ if (BUILD_MODE === "export") {
       },
       {
         source: "/api/ai/openrouter/:path*",
-        destination: "https://openrouter.ai/:path*",
+        destination: `${OPENROUTER_API_PROXY_BASE_URL}/:path*`,
+      },
+      {
+        source: "/api/ai/openai/:path*",
+        destination: `${OPENAI_API_PROXY_BASE_URL}/:path*`,
+      },
+      {
+        source: "/api/ai/deepseek/:path*",
+        destination: `${DEEPSEEK_API_PROXY_BASE_URL}/:path*`,
       },
     ];
   };

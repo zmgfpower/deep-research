@@ -84,3 +84,9 @@ interface PartialJson {
     | "repaired-parse"
     | "failed-parse";
 }
+
+interface WebSearchResult {
+  content: string;
+  url: string;
+  title?: string;
+}

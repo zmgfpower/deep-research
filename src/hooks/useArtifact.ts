@@ -30,9 +30,8 @@ function useArtifact({ value, onChange }: ArtifactProps) {
   async function AIWrite(prompt: string, systemInstruction?: string) {
     const { thinkingModel } = useSettingStore.getState();
     setLoadingAction("aiWrite");
-    const provider = createProvider("google");
     const result = streamText({
-      model: provider(thinkingModel),
+      model: createProvider(thinkingModel),
       prompt: AIWritePrompt(value, prompt, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
@@ -49,9 +48,8 @@ function useArtifact({ value, onChange }: ArtifactProps) {
   async function translate(lang: string, systemInstruction?: string) {
     const { thinkingModel } = useSettingStore.getState();
     setLoadingAction("translate");
-    const provider = createProvider("google");
     const result = streamText({
-      model: provider(thinkingModel),
+      model: createProvider(thinkingModel),
       prompt: changeLanguagePrompt(value, lang, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
@@ -68,9 +66,8 @@ function useArtifact({ value, onChange }: ArtifactProps) {
   async function changeReadingLevel(level: string, systemInstruction?: string) {
     const { thinkingModel } = useSettingStore.getState();
     setLoadingAction("readingLevel");
-    const provider = createProvider("google");
     const result = streamText({
-      model: provider(thinkingModel),
+      model: createProvider(thinkingModel),
       prompt: changeReadingLevelPrompt(value, level, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
@@ -87,9 +84,8 @@ function useArtifact({ value, onChange }: ArtifactProps) {
   async function adjustLength(length: string, systemInstruction?: string) {
     const { thinkingModel } = useSettingStore.getState();
     setLoadingAction("adjustLength");
-    const provider = createProvider("google");
     const result = streamText({
-      model: provider(thinkingModel),
+      model: createProvider(thinkingModel),
       prompt: adjustLengthPrompt(value, length, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
@@ -106,9 +102,8 @@ function useArtifact({ value, onChange }: ArtifactProps) {
   async function continuation(systemInstruction?: string) {
     const { thinkingModel } = useSettingStore.getState();
     setLoadingAction("continuation");
-    const provider = createProvider("google");
     const result = streamText({
-      model: provider(thinkingModel),
+      model: createProvider(thinkingModel),
       prompt: continuationPrompt(value, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
@@ -125,9 +120,8 @@ function useArtifact({ value, onChange }: ArtifactProps) {
   async function addEmojis(systemInstruction?: string) {
     const { thinkingModel } = useSettingStore.getState();
     setLoadingAction("addEmojis");
-    const provider = createProvider("google");
     const result = streamText({
-      model: provider(thinkingModel),
+      model: createProvider(thinkingModel),
       prompt: addEmojisPrompt(value, systemInstruction),
       experimental_transform: smoothStream(),
       onError: handleError,
