@@ -2,16 +2,22 @@ import type { NextConfig } from "next";
 import pkg from "./package.json";
 
 const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE;
-const API_PROXY_BASE_URL =
-  process.env.API_PROXY_BASE_URL ||
+const API_PROXY_BASE_URL = process.env.API_PROXY_BASE_URL || "";
+const GOOGLE_GENERATIVE_AI_API_BASE_URL =
   process.env.GOOGLE_GENERATIVE_AI_API_BASE_URL ||
   "https://generativelanguage.googleapis.com";
 const OPENROUTER_API_PROXY_BASE_URL =
   process.env.OPENROUTER_API_PROXY_BASE_URL || "https://openrouter.ai/api";
 const OPENAI_API_PROXY_BASE_URL =
   process.env.OPENAI_API_PROXY_BASE_URL || "https://api.openai.com";
+const ANTHROPIC_API_PROXY_BASE_URL =
+  process.env.ANTHROPIC_API_PROXY_BASE_URL || "https://api.anthropic.com";
 const DEEPSEEK_API_PROXY_BASE_URL =
   process.env.DEEPSEEK_API_PROXY_BASE_URL || "https://api.deepseek.com";
+const XAI_API_PROXY_BASE_URL =
+  process.env.XAI_API_PROXY_BASE_URL || "https://api.x.ai";
+const OLLAMA_API_PROXY_BASE_URL =
+  process.env.OLLAMA_API_PROXY_BASE_URL || "http://localhost:11434";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -46,7 +52,9 @@ if (BUILD_MODE === "export") {
     return [
       {
         source: "/api/ai/google/:path*",
-        destination: `${API_PROXY_BASE_URL}/:path*`,
+        destination: `${
+          GOOGLE_GENERATIVE_AI_API_BASE_URL || API_PROXY_BASE_URL
+        }/:path*`,
       },
       {
         source: "/api/ai/openrouter/:path*",
@@ -57,8 +65,20 @@ if (BUILD_MODE === "export") {
         destination: `${OPENAI_API_PROXY_BASE_URL}/:path*`,
       },
       {
+        source: "/api/ai/anthropic/:path*",
+        destination: `${ANTHROPIC_API_PROXY_BASE_URL}/:path*`,
+      },
+      {
         source: "/api/ai/deepseek/:path*",
         destination: `${DEEPSEEK_API_PROXY_BASE_URL}/:path*`,
+      },
+      {
+        source: "/api/ai/xai/:path*",
+        destination: `${XAI_API_PROXY_BASE_URL}/:path*`,
+      },
+      {
+        source: "/api/ai/ollama/:path*",
+        destination: `${OLLAMA_API_PROXY_BASE_URL}/:path*`,
       },
     ];
   };

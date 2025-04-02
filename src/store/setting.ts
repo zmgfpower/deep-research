@@ -13,6 +13,7 @@ export interface SettingStore {
   searchProvider: string;
   searchApiKey: string;
   searchApiProxy: string;
+  parallelSearch: number;
   searchMaxResult: number;
   language: string;
   theme: string;
@@ -34,6 +35,7 @@ export const defaultValues: SettingStore = {
   searchProvider: "model",
   searchApiKey: "",
   searchApiProxy: "",
+  parallelSearch: 1,
   searchMaxResult: 5,
   language: "",
   theme: "system",

@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import useModel from "@/hooks/useModel";
 import { useSettingStore } from "@/store/setting";
 import {
@@ -71,7 +72,8 @@ const formSchema = z.object({
   searchProvider: z.string().optional(),
   searchApiKey: z.string().optional(),
   searchApiProxy: z.string().optional(),
-  searchMaxResult: z.number().optional(),
+  parallelSearch: z.number().min(1).max(5),
+  searchMaxResult: z.number().min(1).max(10),
   language: z.string().optional(),
   theme: z.string().optional(),
 });
@@ -284,7 +286,10 @@ function Setting({ open, onClose }: SettingProps) {
                             <SelectItem value="openrouter">
                               OpenRouter
                             </SelectItem>
+                            <SelectItem value="anthropic">Anthropic</SelectItem>
                             <SelectItem value="deepseek">DeepSeek</SelectItem>
+                            <SelectItem value="xai">xAI Grok</SelectItem>
+                            <SelectItem value="ollama">Ollama</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -441,7 +446,7 @@ function Setting({ open, onClose }: SettingProps) {
                                 : ""
                             }
                           >
-                            <Input placeholder="" {...field} />
+                            <Input {...field} />
                           </div>
                         </div>
                       </FormControl>
@@ -573,6 +578,7 @@ function Setting({ open, onClose }: SettingProps) {
                       <FormControl>
                         <Select
                           value={field.value}
+                          disabled={form.getValues("enableSearch") === "0"}
                           onValueChange={(value) => {
                             field.onChange(value);
                             handleSearchProviderChange(value);
@@ -591,38 +597,79 @@ function Setting({ open, onClose }: SettingProps) {
                     </FormItem>
                   )}
                 />
+                <div
+                  className={["model"].includes(searchProvider) ? "hidden" : ""}
+                >
+                  <FormField
+                    control={form.control}
+                    name="searchApiKey"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.apiKeyLabel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl className="col-span-3">
+                          <Password
+                            type="text"
+                            placeholder="Please enter your Api Key"
+                            disabled={form.getValues("enableSearch") === "0"}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div
+                  className={
+                    ["model", "tavily"].includes(searchProvider) ? "hidden" : ""
+                  }
+                >
+                  <FormField
+                    control={form.control}
+                    name="searchApiProxy"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.apiUrlLabel")}
+                        </FormLabel>
+                        <FormControl className="col-span-3">
+                          <Input
+                            placeholder={searchBaseUrlPlaceholder}
+                            disabled={form.getValues("enableSearch") === "0"}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
-                  name="searchApiKey"
+                  name="parallelSearch"
                   render={({ field }) => (
                     <FormItem className="from-item">
                       <FormLabel className="col-span-1">
-                        {t("setting.apiKeyLabel")}
-                        <span className="ml-1 text-red-500">*</span>
+                        Parallel Search
                       </FormLabel>
                       <FormControl className="col-span-3">
-                        <Password
-                          type="text"
-                          placeholder="Please enter your Api Key"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="searchApiProxy"
-                  render={({ field }) => (
-                    <FormItem className="from-item">
-                      <FormLabel className="col-span-1">
-                        {t("setting.apiUrlLabel")}
-                      </FormLabel>
-                      <FormControl className="col-span-3">
-                        <Input
-                          placeholder={searchBaseUrlPlaceholder}
-                          {...field}
-                        />
+                        <div className="flex h-10">
+                          <Slider
+                            className="flex-1"
+                            value={[field.value]}
+                            max={5}
+                            min={1}
+                            step={1}
+                            disabled={form.getValues("enableSearch") === "0"}
+                            onValueChange={(values) =>
+                              field.onChange(values[0])
+                            }
+                          />
+                          <span className="w-[14%] text-center text-sm leading-10">
+                            {field.value}
+                          </span>
+                        </div>
                       </FormControl>
                     </FormItem>
                   )}
@@ -636,15 +683,22 @@ function Setting({ open, onClose }: SettingProps) {
                         Search Results
                       </FormLabel>
                       <FormControl className="col-span-3">
-                        <Input
-                          type="number"
-                          max={10}
-                          min={1}
-                          {...field}
-                          {...form.register("searchMaxResult", {
-                            setValueAs: (value) => Number(value),
-                          })}
-                        />
+                        <div className="flex h-10">
+                          <Slider
+                            className="flex-1"
+                            value={[field.value]}
+                            max={10}
+                            min={1}
+                            step={1}
+                            disabled={form.getValues("enableSearch") === "0"}
+                            onValueChange={(values) =>
+                              field.onChange(values[0])
+                            }
+                          />
+                          <span className="w-[14%] text-center text-sm leading-10">
+                            {field.value}
+                          </span>
+                        </div>
                       </FormControl>
                     </FormItem>
                   )}

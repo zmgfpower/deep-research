@@ -1,13 +1,19 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { createDeepSeek } from "@ai-sdk/deepseek";
+import { createXai } from "@ai-sdk/xai";
+import { createOllama } from "ollama-ai-provider";
 import { useSettingStore } from "@/store/setting";
 import {
   GEMINI_BASE_URL,
   OPENROUTER_BASE_URL,
   OPENAI_BASE_URL,
+  ANTHROPIC_BASE_URL,
   DEEPSEEK_BASE_URL,
+  XAI_BASE_URL,
+  OLLAMA_BASE_URL,
 } from "@/constants/urls";
 import { shuffle } from "radash";
 
@@ -49,6 +55,16 @@ export function useModelProvider() {
       return model.startsWith("gpt-4o")
         ? openai.responses(model)
         : openai(model, settings);
+    } else if (provider === "anthropic") {
+      const anthropic = createAnthropic({
+        baseURL: apiKeys[0]
+          ? `${apiProxy || ANTHROPIC_BASE_URL}${
+              apiProxy.includes("/v1") ? "" : "/v1"
+            }`
+          : "/api/ai/anthropic/v1",
+        apiKey: apiKeys[0] ? apiKeys[0] : accessPassword,
+      });
+      return anthropic(model, settings);
     } else if (provider === "deepseek") {
       const deepseek = createDeepSeek({
         baseURL: apiKeys[0]
@@ -59,6 +75,26 @@ export function useModelProvider() {
         apiKey: apiKeys[0] ? apiKeys[0] : accessPassword,
       });
       return deepseek(model, settings);
+    } else if (provider === "xai") {
+      const xai = createXai({
+        baseURL: apiKeys[0]
+          ? `${apiProxy || XAI_BASE_URL}${
+              apiProxy.includes("/v1") ? "" : "/v1"
+            }`
+          : "/api/ai/xai/v1",
+        apiKey: apiKeys[0] ? apiKeys[0] : accessPassword,
+      });
+      return xai(model, settings);
+    } else if (provider === "ollama") {
+      const ollama = createOllama({
+        baseURL: accessPassword
+          ? "/api/ai/ollama"
+          : `${apiProxy || `${OLLAMA_BASE_URL}/api`}`,
+        headers: {
+          Authorization: accessPassword,
+        },
+      });
+      return ollama(model, settings);
     } else {
       throw new Error("Unsupported Provider: " + provider);
     }

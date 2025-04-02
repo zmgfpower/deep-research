@@ -7,13 +7,18 @@ const GOOGLE_GENERATIVE_AI_API_KEY =
   process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
+const XAI_API_KEY = process.env.XAI_API_KEY || "";
 
 const apiRoutes = [
   "/api/ai/google",
   "/api/ai/openrouter",
   "/api/ai/openai",
+  "/api/ai/anthropic",
   "/api/ai/deepseek",
+  "/api/ai/xai",
+  "/api/ai/ollama",
 ];
 
 // Limit the middleware to paths starting with `/api/`
@@ -126,6 +131,34 @@ export function middleware(request: NextRequest) {
     }
   }
   if (request.nextUrl.pathname.startsWith(apiRoutes[3])) {
+    const authorization = request.headers.get("x-api-key");
+    if (isEqual(authorization, null) || authorization !== accessPassword) {
+      return NextResponse.json(
+        { error: ERRORS.NO_PERMISSIONS },
+        { status: 403 }
+      );
+    } else {
+      // Support multi-key polling,
+      const apiKeys = shuffle(ANTHROPIC_API_KEY.split(","));
+      if (apiKeys[0]) {
+        const requestHeaders = new Headers(request.headers);
+        requestHeaders.set("x-api-key", apiKeys[0]);
+        return NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        });
+      } else {
+        return NextResponse.json(
+          {
+            error: ERRORS.NO_API_KEY,
+          },
+          { status: 500 }
+        );
+      }
+    }
+  }
+  if (request.nextUrl.pathname.startsWith(apiRoutes[4])) {
     const authorization = request.headers.get("authorization");
     if (
       isEqual(authorization, null) ||
@@ -154,6 +187,58 @@ export function middleware(request: NextRequest) {
           { status: 500 }
         );
       }
+    }
+  }
+  if (request.nextUrl.pathname.startsWith(apiRoutes[5])) {
+    const authorization = request.headers.get("authorization");
+    if (
+      isEqual(authorization, null) ||
+      authorization !== `Bearer ${accessPassword}`
+    ) {
+      return NextResponse.json(
+        { error: ERRORS.NO_PERMISSIONS },
+        { status: 403 }
+      );
+    } else {
+      // Support multi-key polling,
+      const apiKeys = shuffle(XAI_API_KEY.split(","));
+      if (apiKeys[0]) {
+        const requestHeaders = new Headers(request.headers);
+        requestHeaders.set("Authorization", `Bearer ${apiKeys[0]}`);
+        return NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        });
+      } else {
+        return NextResponse.json(
+          {
+            error: ERRORS.NO_API_KEY,
+          },
+          { status: 500 }
+        );
+      }
+    }
+  }
+  // The ollama model only verifies access to the backend API
+  if (request.nextUrl.pathname.startsWith(apiRoutes[6])) {
+    const authorization = request.headers.get("authorization");
+    if (
+      isEqual(authorization, null) ||
+      authorization !== `Bearer ${accessPassword}`
+    ) {
+      return NextResponse.json(
+        { error: ERRORS.NO_PERMISSIONS },
+        { status: 403 }
+      );
+    } else {
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.delete("authorization");
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      });
     }
   }
   return NextResponse.next();
