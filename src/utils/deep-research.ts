@@ -21,12 +21,12 @@ export function getOutputGuidelinesPrompt() {
   return `<OutputGuidelines>
 Please strictly adhere to the following formatting guidelines when outputting text to ensure clarity, accuracy, and readability:
 
-## 1. Structured Content
+## Structured Content
 
 -   **Clear Paragraphs**: Organize different ideas or topics using clear paragraphs.
--   **Titles and Subtitles**: Use different levels of headings (e.g., H1, H2, H3) to divide the content's hierarchical structure, ensuring logical clarity.
+-   **Titles and Subtitles**: Use different levels of headings to divide the content's hierarchical structure, ensuring logical clarity.
 
-## 2. Use of Markdown Syntax (if the platform supports it)
+## Use of Markdown Syntax (if the platform supports it)
 
 -   **Bold and Italics**: Use to emphasize keywords or concepts.
     -   For example: **Important Information** or *Emphasized Section*.
@@ -44,6 +44,8 @@ Please strictly adhere to the following formatting guidelines when outputting te
     \`\`\`
 -   **Quotes**: Use quote formatting when citing others' opinions or important information.
     > This is an example of a quote.
+-   **Images**: Render images using markdown syntax.
+    -   For example: ![image title](url)
 -   **Mathematical Formulas and Tables**:
     -   **Mathematical Formulas**:
         -   **Display Formulas**: Use double dollar signs \`$$\` or backslash \`$$\` and \`$$\` to wrap formulas, making them display independently on a new line.
@@ -65,32 +67,11 @@ Please strictly adhere to the following formatting guidelines when outputting te
         | John Doe | 28 | Engineer   |
         | Jane Smith | 34 | Designer   |
 
-## 3. Fractions and Mathematical Representation
+## Fractions and Mathematical Representation
 
 -   **Consistency**: Maintain consistency in the representation of fractions, prioritizing simplified forms.
     -   For example: Use \`-8/11\` instead of \`-16/22\`.
 -   **Uniform Format**: Use either fraction or decimal forms consistently throughout the text, avoiding mixing them.
-
-## 4. Detailed Explanations
-
--   **Step-by-Step Instructions**: Add brief explanations to each key step, explaining why the operation is being performed to help readers understand the reasoning behind it.
-    -   For example: "Eliminate the first element of the second row by R2 = R2 - R1 to simplify the matrix."
--   **Mathematical Accuracy**: Ensure the accuracy of all mathematical calculations and results. Carefully check each step of the operation to avoid errors.
-
-## 5. Consistency and Uniform Formatting
-
--   **Symbols and Abbreviations**: Use symbols and abbreviations consistently, avoiding different representations in the same document.
--   **Font and Style**: Maintain consistency in the font and style used throughout the text, such as using bold for headings and italics for emphasis.
-
-## 6. Visual Aids
-
--   **Color and Emphasis**: Use color or other Markdown features appropriately to highlight key steps or results, enhancing visual impact (if the platform supports it).
--   **Spacing and Alignment**: Ensure reasonable spacing between text and elements, and align them neatly to improve overall aesthetics.
-
-## 7. Adaptive Adjustments
-
--   Adjust formatting based on the content type. For example, technical documents may require more code examples and tables, while storytelling focuses on paragraphs and descriptions.
--   **Examples and Analogies**: Use examples, analogies, or diagrams as needed to explain complex concepts and enhance understanding.
 
 **Important Notes**:
 
@@ -141,11 +122,27 @@ export function generateSerpQueriesPrompt(query: string) {
   ].join("\n\n");
 }
 
-export function processSearchResultPrompt(query: string, researchGoal: string) {
+export function processResultPrompt(query: string, researchGoal: string) {
   return [
     `Please use the following query to get the latest information via google search tool:\n<query>${query}</query>`,
     `You need to organize the searched information according to the following requirements:\n<researchGoal>\n${researchGoal}\n</researchGoal>`,
     `You need to think like a human researcher. Generate a list of learnings from the search results. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.`,
+  ].join("\n\n");
+}
+
+export function processSearchResultPrompt(
+  query: string,
+  researchGoal: string,
+  results: Source[]
+) {
+  const contents = results.map(
+    (result) => `<content url="${result.url}">\n${result.content}\n</content>`
+  );
+  return [
+    `Given the following contents from a SERP search for the query:\n<query>${query}</query>.`,
+    `You need to organize the searched information according to the following requirements:\n<researchGoal>\n${researchGoal}\n</researchGoal>`,
+    `<contents>${contents.join("\n")}</contents>`,
+    `You need to think like a human researcher. Generate a list of learnings from the contents. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.`,
   ].join("\n\n");
 }
 

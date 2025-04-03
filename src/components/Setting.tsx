@@ -41,6 +41,9 @@ import {
   GEMINI_BASE_URL,
   OPENROUTER_BASE_URL,
   OPENAI_BASE_URL,
+  ANTHROPIC_BASE_URL,
+  DEEPSEEK_BASE_URL,
+  XAI_BASE_URL,
   TAVILY_BASE_URL,
   FIRECRAWL_BASE_URL,
 } from "@/constants/urls";
@@ -118,6 +121,12 @@ function Setting({ open, onClose }: SettingProps) {
       return OPENROUTER_BASE_URL;
     } else if (provider === "openai") {
       return OPENAI_BASE_URL;
+    } else if (provider === "anthropic") {
+      return ANTHROPIC_BASE_URL;
+    } else if (provider === "deepseek") {
+      return DEEPSEEK_BASE_URL;
+    } else if (provider === "xai") {
+      return XAI_BASE_URL;
     } else {
       return t("setting.apiUrlPlaceholder");
     }
@@ -216,7 +225,7 @@ function Setting({ open, onClose }: SettingProps) {
                   {t("setting.model")}
                 </TabsTrigger>
                 <TabsTrigger className="w-1/3" value="search">
-                  Search
+                  {t("setting.search")}
                 </TabsTrigger>
                 <TabsTrigger className="w-1/3" value="general">
                   {t("setting.general")}
@@ -380,7 +389,12 @@ function Setting({ open, onClose }: SettingProps) {
                         <div className="col-span-3 w-full">
                           <div
                             className={
-                              ["google", "openrouter"].includes(provider)
+                              [
+                                "google",
+                                "openrouter",
+                                "openai",
+                                "deepseek",
+                              ].includes(provider)
                                 ? ""
                                 : "hidden"
                             }
@@ -413,7 +427,7 @@ function Setting({ open, onClose }: SettingProps) {
                                 ) : null}
                                 <SelectGroup>
                                   <SelectLabel>
-                                    {t("setting.otherModels")}
+                                    {t("setting.basicModels")}
                                   </SelectLabel>
                                   {thinkingModelList[1].map((name) => {
                                     return (
@@ -441,7 +455,12 @@ function Setting({ open, onClose }: SettingProps) {
                           </div>
                           <div
                             className={
-                              ["google", "openrouter"].includes(provider)
+                              [
+                                "google",
+                                "openrouter",
+                                "openai",
+                                "deepseek",
+                              ].includes(provider)
                                 ? "hidden"
                                 : ""
                             }
@@ -466,7 +485,12 @@ function Setting({ open, onClose }: SettingProps) {
                         <div className="col-span-3 w-full">
                           <div
                             className={
-                              ["google", "openrouter"].includes(provider)
+                              [
+                                "google",
+                                "openrouter",
+                                "openai",
+                                "deepseek",
+                              ].includes(provider)
                                 ? ""
                                 : "hidden"
                             }
@@ -499,7 +523,7 @@ function Setting({ open, onClose }: SettingProps) {
                                 ) : null}
                                 <SelectGroup>
                                   <SelectLabel>
-                                    {t("setting.otherModels")}
+                                    {t("setting.basicModels")}
                                   </SelectLabel>
                                   {networkingModelList[1].map((name) => {
                                     return (
@@ -527,7 +551,12 @@ function Setting({ open, onClose }: SettingProps) {
                           </div>
                           <div
                             className={
-                              ["google", "openrouter"].includes(provider)
+                              [
+                                "google",
+                                "openrouter",
+                                "openai",
+                                "deepseek",
+                              ].includes(provider)
                                 ? "hidden"
                                 : ""
                             }
@@ -549,7 +578,9 @@ function Setting({ open, onClose }: SettingProps) {
                   name="enableSearch"
                   render={({ field }) => (
                     <FormItem className="from-item">
-                      <FormLabel className="col-span-1">Web Search</FormLabel>
+                      <FormLabel className="col-span-1">
+                        {t("setting.webSearch")}
+                      </FormLabel>
                       <FormControl>
                         <Select
                           value={field.value}
@@ -559,8 +590,12 @@ function Setting({ open, onClose }: SettingProps) {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">Enable</SelectItem>
-                            <SelectItem value="0">Disable</SelectItem>
+                            <SelectItem value="1">
+                              {t("setting.enable")}
+                            </SelectItem>
+                            <SelectItem value="0">
+                              {t("setting.disable")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -573,7 +608,7 @@ function Setting({ open, onClose }: SettingProps) {
                   render={({ field }) => (
                     <FormItem className="from-item">
                       <FormLabel className="col-span-1">
-                        Search Provider
+                        {t("setting.searchProvider")}
                       </FormLabel>
                       <FormControl>
                         <Select
@@ -588,7 +623,9 @@ function Setting({ open, onClose }: SettingProps) {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="model">Model</SelectItem>
+                            <SelectItem value="model">
+                              {t("setting.modelBuiltin")}
+                            </SelectItem>
                             <SelectItem value="tavily">Tavily</SelectItem>
                             <SelectItem value="firecrawl">Firecrawl</SelectItem>
                           </SelectContent>
@@ -598,7 +635,9 @@ function Setting({ open, onClose }: SettingProps) {
                   )}
                 />
                 <div
-                  className={["model"].includes(searchProvider) ? "hidden" : ""}
+                  className={cn("space-y-4", {
+                    hidden: ["model"].includes(searchProvider),
+                  })}
                 >
                   <FormField
                     control={form.control}
@@ -612,7 +651,7 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormControl className="col-span-3">
                           <Password
                             type="text"
-                            placeholder="Please enter your Api Key"
+                            placeholder={t("setting.searchApiKeyPlaceholder")}
                             disabled={form.getValues("enableSearch") === "0"}
                             {...field}
                           />
@@ -620,12 +659,6 @@ function Setting({ open, onClose }: SettingProps) {
                       </FormItem>
                     )}
                   />
-                </div>
-                <div
-                  className={
-                    ["model", "tavily"].includes(searchProvider) ? "hidden" : ""
-                  }
-                >
                   <FormField
                     control={form.control}
                     name="searchApiProxy"
@@ -651,7 +684,7 @@ function Setting({ open, onClose }: SettingProps) {
                   render={({ field }) => (
                     <FormItem className="from-item">
                       <FormLabel className="col-span-1">
-                        Parallel Search
+                        {t("setting.parallelSearch")}
                       </FormLabel>
                       <FormControl className="col-span-3">
                         <div className="flex h-10">
@@ -680,7 +713,7 @@ function Setting({ open, onClose }: SettingProps) {
                   render={({ field }) => (
                     <FormItem className="from-item">
                       <FormLabel className="col-span-1">
-                        Search Results
+                        {t("setting.searchResults")}
                       </FormLabel>
                       <FormControl className="col-span-3">
                         <div className="flex h-10">

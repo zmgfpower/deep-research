@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import Plimit from "p-limit";
 import { toast } from "sonner";
 import { useModelProvider } from "@/hooks/useAiProvider";
+import { useWebSearch } from "@/hooks/useWebSearch";
 import { useTaskStore } from "@/store/task";
 import { useHistoryStore } from "@/store/history";
 import { useSettingStore } from "@/store/setting";
@@ -14,6 +15,7 @@ import {
   getOutputGuidelinesPrompt,
   generateQuestionsPrompt,
   generateSerpQueriesPrompt,
+  processResultPrompt,
   processSearchResultPrompt,
   reviewSerpQueriesPrompt,
   writeFinalReportPrompt,
@@ -51,6 +53,7 @@ function useDeepResearch() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
   const { createProvider } = useModelProvider();
+  const { tavily, firecrawl } = useWebSearch();
   const [status, setStatus] = useState<string>("");
 
   async function askQuestions() {
@@ -76,24 +79,43 @@ function useDeepResearch() {
   }
 
   async function runSearchTask(queries: SearchTask[]) {
-    const { provider, networkingModel, language } = useSettingStore.getState();
+    const {
+      provider,
+      networkingModel,
+      enableSearch,
+      searchProvider,
+      parallelSearch,
+      searchMaxResult,
+      language,
+    } = useSettingStore.getState();
     setStatus(t("research.common.research"));
-    const plimit = Plimit(1);
+    const plimit = Plimit(parallelSearch);
+    console.log(parallelSearch);
     const getModel = (model: string) => {
-      if (provider === "google" && isNetworkingModel(model)) {
+      // Enable Gemini's built-in search tool
+      if (
+        enableSearch &&
+        searchProvider === "model" &&
+        provider === "google" &&
+        isNetworkingModel(model)
+      ) {
         return createProvider(model, { useSearchGrounding: true });
-      } else if (provider === "openai" && model.startsWith("gpt-4o")) {
-        return createProvider(model);
       } else {
         return createProvider(model);
       }
     };
     const getTools = (model: string) => {
-      if (provider === "openai" && model.startsWith("gpt-4o")) {
+      // Enable OpenAI's built-in search tool
+      if (
+        enableSearch &&
+        searchProvider === "model" &&
+        provider === "openai" &&
+        model.startsWith("gpt-4o")
+      ) {
         return {
           web_search_preview: openai.tools.webSearchPreview({
             // optional configuration:
-            searchContextSize: "high",
+            searchContextSize: "medium",
           }),
         };
       } else {
@@ -101,13 +123,18 @@ function useDeepResearch() {
       }
     };
     const getProviderOptions = () => {
-      if (provider === "openrouter") {
+      // Enable OpenRouter's built-in search tool
+      if (
+        enableSearch &&
+        searchProvider === "model" &&
+        provider === "openrouter"
+      ) {
         return {
           openrouter: {
             plugins: [
               {
                 id: "web",
-                max_results: 5, // Defaults to 5
+                max_results: searchMaxResult, // Defaults to 5
               },
             ],
           },
@@ -116,37 +143,75 @@ function useDeepResearch() {
         return undefined;
       }
     };
-    for await (const item of queries) {
-      await plimit(async () => {
-        let content = "";
-        const sources: Source[] = [];
-        taskStore.updateTask(item.query, { state: "processing" });
-        const searchResult = streamText({
-          model: getModel(networkingModel),
-          system: getSystemPrompt(),
-          prompt: [
-            processSearchResultPrompt(item.query, item.researchGoal),
-            getResponseLanguagePrompt(language),
-          ].join("\n\n"),
-          tools: getTools(networkingModel),
-          providerOptions: getProviderOptions(),
-          experimental_transform: smoothStream(),
-          onError: handleError,
-        });
-        for await (const part of searchResult.fullStream) {
-          if (part.type === "text-delta") {
-            content += part.textDelta;
-            taskStore.updateTask(item.query, { learning: content });
-          } else if (part.type === "reasoning") {
-            console.log("reasoning", part.textDelta);
-          } else if (part.type === "source") {
-            sources.push(part.source);
+    await Promise.all(
+      queries.map((item) => {
+        plimit(async () => {
+          let content = "";
+          let searchResult;
+          let sources: Source[] = [];
+          taskStore.updateTask(item.query, { state: "processing" });
+          if (enableSearch) {
+            if (searchProvider !== "model") {
+              if (searchProvider === "tavily") {
+                sources = await tavily(item.query);
+              } else if (searchProvider === "firecrawl") {
+                sources = await firecrawl(item.query);
+              }
+              searchResult = streamText({
+                model: getModel(networkingModel),
+                system: getSystemPrompt(),
+                prompt: [
+                  processSearchResultPrompt(
+                    item.query,
+                    item.researchGoal,
+                    sources
+                  ),
+                  getResponseLanguagePrompt(language),
+                ].join("\n\n"),
+                experimental_transform: smoothStream(),
+                onError: handleError,
+              });
+            } else {
+              searchResult = streamText({
+                model: getModel(networkingModel),
+                system: getSystemPrompt(),
+                prompt: [
+                  processResultPrompt(item.query, item.researchGoal),
+                  getResponseLanguagePrompt(language),
+                ].join("\n\n"),
+                tools: getTools(networkingModel),
+                providerOptions: getProviderOptions(),
+                experimental_transform: smoothStream(),
+                onError: handleError,
+              });
+            }
+          } else {
+            searchResult = streamText({
+              model: createProvider(networkingModel),
+              system: getSystemPrompt(),
+              prompt: [
+                processResultPrompt(item.query, item.researchGoal),
+                getResponseLanguagePrompt(language),
+              ].join("\n\n"),
+              experimental_transform: smoothStream(),
+              onError: handleError,
+            });
           }
-        }
-        taskStore.updateTask(item.query, { state: "completed", sources });
-        return content;
-      });
-    }
+          for await (const part of searchResult.fullStream) {
+            if (part.type === "text-delta") {
+              content += part.textDelta;
+              taskStore.updateTask(item.query, { learning: content });
+            } else if (part.type === "reasoning") {
+              console.log("reasoning", part.textDelta);
+            } else if (part.type === "source") {
+              sources.push(part.source);
+            }
+          }
+          taskStore.updateTask(item.query, { state: "completed", sources });
+          return content;
+        });
+      })
+    );
   }
 
   async function reviewSearchResult() {
