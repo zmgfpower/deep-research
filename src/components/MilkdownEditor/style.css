@@ -33,9 +33,6 @@
 
   .milkdown-editor {
     @apply p-0;
-    &[contenteditable="false"] > p:last-child {
-      @apply hidden;
-    }
   }
 
   milkdown-list-item-block {

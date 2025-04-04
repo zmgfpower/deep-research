@@ -35,7 +35,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import useModel from "@/hooks/useModel";
+import useModel from "@/hooks/useModelList";
 import { useSettingStore } from "@/store/setting";
 import {
   GEMINI_BASE_URL,

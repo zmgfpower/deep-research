@@ -58,7 +58,7 @@ interface OpenAIModel {
   owned_by: string;
 }
 
-function useModel() {
+function useModelList() {
   const [modelList, setModelList] = useState<string[]>([]);
 
   async function refresh(): Promise<string[]> {
@@ -162,4 +162,4 @@ function useModel() {
   };
 }
 
-export default useModel;
+export default useModelList;

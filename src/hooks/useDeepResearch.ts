@@ -259,7 +259,7 @@ function useDeepResearch() {
 
   async function writeFinalReport() {
     const { thinkingModel, language } = useSettingStore.getState();
-    const { query, tasks, setId, setTitle, setSources } =
+    const { query, tasks, setId, setTitle, setSources, requirement } =
       useTaskStore.getState();
     const { save } = useHistoryStore.getState();
     setStatus(t("research.common.writing"));
@@ -268,7 +268,7 @@ function useDeepResearch() {
       model: createProvider(thinkingModel),
       system: [getSystemPrompt(), getOutputGuidelinesPrompt()].join("\n\n"),
       prompt: [
-        writeFinalReportPrompt(query, learnings),
+        writeFinalReportPrompt(query, learnings, requirement),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
       experimental_transform: smoothStream(),

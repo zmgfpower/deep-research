@@ -163,20 +163,31 @@ export function reviewSerpQueriesPrompt(
   return [
     `Given the following query from the user:\n<query>${query}</query>`,
     `Here are all the learnings from previous research:\n<learnings>\n${learningsString}\n</learnings>`,
-    `This is the user's suggestion for research direction:\n<suggestion>\n${suggestion}\n</suggestion>`,
-    `Based on previous research and user research suggestions, determine whether further research is needed. If further research is needed, list of follow-up SERP queries to research the topic further. Make sure each query is unique and not similar to each other. If you believe no further research is needed, you can output an empty queries.`,
+    suggestion !== ""
+      ? `This is the user's suggestion for research direction:\n<suggestion>\n${suggestion}\n</suggestion>`
+      : "",
+    `Based on previous research${
+      suggestion !== "" ? `and user research suggestions` : ""
+    }, determine whether further research is needed. If further research is needed, list of follow-up SERP queries to research the topic further. Make sure each query is unique and not similar to each other. If you believe no further research is needed, you can output an empty queries.`,
     `You MUST respond in \`JSON\` matching this \`JSON schema\`: \n\`\`\`json\n${outputSchema}\n\`\`\``,
     `Expected output:\n\`\`\`json\n[{query: "This is a sample query. ", researchGoal: "This is the reason for the query. "}]\n\`\`\``,
   ].join("\n\n");
 }
 
-export function writeFinalReportPrompt(query: string, learnings: string[]) {
+export function writeFinalReportPrompt(
+  query: string,
+  learnings: string[],
+  requirement: string
+) {
   const learningsString = learnings
     .map((learning) => `<learning>\n${learning}\n</learning>`)
     .join("\n");
   return [
     `Given the following query from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n<query>${query}</query>`,
     `Here are all the learnings from previous research:\n<learnings>\n${learningsString}\n</learnings>`,
+    requirement !== ""
+      ? `Please write according to the user's writing requirements:\n<requirement>${requirement}</requirement>`
+      : "",
     `You need to write this report like a human researcher. Humans don not wrap their writing in markdown blocks. Contains diverse data information such as table, katex formulas, mermaid diagrams, etc. in the form of markdown syntax. **DO NOT** output anything other than report.`,
   ].join("\n\n");
 }

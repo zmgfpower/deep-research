@@ -38,7 +38,9 @@
     "finalReport": {
       "title": "4. Final Report",
       "emptyTip": "Waiting for data to be collated...",
-      "researchedInfor": "Researched {{total}} websites"
+      "researchedInfor": "Researched {{total}} websites",
+      "writingRequirementLabel": "Writing requirements (optional)",
+      "writingRequirementPlaceholder": "You can raise any request related to report writing."
     },
     "history": {
       "title": "History",

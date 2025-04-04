@@ -3,6 +3,7 @@ import { streamText, smoothStream } from "ai";
 import { toast } from "sonner";
 import { useModelProvider } from "@/hooks/useAiProvider";
 import { useSettingStore } from "@/store/setting";
+import { useTaskStore } from "@/store/task";
 import {
   AIWritePrompt,
   changeLanguagePrompt,
@@ -101,6 +102,7 @@ function useArtifact({ value, onChange }: ArtifactProps) {
 
   async function continuation(systemInstruction?: string) {
     const { thinkingModel } = useSettingStore.getState();
+    const { finalReport } = useTaskStore.getState();
     setLoadingAction("continuation");
     const result = streamText({
       model: createProvider(thinkingModel),
@@ -108,7 +110,7 @@ function useArtifact({ value, onChange }: ArtifactProps) {
       experimental_transform: smoothStream(),
       onError: handleError,
     });
-    let text = "";
+    let text = finalReport;
     for await (const textPart of result.textStream) {
       text += textPart;
       onChange(text);
