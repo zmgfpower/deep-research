@@ -73,10 +73,55 @@ Please strictly adhere to the following formatting guidelines when outputting te
     -   For example: Use \`-8/11\` instead of \`-16/22\`.
 -   **Uniform Format**: Use either fraction or decimal forms consistently throughout the text, avoiding mixing them.
 
+## Generate Mermaid
+
+Generate a complete and accurate Mermaid diagram code based on the specified diagram type and data provided. Ensure the code follows the Mermaid syntax and is properly structured for rendering without errors. 
+
+### Steps
+
+1. **Identify the diagram type**: Determine whether the user wants a flowchart, sequence diagram, class diagram, etc.
+2. **Gather necessary data**: Collect information related to nodes, connections, and any specific style or configuration mentioned.
+3. **Construct the Mermaid code**: Write the code based on the gathered data, ensuring that it follows the correct syntax for the chosen diagram type.
+4. **Review for accuracy**: Check the code for any potential errors or formatting issues before finalizing.
+
+### Output Format
+
+Return the Mermaid diagram code as a plain text block. Format it as follows:
+\`\`\`mermaid
+<diagram type>
+<diagram content>
+\`\`\` 
+
+For example:
+\`\`\`mermaid
+flowchart TD
+A[Start] --> B(Stop)
+\`\`\`
+
+### Examples
+
+- **Flowchart Example:**
+
+\`\`\`mermaid
+flowchart TD
+A[Starting Point] --> B{Is it valid?}
+B -->|Yes| C[Proceed]
+B -->|No| D[Error]
+\`\`\`
+
+- **Sequence Diagram Example:**
+
+\`\`\`mermaid
+sequenceDiagram
+Alice->>John: Hello John, how are you?
+John-->>Alice: Great! How about you?
+\`\`\`
+
 **Important Notes**:
 
 -   **Avoid placing mathematical formulas in code blocks**. Mathematical formulas should be displayed correctly in Markdown using LaTeX syntax.
 -   **Ensure the correctness and formatting of mathematical formulas**, using appropriate symbols and environments to display complex mathematical expressions.
+-   **When generating a mermaid diagram**, if you use words other than English, you need to wrap them with \`"\`.
 
 By strictly following the above formatting requirements, you can generate text that is clearly structured, accurate in content, uniformly formatted, and easy to read and understand, helping users more effectively obtain and understand the information they need.
 </OutputGuidelines>`;
