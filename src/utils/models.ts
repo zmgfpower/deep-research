@@ -54,3 +54,29 @@ export function filterOpenRouterModelList(modelList: string[]) {
   });
   return [freeModelList, paidModelList];
 }
+
+export function filterDeepSeekModelList(modelList: string[]) {
+  const thinkingModelList: string[] = [];
+  const nonThinkingModelList: string[] = [];
+  modelList.filter((model) => {
+    if (model.includes("reasoner")) {
+      thinkingModelList.push(model);
+    } else {
+      nonThinkingModelList.push(model);
+    }
+  });
+  return [thinkingModelList, nonThinkingModelList];
+}
+
+export function filterOpenAIModelList(modelList: string[]) {
+  const networkingModelList: string[] = [];
+  const nonNetworkingModelList: string[] = [];
+  modelList.filter((model) => {
+    if (model.startsWith("gpt-4o")) {
+      networkingModelList.push(model);
+    } else {
+      nonNetworkingModelList.push(model);
+    }
+  });
+  return [networkingModelList, nonNetworkingModelList];
+}

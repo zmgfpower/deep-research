@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ANTHROPIC_BASE_URL } from "@/constants/urls";
 
 const API_PROXY_BASE_URL =
-  process.env.ANTHROPIC_API_PROXY_BASE_URL || ANTHROPIC_BASE_URL;
+  process.env.ANTHROPIC_API_BASE_URL || ANTHROPIC_BASE_URL;
 
 async function handler(req: NextRequest) {
   let body;
@@ -22,6 +22,8 @@ async function handler(req: NextRequest) {
       headers: {
         "Content-Type": req.headers.get("Content-Type") || "application/json",
         "x-api-key": req.headers.get("x-api-key") || "",
+        "anthropic-version":
+          req.headers.get("anthropic-version") || "2023-06-01",
       },
     };
     if (body) payload.body = JSON.stringify(body);

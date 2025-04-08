@@ -10,16 +10,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
 const XAI_API_KEY = process.env.XAI_API_KEY || "";
-
-const apiRoutes = [
-  "/api/ai/google",
-  "/api/ai/openrouter",
-  "/api/ai/openai",
-  "/api/ai/anthropic",
-  "/api/ai/deepseek",
-  "/api/ai/xai",
-  "/api/ai/ollama",
-];
+const OPENAI_COMPATIBLE_API_KEY = process.env.OPENAI_COMPATIBLE_API_KEY || "";
 
 // Limit the middleware to paths starting with `/api/`
 export const config = {
@@ -40,7 +31,7 @@ const ERRORS = {
 };
 
 export function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith(apiRoutes[0])) {
+  if (request.nextUrl.pathname.startsWith("/api/ai/google")) {
     const authorization = request.headers.get("x-goog-api-key");
     if (isEqual(authorization, null) || authorization !== accessPassword) {
       return NextResponse.json(
@@ -68,7 +59,7 @@ export function middleware(request: NextRequest) {
       }
     }
   }
-  if (request.nextUrl.pathname.startsWith(apiRoutes[1])) {
+  if (request.nextUrl.pathname.startsWith("/api/ai/openrouter")) {
     const authorization = request.headers.get("authorization");
     if (
       isEqual(authorization, null) ||
@@ -99,7 +90,7 @@ export function middleware(request: NextRequest) {
       }
     }
   }
-  if (request.nextUrl.pathname.startsWith(apiRoutes[2])) {
+  if (request.nextUrl.pathname.startsWith("/api/ai/openai")) {
     const authorization = request.headers.get("authorization");
     if (
       isEqual(authorization, null) ||
@@ -130,7 +121,7 @@ export function middleware(request: NextRequest) {
       }
     }
   }
-  if (request.nextUrl.pathname.startsWith(apiRoutes[3])) {
+  if (request.nextUrl.pathname.startsWith("/api/ai/anthropic")) {
     const authorization = request.headers.get("x-api-key");
     if (isEqual(authorization, null) || authorization !== accessPassword) {
       return NextResponse.json(
@@ -158,7 +149,7 @@ export function middleware(request: NextRequest) {
       }
     }
   }
-  if (request.nextUrl.pathname.startsWith(apiRoutes[4])) {
+  if (request.nextUrl.pathname.startsWith("/api/ai/deepseek")) {
     const authorization = request.headers.get("authorization");
     if (
       isEqual(authorization, null) ||
@@ -189,7 +180,7 @@ export function middleware(request: NextRequest) {
       }
     }
   }
-  if (request.nextUrl.pathname.startsWith(apiRoutes[5])) {
+  if (request.nextUrl.pathname.startsWith("/api/ai/xai")) {
     const authorization = request.headers.get("authorization");
     if (
       isEqual(authorization, null) ||
@@ -220,8 +211,39 @@ export function middleware(request: NextRequest) {
       }
     }
   }
+  if (request.nextUrl.pathname.startsWith("/api/ai/openaicompatible")) {
+    const authorization = request.headers.get("authorization");
+    if (
+      isEqual(authorization, null) ||
+      authorization !== `Bearer ${accessPassword}`
+    ) {
+      return NextResponse.json(
+        { error: ERRORS.NO_PERMISSIONS },
+        { status: 403 }
+      );
+    } else {
+      // Support multi-key polling,
+      const apiKeys = shuffle(OPENAI_COMPATIBLE_API_KEY.split(","));
+      if (apiKeys[0]) {
+        const requestHeaders = new Headers(request.headers);
+        requestHeaders.set("Authorization", `Bearer ${apiKeys[0]}`);
+        return NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        });
+      } else {
+        return NextResponse.json(
+          {
+            error: ERRORS.NO_API_KEY,
+          },
+          { status: 500 }
+        );
+      }
+    }
+  }
   // The ollama model only verifies access to the backend API
-  if (request.nextUrl.pathname.startsWith(apiRoutes[6])) {
+  if (request.nextUrl.pathname.startsWith("/api/ai/ollama")) {
     const authorization = request.headers.get("authorization");
     if (
       isEqual(authorization, null) ||

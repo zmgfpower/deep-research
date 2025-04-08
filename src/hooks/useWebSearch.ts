@@ -38,7 +38,7 @@ interface FirecrawlSearchOptions {
   location?: string;
   origin?: string;
   timeout?: number;
-  scrapeOptions?: { formats: ("markdown" | "json")[] };
+  scrapeOptions?: { formats: ("markdown" | "html" | "rawHtml" | "text")[] };
 }
 
 interface FirecrawlDocument<T = unknown> {
@@ -60,18 +60,18 @@ interface FirecrawlDocument<T = unknown> {
   description?: string;
 }
 
-export function useWebSearch() {
+function useWebSearch() {
   async function tavily(query: string, options: TavilySearchOptions = {}) {
-    const { searchApiKey, searchApiProxy, searchMaxResult } =
+    const { tavilyApiKey, tavilyApiProxy, searchMaxResult } =
       useSettingStore.getState();
 
     const response = await fetch(
-      `${searchApiProxy || TAVILY_BASE_URL}/search`,
+      `${tavilyApiProxy || TAVILY_BASE_URL}/search`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${searchApiKey}`,
+          Authorization: `Bearer ${tavilyApiKey}`,
         },
         body: JSON.stringify({
           query,
@@ -98,22 +98,22 @@ export function useWebSearch() {
     query: string,
     options: FirecrawlSearchOptions = {}
   ) {
-    const { searchApiKey, searchApiProxy, searchMaxResult, language } =
+    const { firecrawlApiKey, firecrawlApiProxy, searchMaxResult, language } =
       useSettingStore.getState();
 
-    const searchMeta = language.split("-");
+    const languageMeta = language.split("-");
     const response = await fetch(
-      `${searchApiProxy || FIRECRAWL_BASE_URL}/v1/search`,
+      `${firecrawlApiProxy || FIRECRAWL_BASE_URL}/v1/search`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${searchApiKey}`,
+          Authorization: `Bearer ${firecrawlApiKey}`,
         },
         body: JSON.stringify({
           query,
-          lang: searchMeta[0].toLowerCase(),
-          country: searchMeta[1].toLowerCase(),
+          lang: languageMeta[0].toLowerCase(),
+          country: languageMeta[1].toLowerCase(),
           limit: searchMaxResult,
           origin: "api",
           scrapeOptions: {
@@ -139,3 +139,5 @@ export function useWebSearch() {
     firecrawl,
   };
 }
+
+export default useWebSearch;

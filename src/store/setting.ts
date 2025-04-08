@@ -6,13 +6,42 @@ export interface SettingStore {
   mode: string;
   apiKey: string;
   apiProxy: string;
+  openRouterApiKey: string;
+  openRouterApiProxy: string;
+  openRouterThinkingModel: string;
+  openRouterNetworkingModel: string;
+  openAIApiKey: string;
+  openAIApiProxy: string;
+  openAIThinkingModel: string;
+  openAINetworkingModel: string;
+  anthropicApiKey: string;
+  anthropicApiProxy: string;
+  anthropicThinkingModel: string;
+  anthropicNetworkingModel: string;
+  deepseekApiKey: string;
+  deepseekApiProxy: string;
+  deepseekThinkingModel: string;
+  deepseekNetworkingModel: string;
+  xAIApiKey: string;
+  xAIApiProxy: string;
+  xAIThinkingModel: string;
+  xAINetworkingModel: string;
+  openAICompatibleApiKey: string;
+  openAICompatibleApiProxy: string;
+  openAICompatibleThinkingModel: string;
+  openAICompatibleNetworkingModel: string;
+  ollamaApiProxy: string;
+  ollamaThinkingModel: string;
+  ollamaNetworkingModel: string;
   accessPassword: string;
   thinkingModel: string;
   networkingModel: string;
   enableSearch: string;
   searchProvider: string;
-  searchApiKey: string;
-  searchApiProxy: string;
+  tavilyApiKey: string;
+  tavilyApiProxy: string;
+  firecrawlApiKey: string;
+  firecrawlApiProxy: string;
   parallelSearch: number;
   searchMaxResult: number;
   language: string;
@@ -28,13 +57,42 @@ export const defaultValues: SettingStore = {
   mode: "",
   apiKey: "",
   apiProxy: "",
-  accessPassword: "",
   thinkingModel: "gemini-2.0-flash-thinking-exp",
   networkingModel: "gemini-2.0-flash-exp",
+  openRouterApiKey: "",
+  openRouterApiProxy: "",
+  openRouterThinkingModel: "",
+  openRouterNetworkingModel: "",
+  openAIApiKey: "",
+  openAIApiProxy: "",
+  openAIThinkingModel: "gpt-4o",
+  openAINetworkingModel: "gpt-4o-mini",
+  anthropicApiKey: "",
+  anthropicApiProxy: "",
+  anthropicThinkingModel: "",
+  anthropicNetworkingModel: "",
+  deepseekApiKey: "",
+  deepseekApiProxy: "",
+  deepseekThinkingModel: "deepseek-reasoner",
+  deepseekNetworkingModel: "deepseek-chat",
+  xAIApiKey: "",
+  xAIApiProxy: "",
+  xAIThinkingModel: "",
+  xAINetworkingModel: "",
+  openAICompatibleApiKey: "",
+  openAICompatibleApiProxy: "",
+  openAICompatibleThinkingModel: "",
+  openAICompatibleNetworkingModel: "",
+  ollamaApiProxy: "",
+  ollamaThinkingModel: "",
+  ollamaNetworkingModel: "",
+  accessPassword: "",
   enableSearch: "1",
   searchProvider: "model",
-  searchApiKey: "",
-  searchApiProxy: "",
+  tavilyApiKey: "",
+  tavilyApiProxy: "",
+  firecrawlApiKey: "",
+  firecrawlApiProxy: "",
   parallelSearch: 1,
   searchMaxResult: 5,
   language: "",

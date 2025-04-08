@@ -5,8 +5,8 @@ import { openai } from "@ai-sdk/openai";
 import { useTranslation } from "react-i18next";
 import Plimit from "p-limit";
 import { toast } from "sonner";
-import { useModelProvider } from "@/hooks/useAiProvider";
-import { useWebSearch } from "@/hooks/useWebSearch";
+import useModelProvider from "@/hooks/useAiProvider";
+import useWebSearch from "@/hooks/useWebSearch";
 import { useTaskStore } from "@/store/task";
 import { useHistoryStore } from "@/store/history";
 import { useSettingStore } from "@/store/setting";
@@ -52,13 +52,14 @@ function handleError(error: unknown) {
 function useDeepResearch() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const { createProvider } = useModelProvider();
+  const { createProvider, getModel } = useModelProvider();
   const { tavily, firecrawl } = useWebSearch();
   const [status, setStatus] = useState<string>("");
 
   async function askQuestions() {
-    const { thinkingModel, language } = useSettingStore.getState();
+    const { language } = useSettingStore.getState();
     const { question } = useTaskStore.getState();
+    const { thinkingModel } = getModel();
     setStatus(t("research.common.thinking"));
     const result = streamText({
       model: createProvider(thinkingModel),
@@ -67,7 +68,7 @@ function useDeepResearch() {
         generateQuestionsPrompt(question),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
-      experimental_transform: smoothStream(),
+      experimental_transform: smoothStream({ delayInMs: null }),
       onError: handleError,
     });
     let content = "";
@@ -81,17 +82,16 @@ function useDeepResearch() {
   async function runSearchTask(queries: SearchTask[]) {
     const {
       provider,
-      networkingModel,
       enableSearch,
       searchProvider,
       parallelSearch,
       searchMaxResult,
       language,
     } = useSettingStore.getState();
+    const { networkingModel } = getModel();
     setStatus(t("research.common.research"));
     const plimit = Plimit(parallelSearch);
-    console.log(parallelSearch);
-    const getModel = (model: string) => {
+    const createModel = (model: string) => {
       // Enable Gemini's built-in search tool
       if (
         enableSearch &&
@@ -158,7 +158,7 @@ function useDeepResearch() {
                 sources = await firecrawl(item.query);
               }
               searchResult = streamText({
-                model: getModel(networkingModel),
+                model: createModel(networkingModel),
                 system: getSystemPrompt(),
                 prompt: [
                   processSearchResultPrompt(
@@ -168,12 +168,12 @@ function useDeepResearch() {
                   ),
                   getResponseLanguagePrompt(language),
                 ].join("\n\n"),
-                experimental_transform: smoothStream(),
+                experimental_transform: smoothStream({ delayInMs: null }),
                 onError: handleError,
               });
             } else {
               searchResult = streamText({
-                model: getModel(networkingModel),
+                model: createModel(networkingModel),
                 system: getSystemPrompt(),
                 prompt: [
                   processResultPrompt(item.query, item.researchGoal),
@@ -181,7 +181,7 @@ function useDeepResearch() {
                 ].join("\n\n"),
                 tools: getTools(networkingModel),
                 providerOptions: getProviderOptions(),
-                experimental_transform: smoothStream(),
+                experimental_transform: smoothStream({ delayInMs: null }),
                 onError: handleError,
               });
             }
@@ -193,7 +193,7 @@ function useDeepResearch() {
                 processResultPrompt(item.query, item.researchGoal),
                 getResponseLanguagePrompt(language),
               ].join("\n\n"),
-              experimental_transform: smoothStream(),
+              experimental_transform: smoothStream({ delayInMs: null }),
               onError: handleError,
             });
           }
@@ -215,8 +215,9 @@ function useDeepResearch() {
   }
 
   async function reviewSearchResult() {
-    const { thinkingModel, language } = useSettingStore.getState();
+    const { language } = useSettingStore.getState();
     const { query, tasks, suggestion } = useTaskStore.getState();
+    const { thinkingModel } = getModel();
     setStatus(t("research.common.research"));
     const learnings = tasks.map((item) => item.learning);
     const result = streamText({
@@ -226,7 +227,7 @@ function useDeepResearch() {
         reviewSerpQueriesPrompt(query, learnings, suggestion),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
-      experimental_transform: smoothStream(),
+      experimental_transform: smoothStream({ delayInMs: null }),
       onError: handleError,
     });
 
@@ -258,10 +259,11 @@ function useDeepResearch() {
   }
 
   async function writeFinalReport() {
-    const { thinkingModel, language } = useSettingStore.getState();
+    const { language } = useSettingStore.getState();
     const { query, tasks, setId, setTitle, setSources, requirement } =
       useTaskStore.getState();
     const { save } = useHistoryStore.getState();
+    const { thinkingModel } = getModel();
     setStatus(t("research.common.writing"));
     const learnings = tasks.map((item) => item.learning);
     const result = streamText({
@@ -271,7 +273,7 @@ function useDeepResearch() {
         writeFinalReportPrompt(query, learnings, requirement),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
-      experimental_transform: smoothStream(),
+      experimental_transform: smoothStream({ delayInMs: null }),
       onError: handleError,
     });
     let content = "";
@@ -295,8 +297,9 @@ function useDeepResearch() {
   }
 
   async function deepResearch() {
-    const { thinkingModel, language } = useSettingStore.getState();
+    const { language } = useSettingStore.getState();
     const { query } = useTaskStore.getState();
+    const { thinkingModel } = getModel();
     setStatus(t("research.common.thinking"));
     try {
       let queries = [];
@@ -307,7 +310,7 @@ function useDeepResearch() {
           generateSerpQueriesPrompt(query),
           getResponseLanguagePrompt(language),
         ].join("\n\n"),
-        experimental_transform: smoothStream(),
+        experimental_transform: smoothStream({ delayInMs: null }),
         onError: handleError,
       });
 

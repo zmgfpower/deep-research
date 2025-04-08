@@ -46,11 +46,14 @@ import {
   XAI_BASE_URL,
   TAVILY_BASE_URL,
   FIRECRAWL_BASE_URL,
+  OLLAMA_BASE_URL,
 } from "@/constants/urls";
 import {
   filterThinkingModelList,
   filterNetworkingModelList,
   filterOpenRouterModelList,
+  filterDeepSeekModelList,
+  filterOpenAIModelList,
 } from "@/utils/models";
 import { cn } from "@/utils/style";
 import { omit, capitalize } from "radash";
@@ -68,13 +71,42 @@ const formSchema = z.object({
   mode: z.string().optional(),
   apiKey: z.string().optional(),
   apiProxy: z.string().optional(),
-  accessPassword: z.string().optional(),
   thinkingModel: z.string(),
   networkingModel: z.string(),
+  openRouterApiKey: z.string().optional(),
+  openRouterApiProxy: z.string().optional(),
+  openRouterThinkingModel: z.string().optional(),
+  openRouterNetworkingModel: z.string().optional(),
+  openAIApiKey: z.string().optional(),
+  openAIApiProxy: z.string().optional(),
+  openAIThinkingModel: z.string().optional(),
+  openAINetworkingModel: z.string().optional(),
+  anthropicApiKey: z.string().optional(),
+  anthropicApiProxy: z.string().optional(),
+  anthropicThinkingModel: z.string().optional(),
+  anthropicNetworkingModel: z.string().optional(),
+  deepseekApiKey: z.string().optional(),
+  deepseekApiProxy: z.string().optional(),
+  deepseekThinkingModel: z.string().optional(),
+  deepseekNetworkingModel: z.string().optional(),
+  xAIApiKey: z.string().optional(),
+  xAIApiProxy: z.string().optional(),
+  xAIThinkingModel: z.string().optional(),
+  xAINetworkingModel: z.string().optional(),
+  openAICompatibleApiKey: z.string().optional(),
+  openAICompatibleApiProxy: z.string().optional(),
+  openAICompatibleThinkingModel: z.string().optional(),
+  openAICompatibleNetworkingModel: z.string().optional(),
+  ollamaApiProxy: z.string().optional(),
+  ollamaThinkingModel: z.string().optional(),
+  ollamaNetworkingModel: z.string().optional(),
+  accessPassword: z.string().optional(),
   enableSearch: z.string(),
   searchProvider: z.string().optional(),
-  searchApiKey: z.string().optional(),
-  searchApiProxy: z.string().optional(),
+  tavilyApiKey: z.string().optional(),
+  tavilyApiProxy: z.string().optional(),
+  firecrawlApiKey: z.string().optional(),
+  firecrawlApiProxy: z.string().optional(),
   parallelSearch: z.number().min(1).max(5),
   searchMaxResult: z.number().min(1).max(10),
   language: z.string().optional(),
@@ -102,6 +134,8 @@ function Setting({ open, onClose }: SettingProps) {
       return filterThinkingModelList(modelList);
     } else if (provider === "openrouter") {
       return filterOpenRouterModelList(modelList);
+    } else if (provider === "deepseek") {
+      return filterDeepSeekModelList(modelList);
     }
     return [[], modelList];
   }, [modelList]);
@@ -111,35 +145,11 @@ function Setting({ open, onClose }: SettingProps) {
       return filterNetworkingModelList(modelList);
     } else if (provider === "openrouter") {
       return filterOpenRouterModelList(modelList);
+    } else if (provider === "openai") {
+      return filterOpenAIModelList(modelList);
     }
     return [[], modelList];
   }, [modelList]);
-  const baseUrlPlaceholder = useMemo(() => {
-    if (provider === "google") {
-      return GEMINI_BASE_URL;
-    } else if (provider === "openrouter") {
-      return OPENROUTER_BASE_URL;
-    } else if (provider === "openai") {
-      return OPENAI_BASE_URL;
-    } else if (provider === "anthropic") {
-      return ANTHROPIC_BASE_URL;
-    } else if (provider === "deepseek") {
-      return DEEPSEEK_BASE_URL;
-    } else if (provider === "xai") {
-      return XAI_BASE_URL;
-    } else {
-      return t("setting.apiUrlPlaceholder");
-    }
-  }, [provider, t]);
-  const searchBaseUrlPlaceholder = useMemo(() => {
-    if (searchProvider === "tavily") {
-      return TAVILY_BASE_URL;
-    } else if (searchProvider === "firecrawl") {
-      return FIRECRAWL_BASE_URL;
-    } else {
-      return t("setting.apiUrlPlaceholder");
-    }
-  }, [searchProvider, t]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -161,21 +171,14 @@ function Setting({ open, onClose }: SettingProps) {
   }
 
   const fetchModelList = useCallback(async () => {
+    const { provider } = useSettingStore.getState();
     try {
       setIsRefreshing(true);
-      await refresh();
+      await refresh(provider);
     } finally {
       setIsRefreshing(false);
     }
   }, [refresh]);
-
-  function handleValueChange() {
-    update({
-      apiKey: form.getValues("apiKey"),
-      apiProxy: form.getValues("apiProxy"),
-      accessPassword: form.getValues("accessPassword"),
-    });
-  }
 
   function handleModeChange(mode: string) {
     update({ mode });
@@ -217,7 +220,7 @@ function Setting({ open, onClose }: SettingProps) {
           <form className="space-y-4">
             <Tabs defaultValue="llm">
               <TabsList
-                className={cn("w-full mb-1", {
+                className={cn("w-full mb-2", {
                   hidden: BUILD_MODE === "export",
                 })}
               >
@@ -289,15 +292,16 @@ function Setting({ open, onClose }: SettingProps) {
                             <SelectItem value="google">
                               Google AI Studio
                             </SelectItem>
-                            <SelectItem value="openai">
-                              OpenAI Compatible
-                            </SelectItem>
-                            <SelectItem value="openrouter">
-                              OpenRouter
-                            </SelectItem>
+                            <SelectItem value="openai">OpenAI</SelectItem>
                             <SelectItem value="anthropic">Anthropic</SelectItem>
                             <SelectItem value="deepseek">DeepSeek</SelectItem>
                             <SelectItem value="xai">xAI Grok</SelectItem>
+                            <SelectItem value="openrouter">
+                              OpenRouter
+                            </SelectItem>
+                            <SelectItem value="openaicompatible">
+                              OpenAI Compatible
+                            </SelectItem>
                             <SelectItem value="ollama">Ollama</SelectItem>
                           </SelectContent>
                         </Select>
@@ -305,50 +309,409 @@ function Setting({ open, onClose }: SettingProps) {
                     </FormItem>
                   )}
                 />
-                <div
-                  className={cn("space-y-4", {
-                    hidden: mode === "proxy",
-                  })}
-                >
-                  <FormField
-                    control={form.control}
-                    name="apiKey"
-                    render={({ field }) => (
-                      <FormItem className="from-item">
-                        <FormLabel className="col-span-1">
-                          {t("setting.apiKeyLabel")}
-                          <span className="ml-1 text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl className="col-span-3">
-                          <Password
-                            type="text"
-                            placeholder={t("setting.apiKeyPlaceholder")}
-                            {...field}
-                            onBlur={() => handleValueChange()}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="apiProxy"
-                    render={({ field }) => (
-                      <FormItem className="from-item">
-                        <FormLabel className="col-span-1">
-                          {t("setting.apiUrlLabel")}
-                        </FormLabel>
-                        <FormControl className="col-span-3">
-                          <Input
-                            placeholder={baseUrlPlaceholder}
-                            {...field}
-                            onBlur={() => handleValueChange()}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                <div className={mode === "proxy" ? "hidden" : ""}>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: provider !== "google",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="apiKey"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiKeyLabel")}
+                            <span className="ml-1 text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Password
+                              type="text"
+                              placeholder={t("setting.apiKeyPlaceholder")}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  apiKey: form.getValues("apiKey"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="apiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={GEMINI_BASE_URL}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  apiProxy: form.getValues("apiProxy"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: provider !== "openrouter",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="openRouterApiKey"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiKeyLabel")}
+                            <span className="ml-1 text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Password
+                              type="text"
+                              placeholder={t("setting.apiKeyPlaceholder")}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  apiProxy: form.getValues("apiProxy"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="openRouterApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={OPENROUTER_BASE_URL}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  apiProxy: form.getValues("apiProxy"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: provider !== "openai",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="openAIApiKey"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiKeyLabel")}
+                            <span className="ml-1 text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Password
+                              type="text"
+                              placeholder={t("setting.apiKeyPlaceholder")}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  openAIApiKey: form.getValues("openAIApiKey"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="openAIApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={OPENAI_BASE_URL}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  openAIApiProxy:
+                                    form.getValues("openAIApiProxy"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: provider !== "anthropic",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="anthropicApiKey"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiKeyLabel")}
+                            <span className="ml-1 text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Password
+                              type="text"
+                              placeholder={t("setting.apiKeyPlaceholder")}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  anthropicApiKey:
+                                    form.getValues("anthropicApiKey"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="anthropicApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={ANTHROPIC_BASE_URL}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  anthropicApiProxy:
+                                    form.getValues("anthropicApiProxy"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: provider !== "deepseek",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="deepseekApiKey"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiKeyLabel")}
+                            <span className="ml-1 text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Password
+                              type="text"
+                              placeholder={t("setting.apiKeyPlaceholder")}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  deepseekApiKey:
+                                    form.getValues("deepseekApiKey"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="deepseekApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={DEEPSEEK_BASE_URL}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  deepseekApiProxy:
+                                    form.getValues("deepseekApiProxy"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: provider !== "xai",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="xAIApiKey"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiKeyLabel")}
+                            <span className="ml-1 text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Password
+                              type="text"
+                              placeholder={t("setting.apiKeyPlaceholder")}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  xAIApiKey: form.getValues("xAIApiKey"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="xAIApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={XAI_BASE_URL}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  xAIApiProxy: form.getValues("xAIApiProxy"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: provider !== "openaicompatible",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="openAICompatibleApiKey"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiKeyLabel")}
+                            <span className="ml-1 text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Password
+                              type="text"
+                              placeholder={t("setting.apiKeyPlaceholder")}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  openAICompatibleApiKey: form.getValues(
+                                    "openAICompatibleApiKey"
+                                  ),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="openAICompatibleApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={t("setting.apiUrlPlaceholder")}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  openAICompatibleApiProxy: form.getValues(
+                                    "openAICompatibleApiProxy"
+                                  ),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: provider !== "ollama",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="ollamaApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={OLLAMA_BASE_URL}
+                              {...field}
+                              onBlur={() =>
+                                update({
+                                  ollamaApiProxy:
+                                    form.getValues("ollamaApiProxy"),
+                                })
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
                 <div
                   className={cn("space-y-4", {
@@ -369,38 +732,36 @@ function Setting({ open, onClose }: SettingProps) {
                             type="text"
                             placeholder={t("setting.accessPasswordPlaceholder")}
                             {...field}
-                            onBlur={() => handleValueChange()}
+                            onBlur={() =>
+                              update({
+                                accessPassword:
+                                  form.getValues("accessPassword"),
+                              })
+                            }
                           />
                         </FormControl>
                       </FormItem>
                     )}
                   />
                 </div>
-                <FormField
-                  control={form.control}
-                  name="thinkingModel"
-                  render={({ field }) => (
-                    <FormItem className="from-item">
-                      <FormLabel className="col-span-1">
-                        {t("setting.thinkingModel")}
-                        <span className="ml-1 text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="col-span-3 w-full">
-                          <div
-                            className={
-                              [
-                                "google",
-                                "openrouter",
-                                "openai",
-                                "deepseek",
-                              ].includes(provider)
-                                ? ""
-                                : "hidden"
-                            }
-                          >
+                <div
+                  className={cn("space-y-4", {
+                    hidden: provider !== "google",
+                  })}
+                >
+                  <FormField
+                    control={form.control}
+                    name="thinkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.thinkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
                             <Select
-                              defaultValue={field.value}
+                              value={field.value}
                               onValueChange={field.onChange}
                             >
                               <SelectTrigger
@@ -408,7 +769,11 @@ function Setting({ open, onClose }: SettingProps) {
                                   hidden: modelList.length === 0,
                                 })}
                               >
-                                <SelectValue />
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
                               </SelectTrigger>
                               <SelectContent className="max-sm:max-h-72">
                                 {thinkingModelList[0].length > 0 ? (
@@ -445,58 +810,38 @@ function Setting({ open, onClose }: SettingProps) {
                               })}
                               type="button"
                               variant="outline"
+                              disabled={isRefreshing}
                               onClick={() => fetchModelList()}
                             >
-                              <RefreshCw
-                                className={isRefreshing ? "animate-spin" : ""}
-                              />{" "}
-                              {t("setting.refresh")}
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
                             </Button>
                           </div>
-                          <div
-                            className={
-                              [
-                                "google",
-                                "openrouter",
-                                "openai",
-                                "deepseek",
-                              ].includes(provider)
-                                ? "hidden"
-                                : ""
-                            }
-                          >
-                            <Input {...field} />
-                          </div>
-                        </div>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="networkingModel"
-                  render={({ field }) => (
-                    <FormItem className="from-item">
-                      <FormLabel className="col-span-1">
-                        {t("setting.networkingModel")}
-                        <span className="ml-1 text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="col-span-3 w-full">
-                          <div
-                            className={
-                              [
-                                "google",
-                                "openrouter",
-                                "openai",
-                                "deepseek",
-                              ].includes(provider)
-                                ? ""
-                                : "hidden"
-                            }
-                          >
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="networkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.networkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
                             <Select
-                              defaultValue={field.value}
+                              value={field.value}
                               onValueChange={field.onChange}
                             >
                               <SelectTrigger
@@ -504,7 +849,11 @@ function Setting({ open, onClose }: SettingProps) {
                                   hidden: modelList.length === 0,
                                 })}
                               >
-                                <SelectValue />
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
                               </SelectTrigger>
                               <SelectContent className="max-sm:max-h-72">
                                 {networkingModelList[0].length > 0 ? (
@@ -541,36 +890,940 @@ function Setting({ open, onClose }: SettingProps) {
                               })}
                               type="button"
                               variant="outline"
+                              disabled={isRefreshing}
                               onClick={() => fetchModelList()}
                             >
-                              <RefreshCw
-                                className={isRefreshing ? "animate-spin" : ""}
-                              />{" "}
-                              {t("setting.refresh")}
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
                             </Button>
                           </div>
-                          <div
-                            className={
-                              [
-                                "google",
-                                "openrouter",
-                                "openai",
-                                "deepseek",
-                              ].includes(provider)
-                                ? "hidden"
-                                : ""
-                            }
-                          >
-                            <Input
-                              placeholder="Please enter the model id"
-                              {...field}
-                            />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div
+                  className={cn("space-y-4", {
+                    hidden: provider !== "openrouter",
+                  })}
+                >
+                  <FormField
+                    control={form.control}
+                    name="openRouterThinkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.thinkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {thinkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {thinkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {thinkingModelList[1].map((name) => {
+                                    return (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
                           </div>
-                        </div>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="openRouterNetworkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.networkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {networkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {networkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {networkingModelList[1].map((name) => {
+                                    return (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div
+                  className={cn("space-y-4", {
+                    hidden: provider !== "openai",
+                  })}
+                >
+                  <FormField
+                    control={form.control}
+                    name="openAIThinkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.thinkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {thinkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {thinkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {thinkingModelList[1].map((name) => {
+                                    return (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="openAINetworkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.networkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {networkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {networkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {networkingModelList[1].map((name) => {
+                                    return (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div
+                  className={cn("space-y-4", {
+                    hidden: provider !== "anthropic",
+                  })}
+                >
+                  <FormField
+                    control={form.control}
+                    name="anthropicThinkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.thinkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {thinkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {thinkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {thinkingModelList[1].map((name) => {
+                                    return (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="anthropicNetworkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.networkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {networkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {networkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {networkingModelList[1].map((name) => {
+                                    return (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div
+                  className={cn("space-y-4", {
+                    hidden: provider !== "deepseek",
+                  })}
+                >
+                  <FormField
+                    control={form.control}
+                    name="deepseekThinkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.thinkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {thinkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {thinkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {thinkingModelList[1].map((name) => {
+                                    return (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="deepseekNetworkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.networkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {networkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {networkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {networkingModelList[1].map((name) => {
+                                    return (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div
+                  className={cn("space-y-4", {
+                    hidden: provider !== "xai",
+                  })}
+                >
+                  <FormField
+                    control={form.control}
+                    name="xAIThinkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.thinkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {thinkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {thinkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {thinkingModelList[1].map((name) => {
+                                    return (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="xAINetworkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.networkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {networkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {networkingModelList[0].map((name) => {
+                                      return (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {networkingModelList[1].map((name) => {
+                                    return (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div
+                  className={cn("space-y-4", {
+                    hidden: provider !== "openaicompatible",
+                  })}
+                >
+                  <FormField
+                    control={form.control}
+                    name="openAICompatibleThinkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.thinkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl className="col-span-3 w-full">
+                          <Input
+                            placeholder={t("setting.modelListPlaceholder")}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="openAICompatibleNetworkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.networkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl className="col-span-3 w-full">
+                          <Input
+                            placeholder={t("setting.modelListPlaceholder")}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div
+                  className={cn("space-y-4", {
+                    hidden: provider !== "ollama",
+                  })}
+                >
+                  <FormField
+                    control={form.control}
+                    name="ollamaThinkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.thinkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl className="col-span-3 w-full">
+                          <Input
+                            placeholder={t("setting.modelListPlaceholder")}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="ollamaNetworkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.networkingModel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl className="col-span-3 w-full">
+                          <Input
+                            placeholder={t("setting.modelListPlaceholder")}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </TabsContent>
               <TabsContent className="space-y-4" value="search">
                 <FormField
@@ -636,12 +1889,12 @@ function Setting({ open, onClose }: SettingProps) {
                 />
                 <div
                   className={cn("space-y-4", {
-                    hidden: ["model"].includes(searchProvider),
+                    hidden: searchProvider !== "tavily",
                   })}
                 >
                   <FormField
                     control={form.control}
-                    name="searchApiKey"
+                    name="tavilyApiKey"
                     render={({ field }) => (
                       <FormItem className="from-item">
                         <FormLabel className="col-span-1">
@@ -661,7 +1914,7 @@ function Setting({ open, onClose }: SettingProps) {
                   />
                   <FormField
                     control={form.control}
-                    name="searchApiProxy"
+                    name="tavilyApiProxy"
                     render={({ field }) => (
                       <FormItem className="from-item">
                         <FormLabel className="col-span-1">
@@ -669,7 +1922,51 @@ function Setting({ open, onClose }: SettingProps) {
                         </FormLabel>
                         <FormControl className="col-span-3">
                           <Input
-                            placeholder={searchBaseUrlPlaceholder}
+                            placeholder={TAVILY_BASE_URL}
+                            disabled={form.getValues("enableSearch") === "0"}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div
+                  className={cn("space-y-4", {
+                    hidden: searchProvider !== "firecrawl",
+                  })}
+                >
+                  <FormField
+                    control={form.control}
+                    name="firecrawlApiKey"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.apiKeyLabel")}
+                          <span className="ml-1 text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl className="col-span-3">
+                          <Password
+                            type="text"
+                            placeholder={t("setting.searchApiKeyPlaceholder")}
+                            disabled={form.getValues("enableSearch") === "0"}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="firecrawlApiProxy"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          {t("setting.apiUrlLabel")}
+                        </FormLabel>
+                        <FormControl className="col-span-3">
+                          <Input
+                            placeholder={FIRECRAWL_BASE_URL}
                             disabled={form.getValues("enableSearch") === "0"}
                             {...field}
                           />

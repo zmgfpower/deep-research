@@ -1,8 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { OLLAMA_BASE_URL } from "@/constants/urls";
 
-const API_PROXY_BASE_URL =
-  process.env.OLLAMA_API_PROXY_BASE_URL || OLLAMA_BASE_URL;
+const API_PROXY_BASE_URL = process.env.OLLAMA_API_BASE_URL || OLLAMA_BASE_URL;
 
 async function handler(req: NextRequest) {
   let body;

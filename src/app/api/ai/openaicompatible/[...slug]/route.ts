@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { OPENAI_BASE_URL } from "@/constants/urls";
 
-const API_PROXY_BASE_URL = process.env.OPENAI_API_BASE_URL || OPENAI_BASE_URL;
+const API_PROXY_BASE_URL = process.env.OPENAI_COMPATIBLE_API_BASE_URL || "";
 
 async function handler(req: NextRequest) {
   let body;
