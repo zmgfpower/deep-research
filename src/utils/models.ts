@@ -80,3 +80,18 @@ export function filterOpenAIModelList(modelList: string[]) {
   });
   return [networkingModelList, nonNetworkingModelList];
 }
+
+export function getCustomModelList(customModelList: string[]) {
+  const availableModelList: string[] = [];
+  const disabledModelList: string[] = [];
+  customModelList.forEach((model) => {
+    if (model.startsWith("+")) {
+      availableModelList.push(model.substring(1));
+    } else if (model.startsWith("-")) {
+      disabledModelList.push(model.substring(1));
+    } else {
+      availableModelList.push(model);
+    }
+  });
+  return { availableModelList, disabledModelList };
+}

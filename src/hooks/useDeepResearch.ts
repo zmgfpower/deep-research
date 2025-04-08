@@ -68,7 +68,7 @@ function useDeepResearch() {
         generateQuestionsPrompt(question),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
-      experimental_transform: smoothStream({ delayInMs: null }),
+      experimental_transform: smoothStream({ delayInMs: 0 }),
       onError: handleError,
     });
     let content = "";
@@ -168,7 +168,7 @@ function useDeepResearch() {
                   ),
                   getResponseLanguagePrompt(language),
                 ].join("\n\n"),
-                experimental_transform: smoothStream({ delayInMs: null }),
+                experimental_transform: smoothStream({ delayInMs: 0 }),
                 onError: handleError,
               });
             } else {
@@ -181,7 +181,7 @@ function useDeepResearch() {
                 ].join("\n\n"),
                 tools: getTools(networkingModel),
                 providerOptions: getProviderOptions(),
-                experimental_transform: smoothStream({ delayInMs: null }),
+                experimental_transform: smoothStream({ delayInMs: 0 }),
                 onError: handleError,
               });
             }
@@ -193,7 +193,7 @@ function useDeepResearch() {
                 processResultPrompt(item.query, item.researchGoal),
                 getResponseLanguagePrompt(language),
               ].join("\n\n"),
-              experimental_transform: smoothStream({ delayInMs: null }),
+              experimental_transform: smoothStream({ delayInMs: 0 }),
               onError: handleError,
             });
           }
@@ -227,7 +227,7 @@ function useDeepResearch() {
         reviewSerpQueriesPrompt(query, learnings, suggestion),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
-      experimental_transform: smoothStream({ delayInMs: null }),
+      experimental_transform: smoothStream({ delayInMs: 0 }),
       onError: handleError,
     });
 
@@ -273,7 +273,7 @@ function useDeepResearch() {
         writeFinalReportPrompt(query, learnings, requirement),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
-      experimental_transform: smoothStream({ delayInMs: null }),
+      experimental_transform: smoothStream({ delayInMs: 0 }),
       onError: handleError,
     });
     let content = "";
@@ -310,7 +310,7 @@ function useDeepResearch() {
           generateSerpQueriesPrompt(query),
           getResponseLanguagePrompt(language),
         ].join("\n\n"),
-        experimental_transform: smoothStream({ delayInMs: null }),
+        experimental_transform: smoothStream({ delayInMs: 0 }),
         onError: handleError,
       });
 

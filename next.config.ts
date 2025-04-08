@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import pkg from "./package.json";
 
 const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE;
+// AI provider API base url
 const API_PROXY_BASE_URL = process.env.API_PROXY_BASE_URL || "";
 const GOOGLE_GENERATIVE_AI_API_BASE_URL =
   process.env.GOOGLE_GENERATIVE_AI_API_BASE_URL ||
@@ -19,6 +20,11 @@ const OLLAMA_API_BASE_URL =
   process.env.OLLAMA_API_BASE_URL || "http://localhost:11434";
 const OPENAI_COMPATIBLE_API_BASE_URL =
   process.env.OPENAI_COMPATIBLE_API_BASE_URL || "";
+// Search provider API base url
+const TAVILY_API_BASE_URL =
+  process.env.TAVILY_API_BASE_URL || "https://api.tavily.com";
+const FIRECRAWL_API_BASE_URL =
+  process.env.FIRECRAWL_API_BASE_URL || "https://api.firecrawl.dev";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -84,6 +90,14 @@ if (BUILD_MODE === "export") {
       {
         source: "/api/ai/ollama/:path*",
         destination: `${OLLAMA_API_BASE_URL}/:path*`,
+      },
+      {
+        source: "/api/search/tavily/:path*",
+        destination: `${TAVILY_API_BASE_URL}/:path*`,
+      },
+      {
+        source: "/api/search/firecrawl/:path*",
+        destination: `${FIRECRAWL_API_BASE_URL}/:path*`,
       },
     ];
   };

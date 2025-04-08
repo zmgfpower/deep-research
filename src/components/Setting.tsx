@@ -55,6 +55,7 @@ import {
   filterOpenRouterModelList,
   filterDeepSeekModelList,
   filterOpenAIModelList,
+  getCustomModelList,
 } from "@/utils/models";
 import { researchStore } from "@/utils/storage";
 import { cn } from "@/utils/style";
@@ -67,6 +68,10 @@ type SettingProps = {
 
 const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE;
 const VERSION = process.env.NEXT_PUBLIC_VERSION;
+const DISABLED_AI_PROVIDER = process.env.NEXT_PUBLIC_DISABLED_AI_PROVIDER || "";
+const DISABLED_SEARCH_PROVIDER =
+  process.env.NEXT_PUBLIC_DISABLED_SEARCH_PROVIDER || "";
+const MODEL_LIST = process.env.NEXT_PUBLIC_MODEL_LIST || "";
 
 const formSchema = z.object({
   provider: z.string(),
@@ -162,6 +167,45 @@ function Setting({ open, onClose }: SettingProps) {
       });
     },
   });
+
+  const isDisabledAIProvider = useCallback(
+    (provider: string) => {
+      const disabledAIProviders =
+        mode === "proxy" && DISABLED_AI_PROVIDER.length > 0
+          ? DISABLED_AI_PROVIDER.split(",")
+          : [];
+      return disabledAIProviders.includes(provider);
+    },
+    [mode]
+  );
+
+  const isDisabledAIModel = useCallback(
+    (model: string) => {
+      if (mode === "local") return false;
+      const { availableModelList, disabledModelList } = getCustomModelList(
+        MODEL_LIST.length > 0 ? MODEL_LIST.split(",") : []
+      );
+      console.log(availableModelList, disabledModelList);
+      const isAvailableModel = availableModelList.some(
+        (availableModel) => availableModel === model
+      );
+      if (isAvailableModel) return false;
+      if (disabledModelList.includes("all")) return true;
+      return disabledModelList.some((disabledModel) => disabledModel === model);
+    },
+    [mode]
+  );
+
+  const isDisabledSearchProvider = useCallback(
+    (provider: string) => {
+      const disabledSearchProviders =
+        mode === "proxy" && DISABLED_SEARCH_PROVIDER.length > 0
+          ? DISABLED_SEARCH_PROVIDER.split(",")
+          : [];
+      return disabledSearchProviders.includes(provider);
+    },
+    [mode]
+  );
 
   function handleClose(open: boolean) {
     if (!open) onClose();
@@ -306,20 +350,38 @@ function Setting({ open, onClose }: SettingProps) {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="google">
-                              Google AI Studio
-                            </SelectItem>
-                            <SelectItem value="openai">OpenAI</SelectItem>
-                            <SelectItem value="anthropic">Anthropic</SelectItem>
-                            <SelectItem value="deepseek">DeepSeek</SelectItem>
-                            <SelectItem value="xai">xAI Grok</SelectItem>
-                            <SelectItem value="openrouter">
-                              OpenRouter
-                            </SelectItem>
-                            <SelectItem value="openaicompatible">
-                              OpenAI Compatible
-                            </SelectItem>
-                            <SelectItem value="ollama">Ollama</SelectItem>
+                            {!isDisabledAIProvider("google") ? (
+                              <SelectItem value="google">
+                                Google AI Studio
+                              </SelectItem>
+                            ) : null}
+                            {!isDisabledAIProvider("openai") ? (
+                              <SelectItem value="openai">OpenAI</SelectItem>
+                            ) : null}
+                            {!isDisabledAIProvider("anthropic") ? (
+                              <SelectItem value="anthropic">
+                                Anthropic
+                              </SelectItem>
+                            ) : null}
+                            {!isDisabledAIProvider("deepseek") ? (
+                              <SelectItem value="deepseek">DeepSeek</SelectItem>
+                            ) : null}
+                            {!isDisabledAIProvider("xai") ? (
+                              <SelectItem value="xai">xAI Grok</SelectItem>
+                            ) : null}
+                            {!isDisabledAIProvider("openrouter") ? (
+                              <SelectItem value="openrouter">
+                                OpenRouter
+                              </SelectItem>
+                            ) : null}
+                            {!isDisabledAIProvider("openaicompatible") ? (
+                              <SelectItem value="openaicompatible">
+                                OpenAI Compatible
+                              </SelectItem>
+                            ) : null}
+                            {!isDisabledAIProvider("ollama") ? (
+                              <SelectItem value="ollama">Ollama</SelectItem>
+                            ) : null}
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -799,11 +861,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {thinkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -812,11 +874,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {thinkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -879,11 +941,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {networkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -892,11 +954,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {networkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -965,11 +1027,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {thinkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -978,11 +1040,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {thinkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -1045,11 +1107,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {networkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -1058,11 +1120,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {networkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -1131,11 +1193,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {thinkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -1144,11 +1206,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {thinkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -1211,11 +1273,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {networkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -1224,11 +1286,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {networkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -1297,11 +1359,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {thinkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -1310,11 +1372,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {thinkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -1377,11 +1439,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {networkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -1390,11 +1452,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {networkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -1463,11 +1525,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {thinkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -1476,11 +1538,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {thinkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -1543,11 +1605,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {networkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -1556,11 +1618,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {networkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -1629,11 +1691,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {thinkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -1642,11 +1704,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {thinkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -1709,11 +1771,11 @@ function Setting({ open, onClose }: SettingProps) {
                                       {t("setting.recommendedModels")}
                                     </SelectLabel>
                                     {networkingModelList[0].map((name) => {
-                                      return (
+                                      return !isDisabledAIModel(name) ? (
                                         <SelectItem key={name} value={name}>
                                           {convertModelName(name)}
                                         </SelectItem>
-                                      );
+                                      ) : null;
                                     })}
                                   </SelectGroup>
                                 ) : null}
@@ -1722,11 +1784,11 @@ function Setting({ open, onClose }: SettingProps) {
                                     {t("setting.basicModels")}
                                   </SelectLabel>
                                   {networkingModelList[1].map((name) => {
-                                    return (
+                                    return !isDisabledAIModel(name) ? (
                                       <SelectItem key={name} value={name}>
                                         {convertModelName(name)}
                                       </SelectItem>
-                                    );
+                                    ) : null;
                                   })}
                                 </SelectGroup>
                               </SelectContent>
@@ -1896,101 +1958,109 @@ function Setting({ open, onClose }: SettingProps) {
                             <SelectItem value="model">
                               {t("setting.modelBuiltin")}
                             </SelectItem>
-                            <SelectItem value="tavily">Tavily</SelectItem>
-                            <SelectItem value="firecrawl">Firecrawl</SelectItem>
+                            {!isDisabledSearchProvider("tavily") ? (
+                              <SelectItem value="tavily">Tavily</SelectItem>
+                            ) : null}
+                            {!isDisabledSearchProvider("firecrawl") ? (
+                              <SelectItem value="firecrawl">
+                                Firecrawl
+                              </SelectItem>
+                            ) : null}
                           </SelectContent>
                         </Select>
                       </FormControl>
                     </FormItem>
                   )}
                 />
-                <div
-                  className={cn("space-y-4", {
-                    hidden: searchProvider !== "tavily",
-                  })}
-                >
-                  <FormField
-                    control={form.control}
-                    name="tavilyApiKey"
-                    render={({ field }) => (
-                      <FormItem className="from-item">
-                        <FormLabel className="col-span-1">
-                          {t("setting.apiKeyLabel")}
-                          <span className="ml-1 text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl className="col-span-3">
-                          <Password
-                            type="text"
-                            placeholder={t("setting.searchApiKeyPlaceholder")}
-                            disabled={form.getValues("enableSearch") === "0"}
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="tavilyApiProxy"
-                    render={({ field }) => (
-                      <FormItem className="from-item">
-                        <FormLabel className="col-span-1">
-                          {t("setting.apiUrlLabel")}
-                        </FormLabel>
-                        <FormControl className="col-span-3">
-                          <Input
-                            placeholder={TAVILY_BASE_URL}
-                            disabled={form.getValues("enableSearch") === "0"}
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div
-                  className={cn("space-y-4", {
-                    hidden: searchProvider !== "firecrawl",
-                  })}
-                >
-                  <FormField
-                    control={form.control}
-                    name="firecrawlApiKey"
-                    render={({ field }) => (
-                      <FormItem className="from-item">
-                        <FormLabel className="col-span-1">
-                          {t("setting.apiKeyLabel")}
-                          <span className="ml-1 text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl className="col-span-3">
-                          <Password
-                            type="text"
-                            placeholder={t("setting.searchApiKeyPlaceholder")}
-                            disabled={form.getValues("enableSearch") === "0"}
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="firecrawlApiProxy"
-                    render={({ field }) => (
-                      <FormItem className="from-item">
-                        <FormLabel className="col-span-1">
-                          {t("setting.apiUrlLabel")}
-                        </FormLabel>
-                        <FormControl className="col-span-3">
-                          <Input
-                            placeholder={FIRECRAWL_BASE_URL}
-                            disabled={form.getValues("enableSearch") === "0"}
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                <div className={mode === "proxy" ? "hidden" : ""}>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: searchProvider !== "tavily",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="tavilyApiKey"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiKeyLabel")}
+                            <span className="ml-1 text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Password
+                              type="text"
+                              placeholder={t("setting.searchApiKeyPlaceholder")}
+                              disabled={form.getValues("enableSearch") === "0"}
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="tavilyApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={TAVILY_BASE_URL}
+                              disabled={form.getValues("enableSearch") === "0"}
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: searchProvider !== "firecrawl",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="firecrawlApiKey"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiKeyLabel")}
+                            <span className="ml-1 text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Password
+                              type="text"
+                              placeholder={t("setting.searchApiKeyPlaceholder")}
+                              disabled={form.getValues("enableSearch") === "0"}
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="firecrawlApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={FIRECRAWL_BASE_URL}
+                              disabled={form.getValues("enableSearch") === "0"}
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
                 <FormField
                   control={form.control}

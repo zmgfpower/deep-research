@@ -1,6 +1,6 @@
 import { useSettingStore } from "@/store/setting";
 import { TAVILY_BASE_URL, FIRECRAWL_BASE_URL } from "@/constants/urls";
-import { pick } from "radash";
+import { pick, shuffle } from "radash";
 
 type TavilySearchOptions = {
   searchDepth?: "basic" | "advanced";
@@ -62,16 +62,26 @@ interface FirecrawlDocument<T = unknown> {
 
 function useWebSearch() {
   async function tavily(query: string, options: TavilySearchOptions = {}) {
-    const { tavilyApiKey, tavilyApiProxy, searchMaxResult } =
-      useSettingStore.getState();
+    const {
+      mode,
+      tavilyApiKey,
+      tavilyApiProxy,
+      searchMaxResult,
+      accessPassword,
+    } = useSettingStore.getState();
 
+    const tavilyApiKeys = shuffle(tavilyApiKey.split(","));
     const response = await fetch(
-      `${tavilyApiProxy || TAVILY_BASE_URL}/search`,
+      mode === "local"
+        ? `${tavilyApiProxy || TAVILY_BASE_URL}/search`
+        : "/api/search/tavily/search",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${tavilyApiKey}`,
+          Authorization: `Bearer ${
+            mode === "local" ? tavilyApiKeys[0] : accessPassword
+          }`,
         },
         body: JSON.stringify({
           query,
@@ -98,17 +108,28 @@ function useWebSearch() {
     query: string,
     options: FirecrawlSearchOptions = {}
   ) {
-    const { firecrawlApiKey, firecrawlApiProxy, searchMaxResult, language } =
-      useSettingStore.getState();
+    const {
+      mode,
+      firecrawlApiKey,
+      firecrawlApiProxy,
+      searchMaxResult,
+      language,
+      accessPassword,
+    } = useSettingStore.getState();
 
+    const firecrawlApiKeys = shuffle(firecrawlApiKey.split(","));
     const languageMeta = language.split("-");
     const response = await fetch(
-      `${firecrawlApiProxy || FIRECRAWL_BASE_URL}/v1/search`,
+      mode === "local"
+        ? `${firecrawlApiProxy || FIRECRAWL_BASE_URL}/v1/search`
+        : "/api/search/firecrawl/v1/search",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${firecrawlApiKey}`,
+          Authorization: `Bearer ${
+            mode === "local" ? firecrawlApiKeys[0] : accessPassword
+          }`,
         },
         body: JSON.stringify({
           query,
