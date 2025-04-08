@@ -111,94 +111,96 @@ function FinalReport() {
         {t("research.finalReport.title")}
       </h3>
       {taskStore.finalReport !== "" ? (
-        <>
-          <article id="final-report">
-            <MilkdownEditor
-              className="min-h-72"
-              value={taskStore.finalReport}
-              onChange={(value) => taskStore.updateFinalReport(value)}
-              tools={
-                <>
-                  <div className="px-1">
-                    <Separator className="dark:bg-slate-700" />
-                  </div>
-                  <Artifact
-                    value={taskStore.finalReport}
-                    systemInstruction={getSystemPrompt()}
-                    onChange={taskStore.updateFinalReport}
-                    buttonClassName="float-menu-button"
-                    dropdownMenuSideOffset={8}
-                    tooltipSideOffset={8}
-                  />
-                  <div className="px-1">
-                    <Separator className="dark:bg-slate-700" />
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        className="float-menu-button"
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        title={t("editor.export")}
-                        side="left"
-                        sideoffset={8}
-                      >
-                        <Download />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      className="print:hidden"
+        <article id="final-report">
+          <MilkdownEditor
+            className="min-h-72"
+            value={taskStore.finalReport}
+            onChange={(value) => taskStore.updateFinalReport(value)}
+            tools={
+              <>
+                <div className="px-1">
+                  <Separator className="dark:bg-slate-700" />
+                </div>
+                <Artifact
+                  value={taskStore.finalReport}
+                  systemInstruction={getSystemPrompt()}
+                  onChange={taskStore.updateFinalReport}
+                  buttonClassName="float-menu-button"
+                  dropdownMenuSideOffset={8}
+                  tooltipSideOffset={8}
+                />
+                <div className="px-1">
+                  <Separator className="dark:bg-slate-700" />
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="float-menu-button"
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      title={t("editor.export")}
                       side="left"
-                      sideOffset={8}
+                      sideoffset={8}
                     >
-                      <DropdownMenuItem
-                        onClick={() =>
-                          downloadFile(
-                            getFinakReportContent(),
-                            `${taskStore.title}.md`,
-                            "text/markdown;charset=utf-8"
-                          )
-                        }
-                      >
-                        <FileText />
-                        <span>Markdown</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDownloadPDF()}>
-                        <Signature />
-                        <span>PDF</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              }
-            />
-            {taskStore.sources?.length > 0 ? (
-              <div className="prose prose-slate dark:prose-invert">
-                <hr className="my-6" />
-                <h2>
-                  {t("research.finalReport.researchedInfor", {
-                    total: taskStore.sources.length,
-                  })}
-                </h2>
-                <ol>
-                  {taskStore.sources.map((source, idx) => {
-                    return (
-                      <li key={idx}>
-                        <a href={source.url} target="_blank">
-                          {source.title || source.url}
-                        </a>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </div>
-            ) : null}
-          </article>
-        </>
-      ) : taskFinished ? (
+                      <Download />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="print:hidden"
+                    side="left"
+                    sideOffset={8}
+                  >
+                    <DropdownMenuItem
+                      onClick={() =>
+                        downloadFile(
+                          getFinakReportContent(),
+                          `${taskStore.title}.md`,
+                          "text/markdown;charset=utf-8"
+                        )
+                      }
+                    >
+                      <FileText />
+                      <span>Markdown</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDownloadPDF()}>
+                      <Signature />
+                      <span>PDF</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            }
+          />
+          {taskStore.sources?.length > 0 ? (
+            <div className="prose prose-slate dark:prose-invert">
+              <hr className="my-6" />
+              <h2>
+                {t("research.finalReport.researchedInfor", {
+                  total: taskStore.sources.length,
+                })}
+              </h2>
+              <ol>
+                {taskStore.sources.map((source, idx) => {
+                  return (
+                    <li key={idx}>
+                      <a href={source.url} target="_blank">
+                        {source.title || source.url}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          ) : null}
+        </article>
+      ) : null}
+      {taskFinished ? (
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <form
+            className="mt-6 pt-3 border-t"
+            onSubmit={form.handleSubmit(handleSubmit)}
+          >
             <FormField
               control={form.control}
               name="requirement"
@@ -233,9 +235,10 @@ function FinalReport() {
             </Button>
           </form>
         </Form>
-      ) : (
+      ) : null}
+      {taskStore.finalReport === "" && !taskFinished ? (
         <div>{t("research.finalReport.emptyTip")}</div>
-      )}
+      ) : null}
     </section>
   );
 }

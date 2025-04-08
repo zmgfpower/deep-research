@@ -134,9 +134,13 @@
     "system": "System",
     "light": "Light",
     "dark": "Dark",
+    "resetSetting": "Reset Settings",
+    "resetAllSettings": "Reset settings and clear the cache",
+    "resetSettingWarning": "This operation will clear all data and initialize the project.",
     "version": "Current version",
     "checkForUpdate": "Check for update",
     "save": "Save",
+    "confirm": "Confirm",
     "cancel": "Cancel"
   }
 }

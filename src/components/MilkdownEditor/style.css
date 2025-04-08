@@ -33,6 +33,14 @@
 
   .milkdown-editor {
     @apply p-0;
+    &[contenteditable="false"] {
+      br.ProseMirror-trailingBreak {
+        display: none;
+      }
+      .crepe-placeholder {
+        display: none;
+      }
+    }
   }
 
   milkdown-list-item-block {

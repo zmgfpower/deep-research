@@ -5,6 +5,7 @@ import { RefreshCw } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Password } from "@/components/Internal/PasswordInput";
 import {
   Dialog,
@@ -55,6 +56,7 @@ import {
   filterDeepSeekModelList,
   filterOpenAIModelList,
 } from "@/utils/models";
+import { researchStore } from "@/utils/storage";
 import { cn } from "@/utils/style";
 import { omit, capitalize } from "radash";
 
@@ -191,6 +193,21 @@ function Setting({ open, onClose }: SettingProps) {
 
   async function handleSearchProviderChange(searchProvider: string) {
     update({ searchProvider });
+  }
+
+  function handleReset() {
+    toast.warning(t("setting.resetSetting"), {
+      description: t("setting.resetSettingWarning"),
+      duration: 5000,
+      action: {
+        label: t("setting.confirm"),
+        onClick: async () => {
+          const { reset } = useSettingStore.getState();
+          reset();
+          await researchStore.clear();
+        },
+      },
+    });
   }
 
   useLayoutEffect(() => {
@@ -2106,6 +2123,17 @@ function Setting({ open, onClose }: SettingProps) {
                       )
                     </small>
                   </div>
+                </div>
+                <div className="from-item">
+                  <Label>{t("setting.resetSetting")}</Label>
+                  <Button
+                    className="col-span-3 hover:text-red-500"
+                    type="button"
+                    variant="ghost"
+                    onClick={() => handleReset()}
+                  >
+                    {t("setting.resetAllSettings")}
+                  </Button>
                 </div>
               </TabsContent>
             </Tabs>

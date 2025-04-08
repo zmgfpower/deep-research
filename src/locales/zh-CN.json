@@ -134,9 +134,13 @@
     "system": "跟随系统",
     "light": "明亮",
     "dark": "黑暗",
+    "resetSetting": "重置设置",
+    "resetAllSettings": "重置设置并清空缓存",
+    "resetSettingWarning": "此操作将清空所有数据并初始化项目",
     "version": "当前版本",
     "checkForUpdate": "检查更新",
     "save": "保存",
+    "confirm": "确认",
     "cancel": "取消"
   }
 }
