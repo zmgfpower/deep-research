@@ -1,6 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { DEEPSEEK_BASE_URL } from "@/constants/urls";
 
+export const runtime = "edge";
+export const preferredRegion = [
+  "cle1",
+  "iad1",
+  "pdx1",
+  "sfo1",
+  "sin1",
+  "syd1",
+  "hnd1",
+  "kix1",
+];
+
 const API_PROXY_BASE_URL =
   process.env.DEEPSEEK_API_BASE_URL || DEEPSEEK_BASE_URL;
 

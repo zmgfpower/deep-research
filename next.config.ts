@@ -47,6 +47,10 @@ if (BUILD_MODE === "export") {
   // Statically exporting a Next.js application via `next export` disables API routes and middleware.
   nextConfig.webpack = (config) => {
     config.module.rules.push({
+      test: /src\/app\/api/,
+      loader: "ignore-loader",
+    });
+    config.module.rules.push({
       test: /src\/middleware/,
       loader: "ignore-loader",
     });
@@ -55,6 +59,13 @@ if (BUILD_MODE === "export") {
 } else if (BUILD_MODE === "standalone") {
   nextConfig.output = "standalone";
 } else {
+  nextConfig.webpack = (config) => {
+    config.module.rules.push({
+      test: /src\/app\/api/,
+      loader: "ignore-loader",
+    });
+    return config;
+  };
   nextConfig.rewrites = async () => {
     return [
       {
