@@ -4,6 +4,7 @@ import {
   FIRECRAWL_BASE_URL,
   SEARXNG_BASE_URL,
 } from "@/constants/urls";
+import { completePath } from "@/utils/url";
 import { pick, shuffle } from "radash";
 
 type TavilySearchOptions = {
@@ -144,7 +145,7 @@ function useWebSearch() {
     const tavilyApiKeys = shuffle(tavilyApiKey.split(","));
     const response = await fetch(
       mode === "local"
-        ? `${tavilyApiProxy || TAVILY_BASE_URL}/search`
+        ? `${completePath(tavilyApiProxy || TAVILY_BASE_URL)}/search`
         : "/api/search/tavily/search",
       {
         method: "POST",
@@ -192,7 +193,10 @@ function useWebSearch() {
     const languageMeta = language.split("-");
     const response = await fetch(
       mode === "local"
-        ? `${firecrawlApiProxy || FIRECRAWL_BASE_URL}/v1/search`
+        ? `${completePath(
+            firecrawlApiProxy || FIRECRAWL_BASE_URL,
+            "/v1"
+          )}/search`
         : "/api/search/firecrawl/v1/search",
       {
         method: "POST",
@@ -238,7 +242,7 @@ function useWebSearch() {
     const bochaApiKeys = shuffle(bochaApiKey.split(","));
     const response = await fetch(
       mode === "local"
-        ? `${bochaApiProxy || TAVILY_BASE_URL}/v1/web-search`
+        ? `${completePath(bochaApiProxy || TAVILY_BASE_URL, "/v1")}/web-search`
         : "/api/search/bocha/v1/web-search",
       {
         method: "POST",
@@ -274,8 +278,8 @@ function useWebSearch() {
 
     const headers: HeadersInit = {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${accessPassword}`,
     };
-    if (mode === "proxy") headers["Authorization"] = `Bearer ${accessPassword}`;
     const params = {
       q: query,
       categories: ["general", "web"],
@@ -289,16 +293,14 @@ function useWebSearch() {
     for (const [key, value] of Object.entries(params)) {
       searchQuery.append(key, value.toString());
     }
+
     const response = await fetch(
       `${
-        mode === "local"
-          ? `${searxngApiProxy || SEARXNG_BASE_URL}/search`
-          : "/api/search/searxng/search"
+        mode === "proxy"
+          ? "/api/search/searxng/search"
+          : `${completePath(searxngApiProxy || SEARXNG_BASE_URL)}/search`
       }?${searchQuery.toString()}`,
-      {
-        method: "POST",
-        headers,
-      }
+      mode === "proxy" ? { method: "POST", headers } : undefined
     );
     const { results = [] } = await response.json();
     return (results as SearxngSearchResult[])

@@ -28,7 +28,7 @@ XAI_API_BASE_URL=
 OPENAI_COMPATIBLE_API_KEY=
 # (Optional) Server-side Compatible with OpenAI API Proxy URL.
 OPENAI_COMPATIBLE_API_BASE_URL=
-# (Optional) Server-side Ollama API Proxy URL. Default, `http://localhost:11434`
+# (Optional) Server-side Ollama API Proxy URL. Default, `http://0.0.0.0:11434`
 OLLAMA_API_BASE_URL=
 # (Optional) Server-side Tavily API Key (Required for server API calls)
 TAVILY_API_KEY=
@@ -42,7 +42,7 @@ FIRECRAWL_API_BASE_URL=
 BOCHA_API_KEY=
 # (Optional) Server-side Bocha API Proxy URL. Default, `https://api.bochaai.com`
 BOCHA_API_BASE_URL=
-# (Optional) Server-side Searxng API Proxy URL. Default, `http://localhost:8080`
+# (Optional) Server-side Searxng API Proxy URL. Default, `http://0.0.0.0:8080`
 SEARXNG_API_BASE_URL=
 # (Optional) Server API Access Password for enhanced security
 ACCESS_PASSWORD=
