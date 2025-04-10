@@ -1,3 +1,6 @@
+# Server API Access Password for enhanced security
+ACCESS_PASSWORD=
+
 # (Optional) Server-side Gemini API Key (Required for server API calls)
 GOOGLE_GENERATIVE_AI_API_KEY=
 # (Optional) Server-side Gemini API Proxy URL. Default, `https://generativelanguage.googleapis.com`
@@ -30,6 +33,7 @@ OPENAI_COMPATIBLE_API_KEY=
 OPENAI_COMPATIBLE_API_BASE_URL=
 # (Optional) Server-side Ollama API Proxy URL. Default, `http://0.0.0.0:11434`
 OLLAMA_API_BASE_URL=
+
 # (Optional) Server-side Tavily API Key (Required for server API calls)
 TAVILY_API_KEY=
 # (Optional) Server-side Tavily API Proxy URL. Default, `https://api.tavily.com`
@@ -44,13 +48,13 @@ BOCHA_API_KEY=
 BOCHA_API_BASE_URL=
 # (Optional) Server-side Searxng API Proxy URL. Default, `http://0.0.0.0:8080`
 SEARXNG_API_BASE_URL=
-# (Optional) Server API Access Password for enhanced security
-ACCESS_PASSWORD=
-# (Optional) Injected script code can be used for statistics or error tracking.
-HEAD_SCRIPTS=
+
 # (Optional) Disable server-side AI provider usage permissions
 NEXT_PUBLIC_DISABLED_AI_PROVIDER=
 # (Optional) Disable server-side search provider usage permissions
 NEXT_PUBLIC_DISABLED_SEARCH_PROVIDER=
 # (Optional) Customize the model list, add or delete models
 NEXT_PUBLIC_MODEL_LIST=
+
+# (Optional) Injected script code can be used for statistics or error tracking.
+HEAD_SCRIPTS=

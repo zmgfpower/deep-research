@@ -130,8 +130,8 @@ You can also specify additional environment variables:
 ```bash
 docker run -d --name deep-research \
    -p 3333:3000 \
-   -e GOOGLE_GENERATIVE_AI_API_KEY=AIzaSy... \
    -e ACCESS_PASSWORD=your-password \
+   -e GOOGLE_GENERATIVE_AI_API_KEY=AIzaSy... \
    xiangfa/deep-research
 ```
 
@@ -153,8 +153,8 @@ services:
       image: xiangfa/deep-research
       container_name: deep-research
       environment:
-         - GOOGLE_GENERATIVE_AI_API_KEY=AIzaSy...
          - ACCESS_PASSWORD=your-password
+         - GOOGLE_GENERATIVE_AI_API_KEY=AIzaSy...
       ports:
          - 3333:3000
 ```

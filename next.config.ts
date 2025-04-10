@@ -52,6 +52,8 @@ if (BUILD_MODE === "export") {
     });
     return config;
   };
+} else if (BUILD_MODE === "standalone") {
+  nextConfig.output = "standalone";
 } else {
   nextConfig.rewrites = async () => {
     return [
@@ -107,10 +109,6 @@ if (BUILD_MODE === "export") {
       },
     ];
   };
-}
-
-if (BUILD_MODE === "standalone") {
-  nextConfig.output = "standalone";
 }
 
 export default nextConfig;
