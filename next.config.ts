@@ -25,6 +25,7 @@ const TAVILY_API_BASE_URL =
   process.env.TAVILY_API_BASE_URL || "https://api.tavily.com";
 const FIRECRAWL_API_BASE_URL =
   process.env.FIRECRAWL_API_BASE_URL || "https://api.firecrawl.dev";
+const EXA_API_BASE_URL = process.env.EXA_API_BASE_URL || "https://api.exa.ai";
 const BOCHA_API_BASE_URL =
   process.env.BOCHA_API_BASE_URL || "https://api.bochaai.com";
 const SEARXNG_API_BASE_URL =
@@ -59,13 +60,6 @@ if (BUILD_MODE === "export") {
 } else if (BUILD_MODE === "standalone") {
   nextConfig.output = "standalone";
 } else {
-  nextConfig.webpack = (config) => {
-    config.module.rules.push({
-      test: /src\/app\/api/,
-      loader: "ignore-loader",
-    });
-    return config;
-  };
   nextConfig.rewrites = async () => {
     return [
       {
@@ -109,6 +103,10 @@ if (BUILD_MODE === "export") {
       {
         source: "/api/search/firecrawl/:path*",
         destination: `${FIRECRAWL_API_BASE_URL}/:path*`,
+      },
+      {
+        source: "/api/search/exa/:path*",
+        destination: `${EXA_API_BASE_URL}/:path*`,
       },
       {
         source: "/api/search/bocha/:path*",

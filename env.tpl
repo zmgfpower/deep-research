@@ -42,6 +42,10 @@ TAVILY_API_BASE_URL=
 FIRECRAWL_API_KEY=
 # (Optional) Server-side Firecrawl API Proxy URL. Default, `https://api.firecrawl.dev`
 FIRECRAWL_API_BASE_URL=
+# (Optional) Server-side Firecrawl API Key (Required for server API calls)
+EXA_API_KEY=
+# (Optional) Server-side Firecrawl API Proxy URL. Default, `https://api.exa.ai`
+EXA_API_BASE_URL=
 # (Optional) Server-side Bocha API Key (Required for server API calls)
 BOCHA_API_KEY=
 # (Optional) Server-side Bocha API Proxy URL. Default, `https://api.bochaai.com`

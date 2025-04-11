@@ -48,6 +48,8 @@ import {
   OLLAMA_BASE_URL,
   TAVILY_BASE_URL,
   FIRECRAWL_BASE_URL,
+  EXA_BASE_URL,
+  BOCHA_BASE_URL,
   SEARXNG_BASE_URL,
 } from "@/constants/urls";
 import {
@@ -115,6 +117,8 @@ const formSchema = z.object({
   tavilyApiProxy: z.string().optional(),
   firecrawlApiKey: z.string().optional(),
   firecrawlApiProxy: z.string().optional(),
+  exaApiKey: z.string().optional(),
+  exaApiProxy: z.string().optional(),
   bochaApiKey: z.string().optional(),
   bochaApiProxy: z.string().optional(),
   searxngApiProxy: z.string().optional(),
@@ -2075,6 +2079,9 @@ function Setting({ open, onClose }: SettingProps) {
                                 Firecrawl
                               </SelectItem>
                             ) : null}
+                            {!isDisabledSearchProvider("exa") ? (
+                              <SelectItem value="exa">Exa</SelectItem>
+                            ) : null}
                             {!isDisabledSearchProvider("bocha") ? (
                               <SelectItem value="bocha">
                                 {t("setting.bocha")}
@@ -2180,6 +2187,50 @@ function Setting({ open, onClose }: SettingProps) {
                   </div>
                   <div
                     className={cn("space-y-4", {
+                      hidden: searchProvider !== "tavily",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="exaApiKey"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiKeyLabel")}
+                            <span className="ml-1 text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Password
+                              type="text"
+                              placeholder={t("setting.searchApiKeyPlaceholder")}
+                              disabled={form.getValues("enableSearch") === "0"}
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="exaApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={EXA_BASE_URL}
+                              disabled={form.getValues("enableSearch") === "0"}
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={cn("space-y-4", {
                       hidden: searchProvider !== "bocha",
                     })}
                   >
@@ -2213,7 +2264,7 @@ function Setting({ open, onClose }: SettingProps) {
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Input
-                              placeholder={FIRECRAWL_BASE_URL}
+                              placeholder={BOCHA_BASE_URL}
                               disabled={form.getValues("enableSearch") === "0"}
                               {...field}
                             />

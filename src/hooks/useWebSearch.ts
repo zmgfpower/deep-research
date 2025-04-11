@@ -2,6 +2,8 @@ import { useSettingStore } from "@/store/setting";
 import {
   TAVILY_BASE_URL,
   FIRECRAWL_BASE_URL,
+  EXA_BASE_URL,
+  BOCHA_BASE_URL,
   SEARXNG_BASE_URL,
 } from "@/constants/urls";
 import { completePath } from "@/utils/url";
@@ -64,6 +66,76 @@ interface FirecrawlDocument<T = unknown> {
   title?: string;
   description?: string;
 }
+
+type ExaSearchOptions = {
+  useAutoprompt?: boolean;
+  type?: "keyword" | "neural" | "auto";
+  category?:
+    | "company"
+    | "research paper"
+    | "news"
+    | "pdf"
+    | "github"
+    | "tweet"
+    | "personal site"
+    | "linkedin profile"
+    | "financial report";
+  numResults?: number;
+  includeDomains?: string[];
+  excludeDomains?: string[];
+  startCrawlDate?: string;
+  endCrawlDate?: string;
+  startPublishedDate?: string;
+  endPublishedDate?: string;
+  includeText?: string[];
+  excludeText?: string[];
+  contents?: {
+    text?:
+      | boolean
+      | {
+          maxCharacters?: number;
+          includeHtmlTags?: boolean;
+        };
+    highlights?: {
+      numSentences?: number;
+      highlightsPerUrl?: number;
+      query?: string;
+    };
+    summary?:
+      | boolean
+      | {
+          query?: string;
+          schema?: object;
+        };
+    livecrawl?: "never" | "fallback" | "always" | "auto";
+    livecrawlTimeout?: number;
+    subpages?: number;
+    subpageTarget?: string;
+    extras?: {
+      links?: number;
+      imageLinks?: number;
+    };
+  };
+};
+
+type ExaSearchResult = {
+  title: string;
+  url: string;
+  publishedDate: string;
+  author: string;
+  score: number;
+  id: string;
+  image?: string;
+  favicon: string;
+  text?: string;
+  highlights?: string[];
+  highlightScores?: number[];
+  summary?: string;
+  subpages?: ExaSearchResult[];
+  extras?: {
+    links?: string[];
+  };
+};
 
 type BochaSearchOptions = {
   freshness?:
@@ -230,6 +302,45 @@ function useWebSearch() {
       })) as Source[];
   }
 
+  async function exa(query: string, options: ExaSearchOptions = {}) {
+    const { mode, exaApiKey, exaApiProxy, searchMaxResult, accessPassword } =
+      useSettingStore.getState();
+
+    const exaApiKeys = shuffle(exaApiKey.split(","));
+    const response = await fetch(
+      mode === "local"
+        ? `${completePath(exaApiProxy || EXA_BASE_URL)}/search`
+        : "/api/search/exa/search",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${
+            mode === "local" ? exaApiKeys[0] : accessPassword
+          }`,
+        },
+        body: JSON.stringify({
+          query,
+          category: "research paper",
+          contents: {
+            text: true,
+            numResults: Number(searchMaxResult) * 5,
+            livecrawl: "auto",
+          },
+          ...options,
+        }),
+      }
+    );
+    const { results } = await response.json();
+    return (results as ExaSearchResult[])
+      .filter((item) => (item.summary || item.text) && item.url)
+      .map((result) => ({
+        content: result.summary || result.text,
+        url: result.url,
+        title: result.title,
+      })) as Source[];
+  }
+
   async function bocha(query: string, options: BochaSearchOptions = {}) {
     const {
       mode,
@@ -242,7 +353,7 @@ function useWebSearch() {
     const bochaApiKeys = shuffle(bochaApiKey.split(","));
     const response = await fetch(
       mode === "local"
-        ? `${completePath(bochaApiProxy || TAVILY_BASE_URL, "/v1")}/web-search`
+        ? `${completePath(bochaApiProxy || BOCHA_BASE_URL, "/v1")}/web-search`
         : "/api/search/bocha/v1/web-search",
       {
         method: "POST",
@@ -304,13 +415,14 @@ function useWebSearch() {
     );
     const { results = [] } = await response.json();
     return (results as SearxngSearchResult[])
-      .filter((item) => item.content && item.url)
+      .filter((item) => item.content && item.url && item.score >= 0.5)
       .map((result) => pick(result, ["title", "content", "url"])) as Source[];
   }
 
   return {
     tavily,
     firecrawl,
+    exa,
     bocha,
     searxng,
   };
