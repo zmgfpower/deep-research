@@ -227,34 +227,33 @@ function useModelProvider() {
     }
   }
 
-  function hasApiKey() {
+  function hasApiKey(): boolean {
     const { provider } = useSettingStore.getState();
 
     switch (provider) {
       case "google":
         const { apiKey } = useSettingStore.getState();
-        return apiKey;
+        return apiKey.length > 0;
       case "openai":
         const { openAIApiKey } = useSettingStore.getState();
-        return openAIApiKey;
+        return openAIApiKey.length > 0;
       case "anthropic":
         const { anthropicApiKey } = useSettingStore.getState();
-        return anthropicApiKey;
+        return anthropicApiKey.length > 0;
       case "deepseek":
         const { deepseekApiKey } = useSettingStore.getState();
-        return deepseekApiKey;
+        return deepseekApiKey.length > 0;
       case "xai":
         const { xAIApiKey } = useSettingStore.getState();
-        return xAIApiKey;
+        return xAIApiKey.length > 0;
       case "openrouter":
         const { openRouterApiKey } = useSettingStore.getState();
-        return openRouterApiKey;
+        return openRouterApiKey.length > 0;
       case "openaicompatible":
         const { openAICompatibleApiKey } = useSettingStore.getState();
-        return openAICompatibleApiKey;
+        return openAICompatibleApiKey.length > 0;
       case "ollama":
-        const { accessPassword } = useSettingStore.getState();
-        return accessPassword;
+        return true;
       default:
         throw new Error("Unsupported Provider: " + provider);
     }
