@@ -5,6 +5,7 @@ import {
   useCallback,
   useMemo,
   type ReactNode,
+  useEffect,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshCw, CircleHelp } from "lucide-react";
@@ -151,13 +152,24 @@ function convertModelName(name: string) {
 let preLoading = false;
 
 function HelpTip({ children, tip }: { children: ReactNode; tip: string }) {
+  const [open, setOpen] = useState<boolean>(false);
+  const handleOpen = () => {
+    setOpen(true);
+    setTimeout(() => {
+      setOpen(false);
+    }, 2000);
+  };
+
   return (
     <TooltipProvider delayDuration={100}>
-      <Tooltip>
+      <Tooltip open={open} onOpenChange={(opened) => setOpen(opened)}>
         <TooltipTrigger asChild>
-          <div className="cursor-help flex items-center">
+          <div
+            className="cursor-help flex items-center"
+            onClick={() => handleOpen()}
+          >
             <span className="flex-1">{children}</span>
-            <CircleHelp className="w-4 h-4 ml-1 opacity-50" />
+            <CircleHelp className="w-4 h-4 ml-1 opacity-50 max-sm:ml-0" />
           </div>
         </TooltipTrigger>
         <TooltipContent className="max-w-60">
@@ -298,19 +310,19 @@ function Setting({ open, onClose }: SettingProps) {
     });
   }
 
+  useEffect(() => {
+    if (modelList.length > 0) {
+      const { accessPassword } = useSettingStore.getState();
+      if (accessPassword === "") setUnprotected(true);
+    }
+  }, [modelList]);
+
   useLayoutEffect(() => {
     if (open && !preLoading) {
-      const { accessPassword } = useSettingStore.getState();
-      fetchModelList()
-        .then(() => {
-          if (accessPassword === "" && modelList.length > 0) {
-            setUnprotected(true);
-          }
-          preLoading = true;
-        })
-        .catch(console.error);
+      preLoading = true;
+      fetchModelList();
     }
-  }, [open, fetchModelList, modelList]);
+  }, [open, fetchModelList]);
 
   useLayoutEffect(() => {
     if (open && mode === "") {
@@ -452,7 +464,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
@@ -506,7 +520,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
@@ -560,7 +576,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
@@ -614,7 +632,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
@@ -668,7 +688,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
@@ -722,7 +744,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
@@ -776,7 +800,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
@@ -856,14 +882,15 @@ function Setting({ open, onClose }: SettingProps) {
                   <FormField
                     control={form.control}
                     name="accessPassword"
-                    disabled={unprotected}
                     render={({ field }) => (
                       <FormItem className="from-item">
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.accessPasswordTip")}>
                             {t("setting.accessPassword")}
                             {!unprotected ? (
-                              <span className="ml-1 text-red-500">*</span>
+                              <span className="ml-1 text-red-500 max-sm:hidden">
+                                *
+                              </span>
                             ) : null}
                           </HelpTip>
                         </FormLabel>
@@ -871,6 +898,7 @@ function Setting({ open, onClose }: SettingProps) {
                           <Password
                             type="text"
                             placeholder={t("setting.accessPasswordPlaceholder")}
+                            disabled={unprotected}
                             {...field}
                             onBlur={() =>
                               updateSetting(
@@ -897,7 +925,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.thinkingModelTip")}>
                             {t("setting.thinkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -979,7 +1009,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.networkingModelTip")}>
                             {t("setting.networkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1067,7 +1099,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.thinkingModelTip")}>
                             {t("setting.thinkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1149,7 +1183,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.networkingModelTip")}>
                             {t("setting.networkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1237,7 +1273,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.thinkingModelTip")}>
                             {t("setting.thinkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1319,7 +1357,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.networkingModelTip")}>
                             {t("setting.networkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1407,7 +1447,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.thinkingModelTip")}>
                             {t("setting.thinkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1470,7 +1512,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.networkingModelTip")}>
                             {t("setting.networkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1539,7 +1583,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.thinkingModelTip")}>
                             {t("setting.thinkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1621,7 +1667,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.networkingModelTip")}>
                             {t("setting.networkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1709,7 +1757,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.thinkingModelTip")}>
                             {t("setting.thinkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1772,7 +1822,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.networkingModelTip")}>
                             {t("setting.networkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1841,7 +1893,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.thinkingModelTip")}>
                             {t("setting.thinkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1904,7 +1958,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.networkingModelTip")}>
                             {t("setting.networkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -1973,7 +2029,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.thinkingModelTip")}>
                             {t("setting.thinkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -2036,7 +2094,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.networkingModelTip")}>
                             {t("setting.networkingModel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl>
@@ -2189,7 +2249,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
@@ -2233,7 +2295,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
@@ -2277,7 +2341,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
@@ -2321,7 +2387,9 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormItem className="from-item">
                           <FormLabel className="col-span-1">
                             {t("setting.apiKeyLabel")}
-                            <span className="ml-1 text-red-500">*</span>
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </FormLabel>
                           <FormControl className="col-span-3">
                             <Password
