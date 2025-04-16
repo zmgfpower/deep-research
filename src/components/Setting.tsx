@@ -2393,7 +2393,8 @@ function Setting({ open, onClose }: SettingProps) {
                                 Firecrawl
                               </SelectItem>
                             ) : null}
-                            {!isDisabledSearchProvider("exa") ? (
+                            {!isDisabledSearchProvider("exa") &&
+                            mode === "proxy" ? (
                               <SelectItem value="exa">Exa</SelectItem>
                             ) : null}
                             {!isDisabledSearchProvider("bocha") ? (

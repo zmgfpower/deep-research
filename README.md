@@ -189,7 +189,7 @@ Please refer to the file `env.tpl` for all available environment variables.
 
 - **Make variables effective:** After adding or modifying this environment variable, please redeploy the project for the changes to take effect.
 
-## 🙋 Q&A
+## 🙋 FAQs
 
 - Why does my Ollama or SearXNG not work properly and displays the error `TypeError: Failed to fetch`?
 
