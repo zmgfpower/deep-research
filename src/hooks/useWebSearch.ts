@@ -1,3 +1,4 @@
+import Exa from "exa-js";
 import { useSettingStore } from "@/store/setting";
 import {
   TAVILY_BASE_URL,
@@ -6,6 +7,7 @@ import {
   BOCHA_BASE_URL,
   SEARXNG_BASE_URL,
 } from "@/constants/urls";
+import { informationCollectorPrompt } from "@/utils/deep-research";
 import { multiApiKeyPolling } from "@/utils/model";
 import { generateSignature } from "@/utils/signature";
 import { completePath } from "@/utils/url";
@@ -310,15 +312,29 @@ function useWebSearch() {
     const accessKey = generateSignature(accessPassword, Date.now());
     const exaKey = multiApiKeyPolling(exaApiKey);
 
-    const response = await fetch(
-      mode === "local"
-        ? `${completePath(exaApiProxy || EXA_BASE_URL)}/search`
-        : "/api/search/exa/search",
-      {
+    if (mode === "local") {
+      const exa = new Exa(exaKey, exaApiProxy || EXA_BASE_URL);
+      const { results } = await exa.searchAndContents(query, {
+        text: true,
+        summary: {
+          query: informationCollectorPrompt(query),
+        },
+        numResults: Number(searchMaxResult) * 5,
+        livecrawl: "auto",
+      });
+      return results
+        .filter((item) => (item.summary || item.text) && item.url)
+        .map((result) => ({
+          content: result.summary || result.text,
+          url: result.url,
+          title: result.title,
+        })) as Source[];
+    } else {
+      const response = await fetch("/api/search/exa/search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": mode === "local" ? exaKey : accessKey,
+          "x-api-key": accessKey,
           "User-Agent": "exa-node 1.4.0",
         },
         body: JSON.stringify({
@@ -326,21 +342,24 @@ function useWebSearch() {
           category: "research paper",
           contents: {
             text: true,
+            summary: {
+              query: informationCollectorPrompt(query),
+            },
             numResults: Number(searchMaxResult) * 5,
             livecrawl: "auto",
           },
           ...options,
         }),
-      }
-    );
-    const { results } = await response.json();
-    return (results as ExaSearchResult[])
-      .filter((item) => (item.summary || item.text) && item.url)
-      .map((result) => ({
-        content: result.summary || result.text,
-        url: result.url,
-        title: result.title,
-      })) as Source[];
+      });
+      const { results } = await response.json();
+      return (results as ExaSearchResult[])
+        .filter((item) => (item.summary || item.text) && item.url)
+        .map((result) => ({
+          content: result.summary || result.text,
+          url: result.url,
+          title: result.title,
+        })) as Source[];
+    }
   }
 
   async function bocha(query: string, options: BochaSearchOptions = {}) {

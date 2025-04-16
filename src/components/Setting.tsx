@@ -58,6 +58,7 @@ import {
   ANTHROPIC_BASE_URL,
   DEEPSEEK_BASE_URL,
   XAI_BASE_URL,
+  POLLINATIONS_BASE_URL,
   OLLAMA_BASE_URL,
   TAVILY_BASE_URL,
   FIRECRAWL_BASE_URL,
@@ -120,6 +121,9 @@ const formSchema = z.object({
   openAICompatibleApiProxy: z.string().optional(),
   openAICompatibleThinkingModel: z.string().optional(),
   openAICompatibleNetworkingModel: z.string().optional(),
+  pollinationsApiProxy: z.string().optional(),
+  pollinationsThinkingModel: z.string().optional(),
+  pollinationsNetworkingModel: z.string().optional(),
   ollamaApiProxy: z.string().optional(),
   ollamaThinkingModel: z.string().optional(),
   ollamaNetworkingModel: z.string().optional(),
@@ -440,6 +444,11 @@ function Setting({ open, onClose }: SettingProps) {
                             {!isDisabledAIProvider("openaicompatible") ? (
                               <SelectItem value="openaicompatible">
                                 {t("setting.openAICompatible")}
+                              </SelectItem>
+                            ) : null}
+                            {!isDisabledAIProvider("pollinations") ? (
+                              <SelectItem value="pollinations">
+                                Pollinations
                               </SelectItem>
                             ) : null}
                             {!isDisabledAIProvider("ollama") ? (
@@ -836,6 +845,35 @@ function Setting({ open, onClose }: SettingProps) {
                                 updateSetting(
                                   "openAICompatibleApiProxy",
                                   form.getValues("openAICompatibleApiProxy")
+                                )
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={cn("space-y-4", {
+                      hidden: provider !== "pollinations",
+                    })}
+                  >
+                    <FormField
+                      control={form.control}
+                      name="pollinationsApiProxy"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.apiUrlLabel")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input
+                              placeholder={POLLINATIONS_BASE_URL}
+                              {...field}
+                              onBlur={() =>
+                                updateSetting(
+                                  "pollinationsApiProxy",
+                                  form.getValues("pollinationsApiProxy")
                                 )
                               }
                             />
@@ -2009,6 +2047,142 @@ function Setting({ open, onClose }: SettingProps) {
                               <RefreshCw
                                 className={isRefreshing ? "animate-spin" : ""}
                               />
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div
+                  className={cn("space-y-4", {
+                    hidden: provider !== "pollinations",
+                  })}
+                >
+                  <FormField
+                    control={form.control}
+                    name="pollinationsThinkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          <HelpTip tip={t("setting.thinkingModelTip")}>
+                            {t("setting.thinkingModel")}
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
+                          </HelpTip>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {modelList.map((name) => {
+                                  return !isDisabledAIModel(name) ? (
+                                    <SelectItem key={name} value={name}>
+                                      {convertModelName(name)}
+                                    </SelectItem>
+                                  ) : null;
+                                })}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="pollinationsNetworkingModel"
+                    render={({ field }) => (
+                      <FormItem className="from-item">
+                        <FormLabel className="col-span-1">
+                          <HelpTip tip={t("setting.networkingModelTip")}>
+                            {t("setting.networkingModel")}
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
+                          </HelpTip>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger
+                                className={cn({
+                                  hidden: modelList.length === 0,
+                                })}
+                              >
+                                <SelectValue
+                                  placeholder={t(
+                                    "setting.modelListLoadingPlaceholder"
+                                  )}
+                                />
+                              </SelectTrigger>
+                              <SelectContent className="max-sm:max-h-72">
+                                {modelList.map((name) => {
+                                  return !isDisabledAIModel(name) ? (
+                                    <SelectItem key={name} value={name}>
+                                      {convertModelName(name)}
+                                    </SelectItem>
+                                  ) : null;
+                                })}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                              type="button"
+                              variant="outline"
+                              disabled={isRefreshing}
+                              onClick={() => fetchModelList()}
+                            >
+                              {isRefreshing ? (
+                                <>
+                                  <RefreshCw className="animate-spin" />{" "}
+                                  {t("setting.modelListLoading")}
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw /> {t("setting.refresh")}
+                                </>
+                              )}
                             </Button>
                           </div>
                         </FormControl>
