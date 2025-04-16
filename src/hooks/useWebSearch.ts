@@ -318,7 +318,8 @@ function useWebSearch() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${mode === "local" ? exaKey : accessKey}`,
+          "x-api-key": mode === "local" ? exaKey : accessKey,
+          "User-Agent": "exa-node 1.4.0",
         },
         body: JSON.stringify({
           query,
