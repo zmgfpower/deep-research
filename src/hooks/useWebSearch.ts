@@ -1,4 +1,3 @@
-import Exa from "exa-js";
 import { useSettingStore } from "@/store/setting";
 import {
   TAVILY_BASE_URL,
@@ -230,6 +229,7 @@ function useWebSearch() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${mode === "local" ? tavilyKey : accessKey}`,
         },
+        credentials: "omit",
         body: JSON.stringify({
           query,
           searchDepth: "basic",
@@ -282,6 +282,7 @@ function useWebSearch() {
             mode === "local" ? firecrawlKey : accessKey
           }`,
         },
+        credentials: "omit",
         body: JSON.stringify({
           query,
           lang: languageMeta[0].toLowerCase(),
@@ -312,31 +313,17 @@ function useWebSearch() {
     const accessKey = generateSignature(accessPassword, Date.now());
     const exaKey = multiApiKeyPolling(exaApiKey);
 
-    if (mode === "local") {
-      const exa = new Exa(exaKey, exaApiProxy || EXA_BASE_URL);
-      const { results } = await exa.searchAndContents(query, {
-        text: true,
-        summary: {
-          query: informationCollectorPrompt(query),
-        },
-        numResults: Number(searchMaxResult) * 5,
-        livecrawl: "auto",
-      });
-      return results
-        .filter((item) => (item.summary || item.text) && item.url)
-        .map((result) => ({
-          content: result.summary || result.text,
-          url: result.url,
-          title: result.title,
-        })) as Source[];
-    } else {
-      const response = await fetch("/api/search/exa/search", {
+    const response = await fetch(
+      mode === "local"
+        ? `${completePath(exaApiProxy || EXA_BASE_URL)}/search`
+        : "/api/search/exa/search",
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": accessKey,
-          "User-Agent": "exa-node 1.4.0",
+          Authorization: `Bearer ${mode === "local" ? exaKey : accessKey}`,
         },
+        credentials: "omit",
         body: JSON.stringify({
           query,
           category: "research paper",
@@ -350,16 +337,16 @@ function useWebSearch() {
           },
           ...options,
         }),
-      });
-      const { results } = await response.json();
-      return (results as ExaSearchResult[])
-        .filter((item) => (item.summary || item.text) && item.url)
-        .map((result) => ({
-          content: result.summary || result.text,
-          url: result.url,
-          title: result.title,
-        })) as Source[];
-    }
+      }
+    );
+    const { results } = await response.json();
+    return (results as ExaSearchResult[])
+      .filter((item) => (item.summary || item.text) && item.url)
+      .map((result) => ({
+        content: result.summary || result.text,
+        url: result.url,
+        title: result.title,
+      })) as Source[];
   }
 
   async function bocha(query: string, options: BochaSearchOptions = {}) {
@@ -383,6 +370,7 @@ function useWebSearch() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${mode === "local" ? bochaKey : accessKey}`,
         },
+        credentials: "omit",
         body: JSON.stringify({
           query,
           freshness: "noLimit",
@@ -432,7 +420,9 @@ function useWebSearch() {
           ? "/api/search/searxng/search"
           : `${completePath(searxngApiProxy || SEARXNG_BASE_URL)}/search`
       }?${searchQuery.toString()}`,
-      mode === "proxy" ? { method: "POST", headers } : undefined
+      mode === "proxy"
+        ? { method: "POST", credentials: "omit", headers }
+        : { credentials: "omit" }
     );
     const { results = [] } = await response.json();
     return (results as SearxngSearchResult[])

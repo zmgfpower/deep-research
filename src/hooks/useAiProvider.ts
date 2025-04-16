@@ -168,6 +168,7 @@ function useModelProvider() {
                   return await fetch(input, {
                     ...init,
                     headers,
+                    credentials: "omit",
                   });
                 },
               }
@@ -185,6 +186,12 @@ function useModelProvider() {
               ? completePath(ollamaApiProxy || OLLAMA_BASE_URL, "/api")
               : "/api/ai/ollama/api",
           headers: ollamaHeaders,
+          fetch: async (input, init) => {
+            return await fetch(input, {
+              ...init,
+              credentials: "omit",
+            });
+          },
         });
         return ollama(model, settings);
       default:

@@ -500,10 +500,14 @@ export async function middleware(request: NextRequest) {
     }
   }
   if (request.nextUrl.pathname.startsWith("/api/search/exa")) {
-    const authorization = request.headers.get("x-api-key") || "";
+    const authorization = request.headers.get("authorization") || "";
     if (
       request.method.toUpperCase() !== "POST" ||
-      !verifySignature(authorization, accessPassword, Date.now()) ||
+      !verifySignature(
+        authorization.substring(7),
+        accessPassword,
+        Date.now()
+      ) ||
       disabledSearchProviders.includes("exa")
     ) {
       return NextResponse.json(
@@ -518,8 +522,7 @@ export async function middleware(request: NextRequest) {
           "Content-Type",
           request.headers.get("Content-Type") || "application/json"
         );
-        requestHeaders.set("x-api-key", apiKey);
-        requestHeaders.set("User-Agent", "exa-node 1.4.0");
+        requestHeaders.set("Authorization", `Bearer ${apiKey}`);
         return NextResponse.next({
           request: {
             headers: requestHeaders,
