@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import ThemeProvider from "@/components/Provider/Theme";
 import I18Provider from "@/components/Provider/I18n";
-import LanguageAttribute from "@/components/Provider/LanguageAttribute";
 import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
@@ -11,7 +10,7 @@ const HEAD_SCRIPTS = process.env.HEAD_SCRIPTS as string;
 
 export const metadata: Metadata = {
   title: "Deep Research",
-  description: "Deep Rssearch with Google Gemini Models",
+  description: "Use any LLMs (Large Language Models) for Deep Research.",
   icons: {
     icon: {
       type: "image/svg+xml",
@@ -49,7 +48,6 @@ export default function RootLayout({
           <I18Provider>{children}</I18Provider>
         </ThemeProvider>
         <Toaster richColors toastOptions={{ duration: 3000 }} />
-        <LanguageAttribute />
       </body>
     </html>
   );

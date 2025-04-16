@@ -72,6 +72,7 @@ import {
   filterOpenRouterModelList,
   filterDeepSeekModelList,
   filterOpenAIModelList,
+  filterPollinationsModelList,
   getCustomModelList,
 } from "@/utils/model";
 import { researchStore } from "@/utils/storage";
@@ -165,22 +166,26 @@ function HelpTip({ children, tip }: { children: ReactNode; tip: string }) {
   };
 
   return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip open={open} onOpenChange={(opened) => setOpen(opened)}>
-        <TooltipTrigger asChild>
-          <div
-            className="cursor-help flex items-center"
-            onClick={() => handleOpen()}
-          >
-            <span className="flex-1">{children}</span>
-            <CircleHelp className="w-4 h-4 ml-1 opacity-50 max-sm:ml-0" />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent className="max-w-60">
-          <p>{tip}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <div className="flex items-center">
+      <span className="flex-1">{children}</span>
+      <TooltipProvider delayDuration={100}>
+        <Tooltip open={open} onOpenChange={(opened) => setOpen(opened)}>
+          <TooltipTrigger asChild>
+            <CircleHelp
+              className="cursor-help w-4 h-4 ml-1 opacity-50 max-sm:ml-0"
+              onClick={(ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                handleOpen();
+              }}
+            />
+          </TooltipTrigger>
+          <TooltipContent className="max-w-52">
+            <p>{tip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
   );
 }
 
@@ -199,6 +204,8 @@ function Setting({ open, onClose }: SettingProps) {
       return filterOpenRouterModelList(modelList);
     } else if (provider === "deepseek") {
       return filterDeepSeekModelList(modelList);
+    } else if (provider === "pollinations") {
+      return filterPollinationsModelList(modelList);
     }
     return [[], modelList];
   }, [modelList]);
@@ -210,6 +217,8 @@ function Setting({ open, onClose }: SettingProps) {
       return filterOpenRouterModelList(modelList);
     } else if (provider === "openai") {
       return filterOpenAIModelList(modelList);
+    } else if (provider === "pollinations") {
+      return filterPollinationsModelList(modelList);
     }
     return [[], modelList];
   }, [modelList]);
@@ -448,7 +457,7 @@ function Setting({ open, onClose }: SettingProps) {
                             ) : null}
                             {!isDisabledAIProvider("pollinations") ? (
                               <SelectItem value="pollinations">
-                                Pollinations
+                                Pollinations ({t("setting.free")})
                               </SelectItem>
                             ) : null}
                             {!isDisabledAIProvider("ollama") ? (
@@ -2090,13 +2099,32 @@ function Setting({ open, onClose }: SettingProps) {
                                 />
                               </SelectTrigger>
                               <SelectContent className="max-sm:max-h-72">
-                                {modelList.map((name) => {
-                                  return !isDisabledAIModel(name) ? (
-                                    <SelectItem key={name} value={name}>
-                                      {convertModelName(name)}
-                                    </SelectItem>
-                                  ) : null;
-                                })}
+                                {thinkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {thinkingModelList[0].map((name) => {
+                                      return !isDisabledAIModel(name) ? (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      ) : null;
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {thinkingModelList[1].map((name) => {
+                                    return !isDisabledAIModel(name) ? (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    ) : null;
+                                  })}
+                                </SelectGroup>
                               </SelectContent>
                             </Select>
                             <Button
@@ -2155,13 +2183,32 @@ function Setting({ open, onClose }: SettingProps) {
                                 />
                               </SelectTrigger>
                               <SelectContent className="max-sm:max-h-72">
-                                {modelList.map((name) => {
-                                  return !isDisabledAIModel(name) ? (
-                                    <SelectItem key={name} value={name}>
-                                      {convertModelName(name)}
-                                    </SelectItem>
-                                  ) : null;
-                                })}
+                                {networkingModelList[0].length > 0 ? (
+                                  <SelectGroup>
+                                    <SelectLabel>
+                                      {t("setting.recommendedModels")}
+                                    </SelectLabel>
+                                    {networkingModelList[0].map((name) => {
+                                      return !isDisabledAIModel(name) ? (
+                                        <SelectItem key={name} value={name}>
+                                          {convertModelName(name)}
+                                        </SelectItem>
+                                      ) : null;
+                                    })}
+                                  </SelectGroup>
+                                ) : null}
+                                <SelectGroup>
+                                  <SelectLabel>
+                                    {t("setting.basicModels")}
+                                  </SelectLabel>
+                                  {networkingModelList[1].map((name) => {
+                                    return !isDisabledAIModel(name) ? (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    ) : null;
+                                  })}
+                                </SelectGroup>
                               </SelectContent>
                             </Select>
                             <Button
