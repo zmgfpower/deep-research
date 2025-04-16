@@ -71,6 +71,10 @@ function useModelProvider() {
                   "/v1"
                 ),
                 apiKey: anthropicKey,
+                headers: {
+                  // Avoid cors error
+                  "anthropic-dangerous-direct-browser-access": "true",
+                },
               }
             : {
                 baseURL: "/api/ai/anthropic/v1",
@@ -145,7 +149,11 @@ function useModelProvider() {
                 apiKey: openAICompatibleKey,
                 compatibility: "compatible",
               }
-            : { baseURL: "/api/ai/openaicompatible/v1", apiKey: accessKey }
+            : {
+                baseURL: "/api/ai/openaicompatible/v1",
+                apiKey: accessKey,
+                compatibility: "compatible",
+              }
         );
         return openaicompatible(model, settings);
       case "pollinations":
@@ -172,7 +180,11 @@ function useModelProvider() {
                   });
                 },
               }
-            : { baseURL: "/api/ai/pollinations", apiKey: accessKey }
+            : {
+                baseURL: "/api/ai/pollinations",
+                apiKey: accessKey,
+                compatibility: "compatible",
+              }
         );
         return pollinations(model, settings);
       case "ollama":
