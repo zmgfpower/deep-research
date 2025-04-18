@@ -1,11 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { LoaderCircle, SquarePlus } from "lucide-react";
+import {
+  LoaderCircle,
+  SquarePlus,
+  FilePlus,
+  BookText,
+  Paperclip,
+  Link,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { Button } from "@/components/Internal/Button";
+import UploadWrapper from "@/components/Internal/UploadWrapper";
 import {
   Form,
   FormControl,
@@ -14,6 +23,12 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import useDeepResearch from "@/hooks/useDeepResearch";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
 import useAiProvider from "@/hooks/useAiProvider";
@@ -21,6 +36,7 @@ import { useGlobalStore } from "@/store/global";
 import { useSettingStore } from "@/store/setting";
 import { useTaskStore } from "@/store/task";
 import { useHistoryStore } from "@/store/history";
+import { fileParser } from "@/utils/parser";
 
 const formSchema = z.object({
   topic: z.string().min(2),
@@ -80,6 +96,23 @@ function Topic() {
     form.reset();
   }
 
+  async function handleFileUpload(files: FileList | null) {
+    if (files) {
+      for await (const file of files) {
+        try {
+          const text = await fileParser(file);
+          console.log(text);
+        } catch (err) {
+          if (err instanceof Error) {
+            toast.error(err.message);
+          } else {
+            toast.error("File parsing failed");
+          }
+        }
+      }
+    }
+  }
+
   return (
     <section className="p-4 border rounded-md mt-4 print:hidden">
       <div className="flex justify-between items-center border-b mb-2">
@@ -117,7 +150,42 @@ function Topic() {
               </FormItem>
             )}
           />
-          <Button className="mt-4 w-full" disabled={isThinking} type="submit">
+          <FormItem className="mt-2">
+            <FormLabel className="mb-2 font-semibold">
+              Research Resources (optional)
+            </FormLabel>
+            <FormControl>
+              <div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="inline-flex border p-2 rounded-md text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">
+                      <FilePlus className="w-5 h-5" />
+                      <span className="ml-1">Add Resources</span>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>
+                      <BookText />
+                      <span>Knowledge</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <UploadWrapper onChange={handleFileUpload}>
+                        <div className="flex px-2 py-1.5 text-sm cursor-default rounded-md [&>svg]:size-4 [&>svg]:shrink-0 gap-2 items-center hover:bg-slate-100 dark:hover:bg-slate-800">
+                          <Paperclip />
+                          <span>File</span>
+                        </div>
+                      </UploadWrapper>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link />
+                      <span>Web Page</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </FormControl>
+          </FormItem>
+          <Button className="w-full mt-4" disabled={isThinking} type="submit">
             {isThinking ? (
               <>
                 <LoaderCircle className="animate-spin" />

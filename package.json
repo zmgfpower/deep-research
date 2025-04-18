@@ -1,7 +1,7 @@
 {
   "name": "deep-research",
   "description": "Use any LLMs (Large Language Models) for Deep Research.",
-  "version": "0.7.12",
+  "version": "0.8.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -36,6 +36,7 @@
     "@xiangfa/mdeditor": "^0.1.8",
     "@xiangfa/milkdown-plugin-diagram": "^7.6.10",
     "@xiangfa/milkdown-plugin-math": "^7.6.5",
+    "@zip.js/zip.js": "^2.7.60",
     "ai": "^4.2.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

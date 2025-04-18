@@ -1,8 +1,7 @@
 interface Source {
-  sourceType: "url";
-  id: string;
-  url: string;
   title?: string;
+  content?: string;
+  url: string;
 }
 
 interface SearchTask {
@@ -11,12 +10,6 @@ interface SearchTask {
   researchGoal: string;
   learning: string;
   sources: Source[];
-}
-
-interface Source {
-  title?: string;
-  content?: string;
-  url: string;
 }
 
 interface PartialJson {

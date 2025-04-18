@@ -5,6 +5,7 @@ import { pick } from "radash";
 export interface TaskStore {
   id: string;
   question: string;
+  resources: string[];
   questions: string;
   finalReport: string;
   query: string;
@@ -26,6 +27,7 @@ type TaskFunction = {
   updateTask: (query: string, task: Partial<SearchTask>) => void;
   removeTask: (query: string) => boolean;
   setQuestion: (question: string) => void;
+  updateResources: (rid: string) => void;
   updateQuestions: (questions: string) => void;
   updateFinalReport: (report: string) => void;
   setSources: (sources: Source[]) => void;
@@ -39,6 +41,7 @@ type TaskFunction = {
 const defaultValues: TaskStore = {
   id: "",
   question: "",
+  resources: [],
   questions: "",
   finalReport: "",
   query: "",
@@ -73,6 +76,12 @@ export const useTaskStore = create(
         return true;
       },
       setQuestion: (question) => set(() => ({ question })),
+      updateResources: (rid) => {
+        const newResources = get().resources;
+        if (!newResources.includes(rid)) {
+          set(() => ({ resources: [...newResources, rid] }));
+        }
+      },
       updateQuestions: (questions) => set(() => ({ questions })),
       updateFinalReport: (report) => set(() => ({ finalReport: report })),
       setSources: (sources) => set(() => ({ sources })),

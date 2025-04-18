@@ -80,6 +80,9 @@ importers:
       '@xiangfa/milkdown-plugin-math':
         specifier: ^7.6.5
         version: 7.6.5(@milkdown/core@7.6.4(@milkdown/ctx@7.6.4)(@milkdown/prose@7.6.4)(@milkdown/transformer@7.6.4(@milkdown/prose@7.6.4)))(@milkdown/ctx@7.6.4)(@milkdown/prose@7.6.4)(@milkdown/transformer@7.6.4(@milkdown/prose@7.6.4))
+      '@zip.js/zip.js':
+        specifier: ^2.7.60
+        version: 2.7.60
       ai:
         specifier: ^4.2.6
         version: 4.2.6(react@19.0.0)(zod@3.24.2)
@@ -1624,6 +1627,10 @@ packages:
       '@milkdown/core': ^7.2.0
       '@milkdown/ctx': ^7.2.0
       '@milkdown/prose': ^7.2.0
+
+  '@zip.js/zip.js@2.7.60':
+    resolution: {integrity: sha512-vA3rLyqdxBrVo1FWSsbyoecaqWTV+vgPRf0QKeM7kVDG0r+lHUqd7zQDv1TO9k4BcAoNzNDSNrrel24Mk6addA==}
+    engines: {bun: '>=0.7.0', deno: '>=1.0.0', node: '>=16.5.0'}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -5611,6 +5618,8 @@ snapshots:
     transitivePeerDependencies:
       - '@milkdown/transformer'
       - supports-color
+
+  '@zip.js/zip.js@2.7.60': {}
 
   acorn-jsx@5.3.2(acorn@8.14.0):
     dependencies:
