@@ -1,3 +1,11 @@
+interface Resource {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  status: "unprocessed" | "processing" | "completed" | "failed";
+}
+
 interface Source {
   title?: string;
   content?: string;
@@ -5,7 +13,7 @@ interface Source {
 }
 
 interface SearchTask {
-  state: "unprocessed" | "processing" | "completed";
+  state: "unprocessed" | "processing" | "completed" | "failed";
   query: string;
   researchGoal: string;
   learning: string;

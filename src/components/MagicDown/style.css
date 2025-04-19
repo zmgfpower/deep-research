@@ -1,0 +1,10 @@
+.markdown-editor {
+  .cm-editor {
+    @apply bg-transparent dark:text-slate-200;
+    &.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground,
+    .cm-selectionBackground,
+    .cm-content ::selection {
+      @apply bg-blue-400/40;
+    }
+  }
+}

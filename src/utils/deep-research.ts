@@ -237,9 +237,12 @@ export function writeFinalReportPrompt(
   ].join("\n\n");
 }
 
-export function informationCollectorPrompt(query: string) {
+export function informationCollectorPrompt(query = "") {
   return [
-    `Given the following query from the user:\n<query>${query}</query>`,
+    query
+      ? `Given the following query from the user:\n<query>${query}</query>`
+      : "",
     "You are an information collector who is good at summarizing article contents. Please read the main text repeatedly and extract the main points of the main text based on the user's query. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available.",
+    "**Output only article summaries.**",
   ].join("\n\n");
 }

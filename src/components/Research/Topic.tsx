@@ -12,9 +12,9 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import { Button } from "@/components/Internal/Button";
+import ResourceList from "@/components/Knowledge/ResourceList";
 import UploadWrapper from "@/components/Internal/UploadWrapper";
+import { Button } from "@/components/Internal/Button";
 import {
   Form,
   FormControl,
@@ -30,13 +30,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import useDeepResearch from "@/hooks/useDeepResearch";
-import useAccurateTimer from "@/hooks/useAccurateTimer";
 import useAiProvider from "@/hooks/useAiProvider";
+import useKnowledge from "@/hooks/useKnowledge";
+import useAccurateTimer from "@/hooks/useAccurateTimer";
 import { useGlobalStore } from "@/store/global";
 import { useSettingStore } from "@/store/setting";
 import { useTaskStore } from "@/store/task";
 import { useHistoryStore } from "@/store/history";
-import { fileParser } from "@/utils/parser";
 
 const formSchema = z.object({
   topic: z.string().min(2),
@@ -44,9 +44,10 @@ const formSchema = z.object({
 
 function Topic() {
   const { t } = useTranslation();
-  const taskStore = useTaskStore();
+  const { question, resources, removeResource } = useTaskStore();
   const { askQuestions } = useDeepResearch();
   const { hasApiKey } = useAiProvider();
+  const { processingKnowledge } = useKnowledge();
   const {
     formattedTime,
     start: accurateTimerStart,
@@ -57,13 +58,9 @@ function Topic() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      topic: taskStore.question,
+      topic: question,
     },
   });
-
-  useEffect(() => {
-    form.setValue("topic", taskStore.question);
-  }, [taskStore.question, form]);
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
     const { mode } = useSettingStore.getState();
@@ -99,19 +96,15 @@ function Topic() {
   async function handleFileUpload(files: FileList | null) {
     if (files) {
       for await (const file of files) {
-        try {
-          const text = await fileParser(file);
-          console.log(text);
-        } catch (err) {
-          if (err instanceof Error) {
-            toast.error(err.message);
-          } else {
-            toast.error("File parsing failed");
-          }
-        }
+        console.log(file);
+        await processingKnowledge(file);
       }
     }
   }
+
+  useEffect(() => {
+    form.setValue("topic", question);
+  }, [question, form]);
 
   return (
     <section className="p-4 border rounded-md mt-4 print:hidden">
@@ -156,6 +149,13 @@ function Topic() {
             </FormLabel>
             <FormControl>
               <div>
+                {resources.length > 0 ? (
+                  <ResourceList
+                    className="pb-2 mb-2 border-b"
+                    resources={resources}
+                    onRemove={removeResource}
+                  />
+                ) : null}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="inline-flex border p-2 rounded-md text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">

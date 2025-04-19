@@ -15,10 +15,18 @@ const SearchResult = dynamic(
 );
 const FinalReport = dynamic(() => import("@/components/Research/FinalReport"));
 const History = dynamic(() => import("@/components/History"));
+const Knowledge = dynamic(() => import("@/components/Knowledge"));
 
 function Home() {
   const { t } = useTranslation();
-  const globalStore = useGlobalStore();
+  const {
+    openSetting,
+    setOpenSetting,
+    openHistory,
+    setOpenHistory,
+    openKnowledge,
+    setOpenKnowledge,
+  } = useGlobalStore();
 
   const { theme } = useSettingStore();
   const { setTheme } = useTheme();
@@ -44,13 +52,11 @@ function Home() {
         </a>
       </footer>
       <aside className="print:hidden">
-        <Setting
-          open={globalStore.openSetting}
-          onClose={() => globalStore.setOpenSetting(false)}
-        />
-        <History
-          open={globalStore.openHistory}
-          onClose={() => globalStore.setOpenHistory(false)}
+        <Setting open={openSetting} onClose={() => setOpenSetting(false)} />
+        <History open={openHistory} onClose={() => setOpenHistory(false)} />
+        <Knowledge
+          open={openKnowledge}
+          onClose={() => setOpenKnowledge(false)}
         />
       </aside>
     </div>

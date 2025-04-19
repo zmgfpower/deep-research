@@ -1,0 +1,94 @@
+import { create } from "zustand";
+import { persist, type StorageValue } from "zustand/middleware";
+import { researchStore } from "@/utils/storage";
+import { clone, pick } from "radash";
+
+interface FileMeta {
+  name: string;
+  size: number;
+  type: string;
+  lastModified: number;
+}
+
+interface Knowledge {
+  id: string;
+  title: string;
+  content: string;
+  fileMeta: FileMeta;
+  createdAt: number;
+  updatedAt: number;
+}
+
+interface KnowledgeStore {
+  knowledges: Knowledge[];
+}
+
+type KnowledgeFunction = {
+  save: (knowledge: Knowledge) => void;
+  exist: (id: string) => boolean;
+  load: (id: string) => Knowledge | void;
+  update: (id: string, knowledge: Partial<Knowledge>) => boolean;
+  remove: (id: string) => boolean;
+};
+
+export const useKnowledgeStore = create(
+  persist<KnowledgeStore & KnowledgeFunction>(
+    (set, get) => ({
+      knowledges: [],
+      save: (knowledge) => {
+        set((state) => ({ knowledges: [knowledge, ...state.knowledges] }));
+      },
+      exist: (id) => {
+        const { knowledges } = get();
+        const knowledge = knowledges.find((item) => item.id === id);
+        return !!knowledge;
+      },
+      load: (id) => {
+        const current = get().knowledges.find((item) => item.id === id);
+        if (current) return clone(current);
+      },
+      update: (id, knowledge) => {
+        const newKnowledges = get().knowledges.map((item) => {
+          if (item.id === id) {
+            return {
+              ...item,
+              ...clone(knowledge),
+              updatedAt: Date.now(),
+            };
+          } else {
+            return item;
+          }
+        });
+        set(() => ({ knowledges: [...newKnowledges] }));
+        return true;
+      },
+      remove: (id) => {
+        set((state) => ({
+          knowledges: state.knowledges.filter((item) => item.id !== id),
+        }));
+        return true;
+      },
+    }),
+    {
+      name: "knowledgeStore",
+      version: 1,
+      storage: {
+        getItem: async (key: string) => {
+          return await researchStore.getItem<
+            StorageValue<KnowledgeStore & KnowledgeFunction>
+          >(key);
+        },
+        setItem: async (
+          key: string,
+          store: StorageValue<KnowledgeStore & KnowledgeFunction>
+        ) => {
+          return await researchStore.setItem(key, {
+            state: pick(store.state, ["knowledges"]),
+            version: store.version,
+          });
+        },
+        removeItem: async (key: string) => await researchStore.removeItem(key),
+      },
+    }
+  )
+);

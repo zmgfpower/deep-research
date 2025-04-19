@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,9 +56,12 @@ function History({ open, onClose }: HistoryProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-screen-sm">
+      <DialogContent className="sm:max-w-screen-sm gap-2">
         <DialogHeader>
           <DialogTitle>{t("research.history.title")}</DialogTitle>
+          <DialogDescription>
+            The research history stored locally only saves completed research.
+          </DialogDescription>
         </DialogHeader>
         <div className="max-h-96 overflow-y-auto">
           {history.length === 0 ? (
@@ -81,16 +85,13 @@ function History({ open, onClose }: HistoryProps) {
                 {history.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>
-                      <Button
-                        variant="link"
-                        className="p-0 h-auto text-left font-normal"
+                      <p
+                        className="truncate w-72 cursor-pointer hover:text-blue-500"
                         title={item.title}
                         onClick={() => loadHistory(item.id)}
                       >
-                        <p className="truncate w-72">
-                          {item.title || item.question}
-                        </p>
-                      </Button>
+                        {item.title || item.question}
+                      </p>
                     </TableCell>
                     <TableCell className="text-center whitespace-nowrap">
                       {formatDate(item.updatedAt || item.createdAt)}

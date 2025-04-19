@@ -5,7 +5,7 @@ import { pick } from "radash";
 export interface TaskStore {
   id: string;
   question: string;
-  resources: string[];
+  resources: Resource[];
   questions: string;
   finalReport: string;
   query: string;
@@ -17,7 +17,7 @@ export interface TaskStore {
   feedback: string;
 }
 
-type TaskFunction = {
+interface TaskFunction {
   update: (tasks: SearchTask[]) => void;
   setId: (id: string) => void;
   setTitle: (title: string) => void;
@@ -27,7 +27,9 @@ type TaskFunction = {
   updateTask: (query: string, task: Partial<SearchTask>) => void;
   removeTask: (query: string) => boolean;
   setQuestion: (question: string) => void;
-  updateResources: (rid: string) => void;
+  addResource: (resource: Resource) => void;
+  updateResource: (id: string, resource: Partial<Resource>) => void;
+  removeResource: (id: string) => boolean;
   updateQuestions: (questions: string) => void;
   updateFinalReport: (report: string) => void;
   setSources: (sources: Source[]) => void;
@@ -36,7 +38,7 @@ type TaskFunction = {
   reset: () => void;
   backup: () => TaskStore;
   restore: (taskStore: TaskStore) => void;
-};
+}
 
 const defaultValues: TaskStore = {
   id: "",
@@ -76,11 +78,20 @@ export const useTaskStore = create(
         return true;
       },
       setQuestion: (question) => set(() => ({ question })),
-      updateResources: (rid) => {
-        const newResources = get().resources;
-        if (!newResources.includes(rid)) {
-          set(() => ({ resources: [...newResources, rid] }));
-        }
+      addResource: (resource) =>
+        set((state) => ({ resources: [resource, ...state.resources] })),
+      updateResource: (id, resource) => {
+        console.log(id, resource);
+        const newResources = get().resources.map((item) => {
+          return item.id === id ? { ...item, ...resource } : item;
+        });
+        set(() => ({ resources: [...newResources] }));
+      },
+      removeResource: (id) => {
+        set((state) => ({
+          resources: state.resources.filter((resource) => resource.id !== id),
+        }));
+        return true;
       },
       updateQuestions: (questions) => set(() => ({ questions })),
       updateFinalReport: (report) => set(() => ({ finalReport: report })),

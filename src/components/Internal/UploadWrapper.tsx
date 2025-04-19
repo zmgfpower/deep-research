@@ -10,6 +10,12 @@ type Props = {
 function UploadWrapper({ children, accept, onChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  function handleClick() {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  }
+
   return (
     <>
       <input
@@ -20,7 +26,7 @@ function UploadWrapper({ children, accept, onChange }: Props) {
         hidden
         onChange={(ev) => onChange(ev.target.files)}
       />
-      <div onClick={() => fileInputRef.current?.click()}>{children}</div>
+      <div onClick={() => handleClick()}>{children}</div>
     </>
   );
 }

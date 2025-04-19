@@ -10,3 +10,20 @@ export function downloadFile(
   const file = new File([BOM, content], filename, { type: fileType });
   saveAs(file);
 }
+
+export function formatSize(
+  size: number,
+  pointLength = 2,
+  units?: string[]
+): string {
+  if (typeof size === "undefined") return "0";
+  if (typeof units === "undefined")
+    units = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  let unit;
+  while ((unit = units.shift() as string) && size >= 1024) size = size / 1024;
+  return (
+    (unit === units[0]
+      ? size
+      : size.toFixed(pointLength === undefined ? 2 : pointLength)) + unit
+  );
+}

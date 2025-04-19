@@ -213,7 +213,16 @@ function useDeepResearch() {
                 getResponseLanguagePrompt(language),
               ].join("\n\n"),
               experimental_transform: smoothTextStream(),
-              onError: handleError,
+              onFinish: () => {
+                taskStore.updateTask(item.query, {
+                  state: "completed",
+                  sources,
+                });
+              },
+              onError: (err) => {
+                taskStore.updateTask(item.query, { state: "failed" });
+                handleError(err);
+              },
             });
           }
           for await (const part of searchResult.fullStream) {
@@ -226,7 +235,6 @@ function useDeepResearch() {
               sources.push(part.source);
             }
           }
-          taskStore.updateTask(item.query, { state: "completed", sources });
           return content;
         });
       })

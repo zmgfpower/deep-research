@@ -8,7 +8,7 @@ const VERSION = process.env.NEXT_PUBLIC_VERSION;
 
 function Header() {
   const { t } = useTranslation();
-  const { setOpenSetting, setOpenHistory } = useGlobalStore();
+  const { setOpenSetting, setOpenHistory, setOpenKnowledge } = useGlobalStore();
 
   return (
     <>
@@ -34,8 +34,8 @@ function Header() {
             className="h-8 w-8"
             variant="ghost"
             size="icon"
-            onClick={() => setOpenHistory(true)}
             title={t("research.history.title")}
+            onClick={() => setOpenHistory(true)}
           >
             <History className="h-5 w-5" />
           </Button>
@@ -43,7 +43,8 @@ function Header() {
             className="h-8 w-8"
             variant="ghost"
             size="icon"
-            title="knowledgeBase"
+            title="Knowledge"
+            onClick={() => setOpenKnowledge(true)}
           >
             <BookText />
           </Button>
