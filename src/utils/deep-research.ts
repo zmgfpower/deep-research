@@ -242,7 +242,8 @@ export function informationCollectorPrompt(query = "") {
     query
       ? `Given the following query from the user:\n<query>${query}</query>`
       : "",
-    "You are an information collector who is good at summarizing article contents. Please read the main text repeatedly and extract the main points of the main text based on the user's query. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available.",
-    "**Output only article summaries.**",
+    "You are tasked with re-writing the following content to be shortest. Ensure you do not change the meaning or story behind the content, simply update the content length to be shortest.",
+    "Please read the main text repeatedly and extract the main points of the main text based on the user's query. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available.",
+    "**Respond only to updated content in markdown, and no additional text before or after.**",
   ].join("\n\n");
 }

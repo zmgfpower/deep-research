@@ -1,5 +1,5 @@
 "use client";
-import { File, Loader2, X } from "lucide-react";
+import { File, Loader2, BookText, Link, X } from "lucide-react";
 import { formatSize } from "@/utils/file";
 import { cn } from "@/utils/style";
 import { isFunction } from "radash";
@@ -9,6 +9,16 @@ type Props = {
   resources: Resource[];
   onRemove?: (id: string) => void;
 };
+
+function ResourceIcon({ type }: { type: "upload" | "knowledge" | "url" }) {
+  if (type === "knowledge") {
+    return <BookText className="m-1 h-12 w-12" />;
+  } else if (type === "url") {
+    return <Link className="m-1 h-12 w-12" />;
+  } else {
+    return <File className="m-1 h-12 w-12" />;
+  }
+}
 
 function ResourceList({ className, resources, onRemove }: Props) {
   return (
@@ -28,7 +38,7 @@ function ResourceList({ className, resources, onRemove }: Props) {
             key={resource.id}
           >
             <div className="relative mr-1.5 h-14 w-1/4">
-              <File className="m-1 h-12 w-12" />
+              <ResourceIcon type={resource.from} />
               {resource.status === "processing" ? (
                 <Loader2 className="absolute left-4 top-4 h-6 w-6 animate-spin" />
               ) : null}

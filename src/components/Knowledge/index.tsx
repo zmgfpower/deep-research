@@ -2,7 +2,8 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 // import { useTranslation } from "react-i18next";
-import { TrashIcon, FilePenLine } from "lucide-react";
+import { TrashIcon, FilePenLine, FilePlus2 } from "lucide-react";
+import { toast } from "sonner";
 import dayjs from "dayjs";
 import {
   Dialog,
@@ -22,6 +23,8 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useKnowledgeStore } from "@/store/knowledge";
+import { useTaskStore } from "@/store/task";
+import { omit } from "radash";
 
 const Content = dynamic(() => import("./Content"));
 
@@ -36,16 +39,52 @@ function formatDate(timestamp: number) {
 
 function Knowledge({ open, onClose }: KnowledgeProps) {
   // const { t } = useTranslation();
-  const { knowledges, remove } = useKnowledgeStore();
+  const { knowledges, save, remove } = useKnowledgeStore();
   const [tab, setTab] = useState<"list" | "edit">("list");
-  const [currendId, setCurrentId] = useState<string>("");
+  const [currentId, setCurrentId] = useState<string>("");
 
-  async function editKnowledge(id: string) {
+  function createnowledge() {
+    const currentTime = Date.now();
+    const id = `TEMPORARY_${currentTime}`;
+    save({
+      id,
+      title: "",
+      content: "",
+      fileMeta: {
+        name: "",
+        size: 0,
+        type: "text/plain",
+        lastModified: currentTime,
+      },
+      createdAt: currentTime,
+      updatedAt: currentTime,
+    });
     setCurrentId(id);
     setTab("edit");
   }
 
-  async function removeKnowledge(id: string) {
+  function addToResources(id: string) {
+    const { addResource } = useTaskStore.getState();
+    const knowledge = knowledges.find((item) => item.id === id);
+    if (knowledge) {
+      addResource({
+        ...omit(knowledge.fileMeta, ["lastModified"]),
+        id,
+        from: "knowledge",
+        status: "completed",
+      });
+      toast.message(`${knowledge.title} has been added to the resource.`);
+    } else {
+      console.error("Resource not found");
+    }
+  }
+
+  function editKnowledge(id: string) {
+    setCurrentId(id);
+    setTab("edit");
+  }
+
+  function removeKnowledge(id: string) {
     remove(id);
   }
 
@@ -70,6 +109,15 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
         <div className="max-h-[90vh] overflow-y-auto">
           <Tabs value={tab} className="w-full">
             <TabsContent value="list">
+              <div>
+                <Button
+                  variant="secondary"
+                  title="Create Knowledge"
+                  onClick={() => createnowledge()}
+                >
+                  Create Knowledge
+                </Button>
+              </div>
               {knowledges.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">
                   Empty
@@ -80,7 +128,7 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead className="text-center">Date</TableHead>
-                      <TableHead className="text-center w-32">Action</TableHead>
+                      <TableHead className="text-center w-40">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -100,6 +148,14 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex justify-center">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Add"
+                              onClick={() => addToResources(item.id)}
+                            >
+                              <FilePlus2 className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -127,7 +183,7 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
             </TabsContent>
             <TabsContent value="edit">
               <Content
-                id={currendId}
+                id={currentId}
                 editClassName="h-80 overflow-y-auto rounded-md border p-1 text-sm"
                 onBack={() => handleBack()}
               ></Content>

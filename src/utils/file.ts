@@ -1,3 +1,4 @@
+import { Md5 } from "ts-md5";
 import { saveAs } from "file-saver";
 
 export function downloadFile(
@@ -26,4 +27,13 @@ export function formatSize(
       ? size
       : size.toFixed(pointLength === undefined ? 2 : pointLength)) + unit
   );
+}
+
+export function generateFileId(fileMeta: FileMeta) {
+  const meta = `${fileMeta.name}::${fileMeta.size}::${fileMeta.type}::${fileMeta.lastModified}`;
+  return Md5.hashStr(meta);
+}
+
+export function getTextByteSize(str: string): number {
+  return new TextEncoder().encode(str).length;
 }

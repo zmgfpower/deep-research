@@ -3,14 +3,7 @@ import { persist, type StorageValue } from "zustand/middleware";
 import { researchStore } from "@/utils/storage";
 import { clone, pick } from "radash";
 
-interface FileMeta {
-  name: string;
-  size: number;
-  type: string;
-  lastModified: number;
-}
-
-interface Knowledge {
+export interface Knowledge {
   id: string;
   title: string;
   content: string;
@@ -19,14 +12,14 @@ interface Knowledge {
   updatedAt: number;
 }
 
-interface KnowledgeStore {
+export interface KnowledgeStore {
   knowledges: Knowledge[];
 }
 
 type KnowledgeFunction = {
   save: (knowledge: Knowledge) => void;
   exist: (id: string) => boolean;
-  load: (id: string) => Knowledge | void;
+  get: (id: string) => Knowledge | void;
   update: (id: string, knowledge: Partial<Knowledge>) => boolean;
   remove: (id: string) => boolean;
 };
@@ -43,7 +36,7 @@ export const useKnowledgeStore = create(
         const knowledge = knowledges.find((item) => item.id === id);
         return !!knowledge;
       },
-      load: (id) => {
+      get: (id) => {
         const current = get().knowledges.find((item) => item.id === id);
         if (current) return clone(current);
       },

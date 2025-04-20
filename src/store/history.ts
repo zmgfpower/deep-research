@@ -10,16 +10,16 @@ interface ResearchHistory extends TaskStore {
   updatedAt?: number;
 }
 
-type HistoryStore = {
+export interface HistoryStore {
   history: ResearchHistory[];
-};
+}
 
-type HistoryFunction = {
+interface HistoryFunction {
   save: (taskStore: TaskStore) => string;
   load: (id: string) => TaskStore | void;
   update: (id: string, taskStore: TaskStore) => boolean;
   remove: (id: string) => boolean;
-};
+}
 
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 12);
 

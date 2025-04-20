@@ -1,11 +1,11 @@
 import { streamText } from "ai";
-import { Md5 } from "ts-md5";
 import { toast } from "sonner";
 import useModelProvider from "@/hooks/useAiProvider";
 import { useKnowledgeStore } from "@/store/knowledge";
 import { useTaskStore } from "@/store/task";
 import { informationCollectorPrompt } from "@/utils/deep-research";
 import { fileParser } from "@/utils/parser";
+import { generateFileId } from "@/utils/file";
 import { parseError } from "@/utils/error";
 import { omit } from "radash";
 
@@ -16,31 +16,31 @@ function handleError(error: unknown) {
 
 function useKnowledge() {
   const { createProvider, getModel } = useModelProvider();
-  const { save, exist } = useKnowledgeStore();
-
-  function generateId(file: File) {
-    const meta = `${file.name}::${file.size}::${file.type}::${file.lastModified}`;
-    return Md5.hashStr(meta);
-  }
+  const knowledgeStore = useKnowledgeStore();
 
   async function processingKnowledge(file: File) {
-    const { addResource, updateResource } = useTaskStore.getState();
+    const { resources, addResource, updateResource } = useTaskStore.getState();
 
-    const fileMeta = {
+    const fileMeta: FileMeta = {
       name: file.name,
       size: file.size,
       type: file.type,
       lastModified: file.lastModified,
     };
-    const id = generateId(file);
-    addResource({
-      ...omit(fileMeta, ["lastModified"]),
-      id,
-      status: "unprocessed",
-    });
+    const id = generateFileId(fileMeta);
+    const isExist = resources.find((item) => item.id === id);
+    console.log(isExist);
+    if (isExist) {
+      return toast.message(`File already exist: ${file.name}`);
+    }
     try {
-      if (!exist(id)) {
-        updateResource(id, { status: "processing" });
+      if (!knowledgeStore.exist(id)) {
+        addResource({
+          ...omit(fileMeta, ["lastModified"]),
+          id,
+          from: "upload",
+          status: "processing",
+        });
         const { networkingModel } = getModel();
         const text = await fileParser(file);
         if (text.length > 5000 || !file.type.startsWith("text/")) {
@@ -50,7 +50,7 @@ function useKnowledge() {
             prompt: text,
             system: informationCollectorPrompt(),
             onFinish: () => {
-              save({
+              knowledgeStore.save({
                 id,
                 title: fileMeta.name,
                 content,
@@ -68,7 +68,7 @@ function useKnowledge() {
             content += textPart;
           }
         } else {
-          save({
+          knowledgeStore.save({
             id,
             title: fileMeta.name,
             content: text,
@@ -77,10 +77,18 @@ function useKnowledge() {
             updatedAt: Date.now(),
           });
         }
+        updateResource(id, { status: "completed" });
       } else {
-        console.info(`File already exist: ${file.name}`);
+        const knowledge = knowledgeStore.get(id);
+        if (knowledge) {
+          addResource({
+            ...omit(knowledge.fileMeta, ["lastModified"]),
+            id,
+            from: "knowledge",
+            status: "completed",
+          });
+        }
       }
-      updateResource(id, { status: "completed" });
     } catch (err) {
       if (err instanceof Error) {
         updateResource(id, { status: "failed" });
@@ -90,8 +98,8 @@ function useKnowledge() {
       }
     }
   }
+
   return {
-    generateId,
     processingKnowledge,
   };
 }

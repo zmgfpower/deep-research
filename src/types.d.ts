@@ -3,6 +3,7 @@ interface Resource {
   name: string;
   size: number;
   type: string;
+  from: "upload" | "knowledge" | "url";
   status: "unprocessed" | "processing" | "completed" | "failed";
 }
 
@@ -33,4 +34,11 @@ interface WebSearchResult {
   content: string;
   url: string;
   title?: string;
+}
+
+interface FileMeta {
+  name: string;
+  size: number;
+  type: string;
+  lastModified: number;
 }

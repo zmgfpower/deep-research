@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useKnowledgeStore } from "@/store/knowledge";
+import { generateFileId, getTextByteSize } from "@/utils/file";
 
 type Props = {
   id: string;
@@ -41,7 +42,24 @@ function Content({ id, editClassName, onBack }: Props) {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    update(id, { ...values });
+    if (id.startsWith("TEMPORARY_")) {
+      const currentTime = Date.now();
+      const fileMeta: FileMeta = {
+        name: values.title,
+        size: getTextByteSize(values.content),
+        type: "text/plain",
+        lastModified: currentTime,
+      };
+      update(id, {
+        id: generateFileId(fileMeta),
+        title: values.title,
+        content: values.content,
+        fileMeta,
+        updatedAt: currentTime,
+      });
+    } else {
+      update(id, { ...values });
+    }
     onBack();
   }
 

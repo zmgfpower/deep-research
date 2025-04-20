@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   LoaderCircle,
@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ResourceList from "@/components/Knowledge/ResourceList";
-import UploadWrapper from "@/components/Internal/UploadWrapper";
+import Crawler from "@/components/Knowledge/Crawler";
 import { Button } from "@/components/Internal/Button";
 import {
   Form,
@@ -44,6 +44,7 @@ const formSchema = z.object({
 
 function Topic() {
   const { t } = useTranslation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { question, resources, removeResource } = useTaskStore();
   const { askQuestions } = useDeepResearch();
   const { hasApiKey } = useAiProvider();
@@ -54,6 +55,7 @@ function Topic() {
     stop: accurateTimerStop,
   } = useAccurateTimer();
   const [isThinking, setIsThinking] = useState<boolean>(false);
+  const [openCrawler, setOpenCrawler] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -93,11 +95,19 @@ function Topic() {
     form.reset();
   }
 
+  function openKnowledgeList() {
+    const { setOpenKnowledge } = useGlobalStore.getState();
+    setOpenKnowledge(true);
+  }
+
   async function handleFileUpload(files: FileList | null) {
     if (files) {
       for await (const file of files) {
-        console.log(file);
         await processingKnowledge(file);
+      }
+      // Clear the input file to avoid processing the previous file multiple times
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
     }
   }
@@ -164,19 +174,17 @@ function Topic() {
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => openKnowledgeList()}>
                       <BookText />
                       <span>Knowledge</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <UploadWrapper onChange={handleFileUpload}>
-                        <div className="flex px-2 py-1.5 text-sm cursor-default rounded-md [&>svg]:size-4 [&>svg]:shrink-0 gap-2 items-center hover:bg-slate-100 dark:hover:bg-slate-800">
-                          <Paperclip />
-                          <span>File</span>
-                        </div>
-                      </UploadWrapper>
+                    <DropdownMenuItem
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Paperclip />
+                      <span>File</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setOpenCrawler(true)}>
                       <Link />
                       <span>Web Page</span>
                     </DropdownMenuItem>
@@ -198,6 +206,14 @@ function Topic() {
           </Button>
         </form>
       </Form>
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        hidden
+        onChange={(ev) => handleFileUpload(ev.target.files)}
+      />
+      <Crawler open={openCrawler} onClose={() => setOpenCrawler(false)} />
     </section>
   );
 }
