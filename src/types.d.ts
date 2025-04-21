@@ -1,9 +1,8 @@
 interface Resource {
   id: string;
   name: string;
-  size: number;
   type: string;
-  from: "upload" | "knowledge" | "url";
+  size: number;
   status: "unprocessed" | "processing" | "completed" | "failed";
 }
 

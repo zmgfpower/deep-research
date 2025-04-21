@@ -7,7 +7,9 @@ export interface Knowledge {
   id: string;
   title: string;
   content: string;
-  fileMeta: FileMeta;
+  type: "file" | "url" | "knowledge";
+  fileMeta?: FileMeta;
+  url?: string;
   createdAt: number;
   updatedAt: number;
 }

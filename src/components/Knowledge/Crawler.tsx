@@ -23,9 +23,10 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import useKnowledge from "@/hooks/useKnowledge";
 import { useTaskStore } from "@/store/task";
 import { useKnowledgeStore } from "@/store/knowledge";
-import { generateFileId, getTextByteSize } from "@/utils/file";
+import { getTextByteSize } from "@/utils/file";
 import { omit } from "radash";
 
 type Props = {
@@ -72,6 +73,7 @@ const formSchema = z.object({
 });
 
 function Crawler({ open, onClose }: Props) {
+  const { generateId } = useKnowledge();
   const [isFetching, setIsFetching] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -91,36 +93,25 @@ function Crawler({ open, onClose }: Props) {
       if (result.warning) return "";
 
       const currentTime = Date.now();
-      const fileMeta: FileMeta = {
-        name: result.title,
-        size: getTextByteSize(result.content),
-        type: "text/plain",
-        lastModified: currentTime,
-      };
-      const id = generateFileId(fileMeta);
+      const id = generateId("url", { url });
       if (!exist(id)) {
         save({
           id,
           title: result.title,
           content: result.content,
-          fileMeta,
+          type: "url",
+          url,
           createdAt: currentTime,
           updatedAt: currentTime,
         });
-        addResource({
-          ...omit(fileMeta, ["lastModified"]),
-          id,
-          from: "url",
-          status: "completed",
-        });
-      } else {
-        addResource({
-          ...omit(fileMeta, ["lastModified"]),
-          id,
-          from: "knowledge",
-          status: "completed",
-        });
       }
+      addResource({
+        id,
+        name: url,
+        type: "url",
+        size: getTextByteSize(result.content),
+        status: "completed",
+      });
       toast.message(
         `The page content of "${url}" has been added to the resource.`
       );

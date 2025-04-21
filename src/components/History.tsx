@@ -73,10 +73,10 @@ function History({ open, onClose }: HistoryProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("research.history.name")}</TableHead>
-                  <TableHead className="text-center">
+                  <TableHead className="text-center max-sm:hidden">
                     {t("research.history.date")}
                   </TableHead>
-                  <TableHead className="text-center w-32">
+                  <TableHead className="text-center w-28">
                     {t("research.history.actions")}
                   </TableHead>
                 </TableRow>
@@ -86,14 +86,14 @@ function History({ open, onClose }: HistoryProps) {
                   <TableRow key={item.id}>
                     <TableCell>
                       <p
-                        className="truncate w-72 cursor-pointer hover:text-blue-500"
+                        className="truncate w-72 max-sm:max-w-52 cursor-pointer hover:text-blue-500"
                         title={item.title}
                         onClick={() => loadHistory(item.id)}
                       >
                         {item.title || item.question}
                       </p>
                     </TableCell>
-                    <TableCell className="text-center whitespace-nowrap">
+                    <TableCell className="text-center whitespace-nowrap max-sm:hidden">
                       {formatDate(item.updatedAt || item.createdAt)}
                     </TableCell>
                     <TableCell className="text-center">

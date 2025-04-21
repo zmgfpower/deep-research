@@ -5,6 +5,7 @@ import { useState } from "react";
 import { TrashIcon, FilePenLine, FilePlus2 } from "lucide-react";
 import { toast } from "sonner";
 import dayjs from "dayjs";
+import ResourceIcon from "./ResourceIcon";
 import {
   Dialog,
   DialogHeader,
@@ -22,9 +23,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import useKnowledge from "@/hooks/useKnowledge";
 import { useKnowledgeStore } from "@/store/knowledge";
 import { useTaskStore } from "@/store/task";
-import { omit } from "radash";
+import { getTextByteSize } from "@/utils/file";
 
 const Content = dynamic(() => import("./Content"));
 
@@ -39,23 +41,19 @@ function formatDate(timestamp: number) {
 
 function Knowledge({ open, onClose }: KnowledgeProps) {
   // const { t } = useTranslation();
+  const { generateId } = useKnowledge();
   const { knowledges, save, remove } = useKnowledgeStore();
   const [tab, setTab] = useState<"list" | "edit">("list");
   const [currentId, setCurrentId] = useState<string>("");
 
-  function createnowledge() {
+  function createKnowledge() {
     const currentTime = Date.now();
-    const id = `TEMPORARY_${currentTime}`;
+    const id = generateId("knowledge");
     save({
       id,
       title: "",
       content: "",
-      fileMeta: {
-        name: "",
-        size: 0,
-        type: "text/plain",
-        lastModified: currentTime,
-      },
+      type: "knowledge",
       createdAt: currentTime,
       updatedAt: currentTime,
     });
@@ -68,14 +66,15 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
     const knowledge = knowledges.find((item) => item.id === id);
     if (knowledge) {
       addResource({
-        ...omit(knowledge.fileMeta, ["lastModified"]),
         id,
-        from: "knowledge",
+        name: knowledge.title,
+        type: "knowledge",
+        size: getTextByteSize(knowledge.content),
         status: "completed",
       });
       toast.message(`${knowledge.title} has been added to the resource.`);
     } else {
-      console.error("Resource not found");
+      toast.error("Resource not found");
     }
   }
 
@@ -94,7 +93,12 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
   }
 
   function handleClose(open: boolean) {
-    if (!open) onClose();
+    if (!open) {
+      onClose();
+      setTimeout(() => {
+        handleBack();
+      }, 300);
+    }
   }
 
   return (
@@ -113,7 +117,7 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
                 <Button
                   variant="secondary"
                   title="Create Knowledge"
-                  onClick={() => createnowledge()}
+                  onClick={() => createKnowledge()}
                 >
                   Create Knowledge
                 </Button>
@@ -127,23 +131,29 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
-                      <TableHead className="text-center">Date</TableHead>
-                      <TableHead className="text-center w-40">Action</TableHead>
+                      <TableHead className="text-center max-sm:hidden">
+                        Date
+                      </TableHead>
+                      <TableHead className="text-center w-32">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {knowledges.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell>
+                        <TableCell className="">
                           <p
-                            className="truncate w-72 cursor-pointer hover:text-blue-500"
+                            className="inline-flex items-center truncate w-72 max-sm:w-auto cursor-pointer hover:text-blue-500"
                             title={item.title}
                             onClick={() => editKnowledge(item.id)}
                           >
+                            <ResourceIcon
+                              className="w-4 h-4 mr-1"
+                              type={item.type}
+                            />{" "}
                             {item.title}
                           </p>
                         </TableCell>
-                        <TableCell className="text-center whitespace-nowrap">
+                        <TableCell className="text-center whitespace-nowrap max-sm:hidden">
                           {formatDate(item.updatedAt || item.createdAt)}
                         </TableCell>
                         <TableCell className="text-center">
@@ -184,7 +194,7 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
             <TabsContent value="edit">
               <Content
                 id={currentId}
-                editClassName="h-80 overflow-y-auto rounded-md border p-1 text-sm"
+                editClassName="h-72 overflow-y-auto rounded-md border p-1 text-sm"
                 onBack={() => handleBack()}
               ></Content>
             </TabsContent>

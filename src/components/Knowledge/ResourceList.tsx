@@ -1,5 +1,6 @@
 "use client";
-import { File, Loader2, BookText, Link, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
+import ResourceIcon from "./ResourceIcon";
 import { formatSize } from "@/utils/file";
 import { cn } from "@/utils/style";
 import { isFunction } from "radash";
@@ -10,22 +11,12 @@ type Props = {
   onRemove?: (id: string) => void;
 };
 
-function ResourceIcon({ type }: { type: "upload" | "knowledge" | "url" }) {
-  if (type === "knowledge") {
-    return <BookText className="m-1 h-12 w-12" />;
-  } else if (type === "url") {
-    return <Link className="m-1 h-12 w-12" />;
-  } else {
-    return <File className="m-1 h-12 w-12" />;
-  }
-}
-
 function ResourceList({ className, resources, onRemove }: Props) {
   return (
     <div
       className={cn(
         className,
-        "grid w-full grid-cols-3 flex-wrap gap-2 max-md:grid-cols-2 max-[430px]:grid-cols-1 max-md:gap-1"
+        "grid w-full grid-cols-3 flex-wrap gap-2 max-md:grid-cols-2 max-sm:max-h-60 overflow-y-auto max-md:gap-1"
       )}
     >
       {resources.map((resource) => {
@@ -37,23 +28,24 @@ function ResourceList({ className, resources, onRemove }: Props) {
             )}
             key={resource.id}
           >
-            <div className="relative mr-1.5 h-14 w-1/4">
-              <ResourceIcon type={resource.from} />
+            <div className="relative flex items-center mr-1.5 h-14 w-12 max-md:w-10 max-sm:w-8">
+              <ResourceIcon
+                className="p-1 h-12 w-12 max-md:m-0 max-md:w-10 max-md:h-10 max-sm:w-8 max-sm:h-8 max-sm:p-0"
+                type={resource.type}
+              />
               {resource.status === "processing" ? (
                 <Loader2 className="absolute left-4 top-4 h-6 w-6 animate-spin" />
               ) : null}
             </div>
             <div className="flex h-14 w-3/4 flex-auto text-sm">
-              <div className="flex-1">
+              <div className="flex-1 py-1">
                 <h4
-                  className="text-line-clamp-2 break-all font-medium leading-4"
+                  className="text-line-clamp-3 break-all font-medium leading-4"
                   title={resource.name}
                 >
                   {resource.name}
                 </h4>
-                <p>
-                  <small>{formatSize(resource.size)}</small>
-                </p>
+                <p className="text-xs">{formatSize(resource.size)}</p>
               </div>
               {isFunction(onRemove) ? (
                 <X

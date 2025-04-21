@@ -14,7 +14,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useKnowledgeStore } from "@/store/knowledge";
-import { generateFileId, getTextByteSize } from "@/utils/file";
 
 type Props = {
   id: string;
@@ -42,24 +41,8 @@ function Content({ id, editClassName, onBack }: Props) {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    if (id.startsWith("TEMPORARY_")) {
-      const currentTime = Date.now();
-      const fileMeta: FileMeta = {
-        name: values.title,
-        size: getTextByteSize(values.content),
-        type: "text/plain",
-        lastModified: currentTime,
-      };
-      update(id, {
-        id: generateFileId(fileMeta),
-        title: values.title,
-        content: values.content,
-        fileMeta,
-        updatedAt: currentTime,
-      });
-    } else {
-      update(id, { ...values });
-    }
+    const currentTime = Date.now();
+    update(id, { ...values, updatedAt: currentTime });
     onBack();
   }
 
@@ -68,7 +51,7 @@ function Content({ id, editClassName, onBack }: Props) {
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         onReset={() => form.reset()}
-        className="space-y-4"
+        className="space-y-4 max-sm:space-y-2"
       >
         <FormField
           control={form.control}
@@ -87,7 +70,7 @@ function Content({ id, editClassName, onBack }: Props) {
           name="content"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Content</FormLabel>
+              <FormLabel>Content (Markdown)</FormLabel>
               <FormControl>
                 <MagicDownEditor
                   className={editClassName}
