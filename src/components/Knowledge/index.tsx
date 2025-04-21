@@ -119,7 +119,7 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
                   title="Create Knowledge"
                   onClick={() => createKnowledge()}
                 >
-                  Create Knowledge
+                  Create
                 </Button>
               </div>
               {knowledges.length === 0 ? (
@@ -192,11 +192,13 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
               )}
             </TabsContent>
             <TabsContent value="edit">
-              <Content
-                id={currentId}
-                editClassName="h-72 overflow-y-auto rounded-md border p-1 text-sm"
-                onBack={() => handleBack()}
-              ></Content>
+              {currentId ? (
+                <Content
+                  id={currentId}
+                  editClassName="h-72 overflow-y-auto rounded-md border p-1 text-sm"
+                  onBack={() => handleBack()}
+                ></Content>
+              ) : null}
             </TabsContent>
           </Tabs>
         </div>

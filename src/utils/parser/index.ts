@@ -27,20 +27,23 @@ export async function fileParser(file: File): Promise<string> {
     TextFormatFileMimeTypes.includes(file.type)
   ) {
     return await readTextFromFile(file);
-  }
-  if (
+  } else if (
     file.type.startsWith("application/vnd.openxmlformats-officedocument") ||
     file.type.startsWith("application/vnd.oasis.opendocument")
   ) {
     const { readTextFromOffice } = await import("./officeParser");
     const result = await readTextFromOffice(file);
     if (result instanceof File) {
-      return readTextFromFile(result);
+      return await readTextFromFile(result);
     } else if (typeof result === "string") {
       return result;
     } else {
       return "";
     }
+  } else if (file.type === "application/pdf") {
+    const { readTextFromPDF } = await import("./pdfParser");
+    return await readTextFromPDF(file);
+  } else {
+    throw new Error(`Unsupported file type: ${file.type}`);
   }
-  throw new Error(`Unsupported file type: ${file.type}`);
 }

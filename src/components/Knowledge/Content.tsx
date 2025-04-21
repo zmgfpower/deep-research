@@ -14,11 +14,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useKnowledgeStore } from "@/store/knowledge";
+import { cn } from "@/utils/style";
 
 type Props = {
   id: string;
   editClassName?: string;
-  onBack: () => void;
+  onBack?: () => void;
 };
 
 const formSchema = z.object({
@@ -27,13 +28,14 @@ const formSchema = z.object({
 });
 
 function Content({ id, editClassName, onBack }: Props) {
-  const { knowledges, update } = useKnowledgeStore();
+  const knowledgeStore = useKnowledgeStore();
   const defaultValues = useMemo(() => {
+    const { knowledges } = useKnowledgeStore.getState();
     const detail = knowledges.find((item) => item.id === id);
     return detail
       ? { title: detail.title, content: detail.content }
       : { title: "", content: "" };
-  }, [id, knowledges]);
+  }, [id]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,8 +44,8 @@ function Content({ id, editClassName, onBack }: Props) {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const currentTime = Date.now();
-    update(id, { ...values, updatedAt: currentTime });
-    onBack();
+    knowledgeStore.update(id, { ...values, updatedAt: currentTime });
+    if (onBack) onBack();
   }
 
   return (
@@ -81,10 +83,12 @@ function Content({ id, editClassName, onBack }: Props) {
             </FormItem>
           )}
         />
-        <div className="flex justify-between">
-          <Button type="button" variant="secondary" onClick={() => onBack()}>
-            Back
-          </Button>
+        <div className={cn("flex", onBack ? "justify-between" : "justify-end")}>
+          {onBack ? (
+            <Button type="button" variant="secondary" onClick={() => onBack()}>
+              Back
+            </Button>
+          ) : null}
           <div className="flex gap-2">
             <Button type="reset" variant="secondary">
               Reset

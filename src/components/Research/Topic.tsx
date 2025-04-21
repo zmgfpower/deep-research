@@ -213,7 +213,10 @@ function Topic() {
         hidden
         onChange={(ev) => handleFileUpload(ev.target.files)}
       />
-      <Crawler open={openCrawler} onClose={() => setOpenCrawler(false)} />
+      <Crawler
+        open={openCrawler}
+        onClose={() => setOpenCrawler(false)}
+      ></Crawler>
     </section>
   );
 }

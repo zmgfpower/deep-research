@@ -1,5 +1,7 @@
 "use client";
+import { useState } from "react";
 import { Loader2, X } from "lucide-react";
+import Resource from "@/components/Knowledge/Resource";
 import ResourceIcon from "./ResourceIcon";
 import { formatSize } from "@/utils/file";
 import { cn } from "@/utils/style";
@@ -12,6 +14,14 @@ type Props = {
 };
 
 function ResourceList({ className, resources, onRemove }: Props) {
+  const [openResource, setOpenResource] = useState<boolean>(false);
+  const [resourceId, setResourceId] = useState<string>("");
+
+  function handleOpenResource(id: string) {
+    setResourceId(id);
+    setOpenResource(true);
+  }
+
   return (
     <div
       className={cn(
@@ -22,11 +32,12 @@ function ResourceList({ className, resources, onRemove }: Props) {
       {resources.map((resource) => {
         return (
           <div
+            key={resource.id}
             className={cn(
-              "flex rounded-md border p-1.5 text-left",
+              "flex rounded-md border p-1.5 text-left cursor-pointer hover:border-slate-400 transition-all",
               resource.status === "failed" ? "border-red-500 text-red-500" : ""
             )}
-            key={resource.id}
+            onClick={() => handleOpenResource(resource.id)}
           >
             <div className="relative flex items-center mr-1.5 h-14 w-12 max-md:w-10 max-sm:w-8">
               <ResourceIcon
@@ -34,13 +45,13 @@ function ResourceList({ className, resources, onRemove }: Props) {
                 type={resource.type}
               />
               {resource.status === "processing" ? (
-                <Loader2 className="absolute left-4 top-4 h-6 w-6 animate-spin" />
+                <Loader2 className="absolute top-1/2 left-1/2 -ml-3 -mt-3 h-6 w-6 animate-spin text-blue-600" />
               ) : null}
             </div>
             <div className="flex h-14 w-3/4 flex-auto text-sm">
               <div className="flex-1 py-1">
                 <h4
-                  className="text-line-clamp-3 break-all font-medium leading-4"
+                  className="text-line-clamp-2 break-all font-medium leading-4"
                   title={resource.name}
                 >
                   {resource.name}
@@ -57,6 +68,13 @@ function ResourceList({ className, resources, onRemove }: Props) {
           </div>
         );
       })}
+      {resourceId ? (
+        <Resource
+          id={resourceId}
+          open={openResource}
+          onClose={() => setOpenResource(false)}
+        ></Resource>
+      ) : null}
     </div>
   );
 }
