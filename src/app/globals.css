@@ -116,8 +116,6 @@
 
 @page {
   size: "A4";
-  /* Hide print header and footer */
-  margin: 0mm;
 }
 
 .float-menu-button {

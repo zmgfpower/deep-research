@@ -28,7 +28,7 @@ import { useTaskStore } from "@/store/task";
 import { getSystemPrompt } from "@/utils/deep-research";
 import { downloadFile } from "@/utils/file";
 
-const MilkdownEditor = dynamic(() => import("@/components/MilkdownEditor"));
+const MagicDown = dynamic(() => import("@/components/MagicDown"));
 const Artifact = dynamic(() => import("@/components/Artifact"));
 
 const formSchema = z.object({
@@ -111,8 +111,8 @@ function FinalReport() {
         {t("research.finalReport.title")}
       </h3>
       {taskStore.finalReport !== "" ? (
-        <article className="border-b">
-          <MilkdownEditor
+        <article>
+          <MagicDown
             className="min-h-72"
             value={taskStore.finalReport}
             onChange={(value) => taskStore.updateFinalReport(value)}
@@ -163,7 +163,10 @@ function FinalReport() {
                       <FileText />
                       <span>Markdown</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDownloadPDF()}>
+                    <DropdownMenuItem
+                      className="max-md:hidden"
+                      onClick={() => handleDownloadPDF()}
+                    >
                       <Signature />
                       <span>PDF</span>
                     </DropdownMenuItem>
@@ -197,7 +200,10 @@ function FinalReport() {
       ) : null}
       {taskFinished ? (
         <Form {...form}>
-          <form className="mt-4" onSubmit={form.handleSubmit(handleSubmit)}>
+          <form
+            className="mt-4 border-t pt-4 print:hidden"
+            onSubmit={form.handleSubmit(handleSubmit)}
+          >
             <FormField
               control={form.control}
               name="requirement"

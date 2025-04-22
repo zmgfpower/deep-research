@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,8 +12,6 @@ import {
   Download,
   Trash,
 } from "lucide-react";
-import { Crepe } from "@milkdown/crepe";
-import { replaceAll, getHTML } from "@milkdown/kit/utils";
 import { Button } from "@/components/Internal/Button";
 import {
   Form,
@@ -35,7 +33,8 @@ import useDeepResearch from "@/hooks/useDeepResearch";
 import { useTaskStore } from "@/store/task";
 import { downloadFile } from "@/utils/file";
 
-const MilkdownEditor = dynamic(() => import("@/components/MilkdownEditor"));
+const MagicDown = dynamic(() => import("@/components/MagicDown"));
+const MagicDownView = dynamic(() => import("@/components/MagicDown/View"));
 
 const formSchema = z.object({
   suggestion: z.string().optional(),
@@ -51,34 +50,6 @@ function TaskState({ state }: { state: SearchTask["state"] }) {
   }
 }
 
-function ResearchGoal({
-  milkdownEditor,
-  goal,
-}: {
-  milkdownEditor?: Crepe;
-  goal: string;
-}) {
-  const [html, setHtml] = useState<string>("");
-
-  useEffect(() => {
-    if (milkdownEditor && goal) {
-      replaceAll(goal)(milkdownEditor.editor.ctx);
-      const html = getHTML()(milkdownEditor.editor.ctx);
-      setHtml(html);
-    }
-  }, [milkdownEditor, goal]);
-
-  return html !== "" ? (
-    <blockquote className="hidden-empty-p">
-      <div
-        dangerouslySetInnerHTML={{
-          __html: html,
-        }}
-      ></div>
-    </blockquote>
-  ) : null;
-}
-
 function SearchResult() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
@@ -88,7 +59,6 @@ function SearchResult() {
     start: accurateTimerStart,
     stop: accurateTimerStop,
   } = useAccurateTimer();
-  const [milkdownEditor, setMilkdownEditor] = useState<Crepe>();
   const [isThinking, setIsThinking] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -139,30 +109,6 @@ function SearchResult() {
     removeTask(query);
   }
 
-  useLayoutEffect(() => {
-    const crepe = new Crepe({
-      defaultValue: "",
-      root: document.createDocumentFragment(),
-      features: {
-        [Crepe.Feature.ImageBlock]: false,
-        [Crepe.Feature.BlockEdit]: false,
-        [Crepe.Feature.Toolbar]: false,
-        [Crepe.Feature.LinkTooltip]: false,
-      },
-    });
-
-    crepe
-      .setReadonly(true)
-      .create()
-      .then(() => {
-        setMilkdownEditor(crepe);
-      });
-
-    return () => {
-      crepe.destroy();
-    };
-  }, []);
-
   return (
     <section className="p-4 border rounded-md mt-4 print:hidden">
       <h3 className="font-semibold text-lg border-b mb-2 leading-10">
@@ -183,11 +129,9 @@ function SearchResult() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="prose prose-slate dark:prose-invert max-w-full min-h-20">
-                    <ResearchGoal
-                      milkdownEditor={milkdownEditor}
-                      goal={item.researchGoal}
-                    />
-                    <MilkdownEditor
+                    <MagicDownView>{`> ${item.researchGoal}`}</MagicDownView>
+                    <Separator className="mb-4" />
+                    <MagicDown
                       value={item.learning}
                       onChange={(value) =>
                         taskStore.updateTask(item.query, { learning: value })
@@ -229,7 +173,7 @@ function SearchResult() {
                           </Button>
                         </>
                       }
-                    ></MilkdownEditor>
+                    ></MagicDown>
                     {item.sources?.length > 0 ? (
                       <>
                         <hr className="my-6" />

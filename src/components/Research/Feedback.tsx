@@ -19,7 +19,7 @@ import useDeepResearch from "@/hooks/useDeepResearch";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
 import { useTaskStore } from "@/store/task";
 
-const MilkdownEditor = dynamic(() => import("@/components/MilkdownEditor"));
+const MagicDown = dynamic(() => import("@/components/MagicDown"));
 
 const formSchema = z.object({
   feedback: z.string(),
@@ -75,11 +75,11 @@ function Feedback() {
         <div>{t("research.feedback.emptyTip")}</div>
       ) : (
         <div>
-          <MilkdownEditor
-            className="prose prose-slate dark:prose-invert max-w-full mt-6 min-h-20"
+          <MagicDown
+            className="mt-6 min-h-20"
             value={taskStore.questions}
             onChange={(value) => taskStore.updateQuestions(value)}
-          ></MilkdownEditor>
+          ></MagicDown>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
               <FormField

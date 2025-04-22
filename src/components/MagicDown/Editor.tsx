@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect, useEffect, useRef } from "react";
+import { useState, useLayoutEffect, useEffect, useRef, memo } from "react";
 import { MarkdownEditor } from "@xiangfa/mdeditor";
 import { cn } from "@/utils/style";
 
@@ -45,7 +45,7 @@ function Editor({ className, defaultValue, onChange }: EditorProps) {
   return (
     <div
       className={cn(
-        "markdown-editor text-base whitespace-break-spaces",
+        "text-base whitespace-break-spaces rounded-md border p-1",
         className
       )}
       ref={markdownEditorRef}
@@ -54,4 +54,4 @@ function Editor({ className, defaultValue, onChange }: EditorProps) {
   );
 }
 
-export default Editor;
+export default memo(Editor);

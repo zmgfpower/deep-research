@@ -61,7 +61,7 @@ function Resource({ id, open, onClose }: Props) {
         </DialogHeader>
         <Content
           id={id}
-          editClassName="h-72 overflow-y-auto rounded-md border p-1 text-sm"
+          editClassName="magicdown-editor h-72 overflow-y-auto"
         ></Content>
       </DialogContent>
     </Dialog>
