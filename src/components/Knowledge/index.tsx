@@ -1,7 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useState } from "react";
-// import { useTranslation } from "react-i18next";
+import { useState, useMemo, useLayoutEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { TrashIcon, FilePenLine, FilePlus2 } from "lucide-react";
 import { toast } from "sonner";
 import dayjs from "dayjs";
@@ -26,7 +26,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import useKnowledge from "@/hooks/useKnowledge";
 import { useKnowledgeStore } from "@/store/knowledge";
 import { useTaskStore } from "@/store/task";
-import { getTextByteSize } from "@/utils/file";
+import { getTextByteSize, formatSize } from "@/utils/file";
 
 const Content = dynamic(() => import("./Content"));
 
@@ -35,16 +35,23 @@ interface KnowledgeProps {
   onClose: () => void;
 }
 
+const PAGE_SIZE = 20;
+
 function formatDate(timestamp: number) {
   return dayjs(timestamp).format("YYYY-MM-DD HH:mm");
 }
 
 function Knowledge({ open, onClose }: KnowledgeProps) {
-  // const { t } = useTranslation();
+  const { t } = useTranslation();
   const { generateId } = useKnowledge();
   const { knowledges, save, remove } = useKnowledgeStore();
   const [tab, setTab] = useState<"list" | "edit">("list");
   const [currentId, setCurrentId] = useState<string>("");
+  const [knowledgeList, setKnowledgeList] = useState<Knowledge[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const showLoadMore = useMemo(() => {
+    return knowledges.length > currentPage * PAGE_SIZE;
+  }, [knowledges, currentPage]);
 
   function createKnowledge() {
     const currentTime = Date.now();
@@ -101,94 +108,125 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
     }
   }
 
+  async function loadMore() {
+    const nextPage = currentPage + 1;
+    const total = nextPage * PAGE_SIZE;
+    setKnowledgeList(knowledges.slice(0, total));
+    setCurrentPage(nextPage);
+  }
+
+  useLayoutEffect(() => {
+    setKnowledgeList(knowledges.slice(0, PAGE_SIZE));
+  }, [knowledges]);
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-screen-sm gap-2">
+      <DialogContent className="max-lg:max-w-screen-sm max-w-screen-md gap-0">
         <DialogHeader>
-          <DialogTitle>Knowledge Base</DialogTitle>
-          <DialogDescription>
-            A knowledge base stored locally in the browser.
-          </DialogDescription>
+          <DialogTitle>{t("knowledge.title")}</DialogTitle>
+          <DialogDescription>{t("knowledge.description")}</DialogDescription>
         </DialogHeader>
-        <div className="max-h-[90vh] overflow-y-auto">
+        <div className="mt-4">
+          <Button
+            variant="secondary"
+            title={t("knowledge.createTip")}
+            onClick={() => createKnowledge()}
+          >
+            {t("knowledge.create")}
+          </Button>
+        </div>
+        <div className="max-h-[65vh] overflow-y-auto">
           <Tabs value={tab} className="w-full">
             <TabsContent value="list">
-              <div>
-                <Button
-                  variant="secondary"
-                  title="Create Knowledge"
-                  onClick={() => createKnowledge()}
-                >
-                  Create
-                </Button>
-              </div>
-              {knowledges.length === 0 ? (
+              {knowledgeList.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">
-                  Empty
+                  {t("knowledge.emptyTip")}
                 </div>
               ) : (
-                <Table className="max-sm:overflow-y-auto">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead className="text-center max-sm:hidden">
-                        Date
-                      </TableHead>
-                      <TableHead className="text-center w-32">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {knowledges.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="">
-                          <p
-                            className="inline-flex items-center truncate w-72 max-sm:w-auto cursor-pointer hover:text-blue-500"
-                            title={item.title}
-                            onClick={() => editKnowledge(item.id)}
-                          >
-                            <ResourceIcon
-                              className="w-4 h-4 mr-1"
-                              type={item.type}
-                            />{" "}
-                            {item.title}
-                          </p>
-                        </TableCell>
-                        <TableCell className="text-center whitespace-nowrap max-sm:hidden">
-                          {formatDate(item.updatedAt || item.createdAt)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex justify-center">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              title="Add"
-                              onClick={() => addToResources(item.id)}
-                            >
-                              <FilePlus2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              title="Edit"
+                <>
+                  <Table className="max-sm:overflow-y-auto">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("knowledge.name")}</TableHead>
+                        <TableHead className="text-center max-sm:hidden">
+                          {t("knowledge.size")}
+                        </TableHead>
+                        <TableHead className="text-center max-sm:hidden">
+                          {t("knowledge.date")}
+                        </TableHead>
+                        <TableHead className="text-center w-28">
+                          {t("knowledge.action")}
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {knowledgeList.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <p
+                              className="inline-flex items-center"
+                              title={item.title}
                               onClick={() => editKnowledge(item.id)}
                             >
-                              <FilePenLine className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              className="text-red-500 hover:text-red-600"
-                              variant="ghost"
-                              size="icon"
-                              title="Delete"
-                              onClick={() => removeKnowledge(item.id)}
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                              <ResourceIcon
+                                className="w-4 h-4 mr-1"
+                                type={item.type}
+                              />{" "}
+                              <span className="truncate w-80 max-lg:w-56 max-sm:w-40 cursor-pointer hover:text-blue-500">
+                                {item.title}
+                              </span>
+                            </p>
+                          </TableCell>
+                          <TableCell className="text-center whitespace-nowrap max-sm:hidden">
+                            {formatSize(getTextByteSize(item.content))}
+                          </TableCell>
+                          <TableCell className="text-center whitespace-nowrap max-sm:hidden">
+                            {formatDate(item.updatedAt || item.createdAt)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title={t("knowledge.add")}
+                                onClick={() => addToResources(item.id)}
+                              >
+                                <FilePlus2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title={t("knowledge.edit")}
+                                onClick={() => editKnowledge(item.id)}
+                              >
+                                <FilePenLine className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                className="text-red-500 hover:text-red-600"
+                                variant="ghost"
+                                size="icon"
+                                title={t("knowledge.delete")}
+                                onClick={() => removeKnowledge(item.id)}
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <div
+                    className={
+                      showLoadMore
+                        ? "text-center cursor-pointer text-sm hover:underline underline-offset-4"
+                        : "hidden"
+                    }
+                    onClick={() => loadMore()}
+                  >
+                    {t("knowledge.loadMore")}
+                  </div>
+                </>
               )}
             </TabsContent>
             <TabsContent value="edit">

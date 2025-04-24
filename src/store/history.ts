@@ -5,7 +5,7 @@ import { researchStore } from "@/utils/storage";
 import { customAlphabet } from "nanoid";
 import { clone, pick } from "radash";
 
-interface ResearchHistory extends TaskStore {
+export interface ResearchHistory extends TaskStore {
   createdAt: number;
   updatedAt?: number;
 }

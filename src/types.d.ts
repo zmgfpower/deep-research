@@ -6,6 +6,17 @@ interface Resource {
   status: "unprocessed" | "processing" | "completed" | "failed";
 }
 
+interface Knowledge {
+  id: string;
+  title: string;
+  content: string;
+  type: "file" | "url" | "knowledge";
+  fileMeta?: FileMeta;
+  url?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
 interface Source {
   title?: string;
   content?: string;

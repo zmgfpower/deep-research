@@ -34,7 +34,7 @@ function Header() {
             className="h-8 w-8"
             variant="ghost"
             size="icon"
-            title={t("research.history.title")}
+            title={t("history.title")}
             onClick={() => setOpenHistory(true)}
           >
             <History className="h-5 w-5" />
@@ -43,7 +43,7 @@ function Header() {
             className="h-8 w-8"
             variant="ghost"
             size="icon"
-            title="Knowledge"
+            title={t("knowledge.title")}
             onClick={() => setOpenKnowledge(true)}
           >
             <BookText />

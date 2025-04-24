@@ -10,6 +10,7 @@ import useWebSearch from "@/hooks/useWebSearch";
 import { useTaskStore } from "@/store/task";
 import { useHistoryStore } from "@/store/history";
 import { useSettingStore } from "@/store/setting";
+import { useKnowledgeStore } from "@/store/knowledge";
 import {
   getSystemPrompt,
   getOutputGuidelinesPrompt,
@@ -17,6 +18,7 @@ import {
   generateSerpQueriesPrompt,
   processResultPrompt,
   processSearchResultPrompt,
+  processSearchKnowledgeResultPrompt,
   reviewSerpQueriesPrompt,
   writeFinalReportPrompt,
   getSERPQuerySchema,
@@ -86,6 +88,40 @@ function useDeepResearch() {
     }
   }
 
+  async function searchLocalKnowledges(query: string, researchGoal: string) {
+    const { resources } = useTaskStore.getState();
+    const knowledgeStore = useKnowledgeStore.getState();
+    const { language } = useSettingStore.getState();
+    const knowledges: Knowledge[] = [];
+
+    for (const item of resources) {
+      if (item.status === "completed") {
+        const resource = knowledgeStore.get(item.id);
+        if (resource) {
+          knowledges.push(resource);
+        }
+      }
+    }
+
+    const { networkingModel } = getModel();
+    const searchResult = streamText({
+      model: createProvider(networkingModel),
+      system: getSystemPrompt(),
+      prompt: [
+        processSearchKnowledgeResultPrompt(query, researchGoal, knowledges),
+        getResponseLanguagePrompt(language),
+      ].join("\n\n"),
+      experimental_transform: smoothTextStream(),
+      onError: handleError,
+    });
+    let content = "";
+    for await (const textPart of searchResult.textStream) {
+      content += textPart;
+      taskStore.updateTask(query, { learning: content });
+    }
+    return content;
+  }
+
   async function runSearchTask(queries: SearchTask[]) {
     const {
       provider,
@@ -95,6 +131,7 @@ function useDeepResearch() {
       searchMaxResult,
       language,
     } = useSettingStore.getState();
+    const { resources } = useTaskStore.getState();
     const { networkingModel } = getModel();
     setStatus(t("research.common.research"));
     const plimit = Plimit(parallelSearch);
@@ -157,6 +194,13 @@ function useDeepResearch() {
           let searchResult;
           let sources: Source[] = [];
           taskStore.updateTask(item.query, { state: "processing" });
+          if (resources.length > 0) {
+            const knowledges = await searchLocalKnowledges(
+              item.query,
+              item.researchGoal
+            );
+            content += `${knowledges}\n\n---\n\n`;
+          }
           if (enableSearch) {
             if (searchProvider !== "model") {
               try {

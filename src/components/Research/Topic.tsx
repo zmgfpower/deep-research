@@ -48,7 +48,7 @@ function Topic() {
   const { question, resources, removeResource } = useTaskStore();
   const { askQuestions } = useDeepResearch();
   const { hasApiKey } = useAiProvider();
-  const { processingKnowledge } = useKnowledge();
+  const { getKnowledgeFromFile } = useKnowledge();
   const {
     formattedTime,
     start: accurateTimerStart,
@@ -103,7 +103,7 @@ function Topic() {
   async function handleFileUpload(files: FileList | null) {
     if (files) {
       for await (const file of files) {
-        await processingKnowledge(file);
+        await getKnowledgeFromFile(file);
       }
       // Clear the input file to avoid processing the previous file multiple times
       if (fileInputRef.current) {
@@ -155,9 +155,9 @@ function Topic() {
           />
           <FormItem className="mt-2">
             <FormLabel className="mb-2 font-semibold">
-              Research Resources (optional)
+              {t("knowledge.localResourceTitle")}
             </FormLabel>
-            <FormControl>
+            <FormControl onSubmit={(ev) => ev.stopPropagation()}>
               <div>
                 {resources.length > 0 ? (
                   <ResourceList
@@ -170,23 +170,23 @@ function Topic() {
                   <DropdownMenuTrigger asChild>
                     <div className="inline-flex border p-2 rounded-md text-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">
                       <FilePlus className="w-5 h-5" />
-                      <span className="ml-1">Add Resources</span>
+                      <span className="ml-1">{t("knowledge.addResource")}</span>
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => openKnowledgeList()}>
                       <BookText />
-                      <span>Knowledge</span>
+                      <span>{t("knowledge.knowledge")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Paperclip />
-                      <span>File</span>
+                      <span>{t("knowledge.localFile")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setOpenCrawler(true)}>
                       <Link />
-                      <span>Web Page</span>
+                      <span>{t("knowledge.webPage")}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

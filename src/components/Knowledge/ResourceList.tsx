@@ -61,7 +61,10 @@ function ResourceList({ className, resources, onRemove }: Props) {
               {isFunction(onRemove) ? (
                 <X
                   className="relative -top-0.5 opacity-50 -right-0.5 h-5 w-5 p-0.5 cursor-pointer rounded-full hover:opacity-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-                  onClick={() => onRemove(resource.id)}
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    onRemove(resource.id);
+                  }}
                 />
               ) : null}
             </div>

@@ -13,4 +13,8 @@
   ul {
     @apply ps-4;
   }
+  hr {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+  }
 }

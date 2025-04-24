@@ -191,6 +191,22 @@ export function processSearchResultPrompt(
   ].join("\n\n");
 }
 
+export function processSearchKnowledgeResultPrompt(
+  query: string,
+  researchGoal: string,
+  results: Knowledge[]
+) {
+  const contents = results.map(
+    (result) => `<content title=${result.title}>\n${result.content}\n</content>`
+  );
+  return [
+    `Given the following contents from a local knowledge base search for the query:\n<query>${query}</query>.`,
+    `You need to organize the searched information according to the following requirements:\n<researchGoal>\n${researchGoal}\n</researchGoal>`,
+    `<contents>${contents.join("\n")}</contents>`,
+    `You need to think like a human researcher. Generate a list of learnings from the contents. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.`,
+  ].join("\n\n");
+}
+
 export function reviewSerpQueriesPrompt(
   query: string,
   learnings: string[],
@@ -242,8 +258,7 @@ export function informationCollectorPrompt(query = "") {
     query
       ? `Given the following query from the user:\n<query>${query}</query>`
       : "",
-    "You are tasked with re-writing the following content to be shorter. Ensure you do not change the meaning or story behind the content, simply update the content length to be shorter.",
-    "Please read the main text repeatedly and extract the main points of the main text based on the user's query. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available.",
-    "**Respond only to updated content in markdown, and no additional text before or after.**",
+    "You are tasked with re-writing the following content to markdown. Ensure you do not change the meaning or story behind the content.",
+    "**Respond only to updated content, and no additional text before or after.**",
   ].join("\n\n");
 }

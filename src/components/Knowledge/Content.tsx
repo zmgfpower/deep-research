@@ -1,5 +1,6 @@
 "use client";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -19,6 +20,7 @@ import { cn } from "@/utils/style";
 type Props = {
   id: string;
   editClassName?: string;
+  onSubmit?: (values: { title: string; content: string }) => void;
   onBack?: () => void;
 };
 
@@ -27,7 +29,8 @@ const formSchema = z.object({
   content: z.string().min(1),
 });
 
-function Content({ id, editClassName, onBack }: Props) {
+function Content({ id, editClassName, onSubmit, onBack }: Props) {
+  const { t } = useTranslation();
   const knowledgeStore = useKnowledgeStore();
   const defaultValues = useMemo(() => {
     const { knowledges } = useKnowledgeStore.getState();
@@ -42,27 +45,31 @@ function Content({ id, editClassName, onBack }: Props) {
     defaultValues,
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function handleSubmit(values: z.infer<typeof formSchema>) {
     const currentTime = Date.now();
     knowledgeStore.update(id, { ...values, updatedAt: currentTime });
+    if (onSubmit) onSubmit(values);
     if (onBack) onBack();
   }
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        onReset={() => form.reset()}
         className="space-y-4 max-sm:space-y-2"
+        onReset={() => form.reset()}
+        onSubmit={form.handleSubmit(handleSubmit)}
       >
         <FormField
           control={form.control}
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <FormLabel>{t("knowledge.editor.title")}</FormLabel>
               <FormControl>
-                <Input placeholder="Please enter a title..." {...field} />
+                <Input
+                  placeholder={t("knowledge.editor.titlePlaceholder")}
+                  {...field}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -72,7 +79,7 @@ function Content({ id, editClassName, onBack }: Props) {
           name="content"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Content (Markdown)</FormLabel>
+              <FormLabel>{t("knowledge.editor.content")}</FormLabel>
               <FormControl>
                 <MagicDownEditor
                   className={editClassName}
@@ -86,14 +93,14 @@ function Content({ id, editClassName, onBack }: Props) {
         <div className={cn("flex", onBack ? "justify-between" : "justify-end")}>
           {onBack ? (
             <Button type="button" variant="secondary" onClick={() => onBack()}>
-              Back
+              {t("knowledge.editor.back")}
             </Button>
           ) : null}
           <div className="flex gap-2">
             <Button type="reset" variant="secondary">
-              Reset
+              {t("knowledge.editor.reset")}
             </Button>
-            <Button type="submit">Submit</Button>
+            <Button type="submit">{t("knowledge.editor.submit")}</Button>
           </div>
         </div>
       </form>

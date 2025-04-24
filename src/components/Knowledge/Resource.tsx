@@ -1,5 +1,6 @@
 "use client";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import Content from "./Content";
 import {
@@ -10,7 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useKnowledgeStore } from "@/store/knowledge";
-import { formatSize } from "@/utils/file";
 
 type Props = {
   id: string;
@@ -23,38 +23,36 @@ function formatDate(timestamp: number) {
 }
 
 function KnowledgeInfor({ id }: { id: string }) {
+  const { t } = useTranslation();
   const knowledge = useMemo(() => {
     const { knowledges } = useKnowledgeStore.getState();
     const detail = knowledges.find((item) => item.id === id);
     return detail;
   }, [id]);
   if (knowledge) {
+    const createdAt = formatDate(knowledge.createdAt);
     if (knowledge.type === "file" && knowledge.fileMeta) {
-      const fileSize = formatSize(knowledge.fileMeta.size);
-      return `The file name is "${knowledge.fileMeta.name}", the type is 
-          "${knowledge.fileMeta.type}", and the size is "${fileSize}".
-          Uploaded by user at ${formatDate(knowledge.createdAt)}`;
+      return t("knowledge.fileInfor", { createdAt });
     } else if (knowledge.type === "url" && knowledge.url) {
-      return `Fetch from "${knowledge.url}" at ${formatDate(
-        knowledge.createdAt
-      )}`;
+      return t("knowledge.urlInfor", { createdAt });
     } else {
-      return `Created by user at ${formatDate(knowledge.createdAt)}`;
+      return t("knowledge.createInfor", { createdAt });
     }
   }
   return null;
 }
 
 function Resource({ id, open, onClose }: Props) {
+  const { t } = useTranslation();
   function handleClose(open: boolean) {
     if (!open) onClose();
   }
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-screen-sm gap-2">
+      <DialogContent className="max-lg:max-w-screen-sm max-w-screen-md gap-2">
         <DialogHeader>
-          <DialogTitle>Resource</DialogTitle>
+          <DialogTitle>{t("knowledge.resource")}</DialogTitle>
           <DialogDescription>
             <KnowledgeInfor id={id} />
           </DialogDescription>
@@ -62,6 +60,7 @@ function Resource({ id, open, onClose }: Props) {
         <Content
           id={id}
           editClassName="magicdown-editor h-72 overflow-y-auto"
+          onSubmit={() => onClose()}
         ></Content>
       </DialogContent>
     </Dialog>

@@ -1,6 +1,5 @@
 "use client";
-import { useState } from "react";
-import { LoaderCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -24,48 +23,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useKnowledge from "@/hooks/useKnowledge";
-import { useTaskStore } from "@/store/task";
-import { useKnowledgeStore } from "@/store/knowledge";
-import { getTextByteSize } from "@/utils/file";
-import { omit } from "radash";
+import { useSettingStore } from "@/store/setting";
 
 type Props = {
   open: boolean;
   onClose: () => void;
 };
 
-interface ReaderResult {
-  code: number;
-  status: number;
-  data: {
-    warning?: string;
-    title: string;
-    description: string;
-    url: string;
-    content: string;
-    usage: {
-      tokens: number;
-    };
-  };
-}
-
 const URLRegExp = /^https?:\/\/.+/;
-
-async function jinaReader(url = "") {
-  const response = await fetch("https://r.jina.ai", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ url }),
-  });
-  const result: ReaderResult = await response.json();
-  if (result.data.warning) {
-    toast.error(result.data.warning);
-  }
-  return omit(result.data, ["usage", "description"]);
-}
 
 const formSchema = z.object({
   url: z.string(),
@@ -73,59 +38,27 @@ const formSchema = z.object({
 });
 
 function Crawler({ open, onClose }: Props) {
-  const { generateId } = useKnowledge();
-  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const { t } = useTranslation();
+  const { getKnowledgeFromUrl } = useKnowledge();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      url: "",
-      crawler: "jina",
+    defaultValues: async () => {
+      const { crawler } = useSettingStore.getState();
+      return { url: "", crawler };
     },
   });
 
-  async function fetchPageContent(url: string, crawler: string) {
-    const { exist, save } = useKnowledgeStore.getState();
-    const { addResource } = useTaskStore.getState();
-
-    if (crawler === "jina") {
-      const result = await jinaReader(url);
-      if (result.warning) return "";
-
-      const currentTime = Date.now();
-      const id = generateId("url", { url });
-      if (!exist(id)) {
-        save({
-          id,
-          title: result.title,
-          content: result.content,
-          type: "url",
-          url,
-          createdAt: currentTime,
-          updatedAt: currentTime,
-        });
-      }
-      addResource({
-        id,
-        name: url,
-        type: "url",
-        size: getTextByteSize(result.content),
-        status: "completed",
-      });
-      toast.message(
-        `The page content of "${url}" has been added to the resource.`
-      );
-    }
-  }
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    const settingStore = useSettingStore.getState();
     const { url, crawler } = values;
     if (URLRegExp.test(url)) {
-      setIsFetching(true);
-      await fetchPageContent(url, crawler);
-      setIsFetching(false);
+      onClose();
+      settingStore.update({ crawler });
+      await getKnowledgeFromUrl(url, crawler);
+      form.reset();
     } else {
-      toast.error("Please enter a valid URL");
+      toast.error(t("knowledge.urlError"));
     }
   }
 
@@ -137,11 +70,8 @@ function Crawler({ open, onClose }: Props) {
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Web Crawler</DialogTitle>
-          <DialogDescription>
-            The web crawler obtains the page content of the specified URL
-            through server and returns the data in markdown format.
-          </DialogDescription>
+          <DialogTitle>{t("knowledge.webCrawler")}</DialogTitle>
+          <DialogDescription>{t("knowledge.webCrawlerTip")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -151,7 +81,10 @@ function Crawler({ open, onClose }: Props) {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="Please enter the URL" {...field} />
+                    <Input
+                      placeholder={t("knowledge.urlPlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -164,11 +97,13 @@ function Crawler({ open, onClose }: Props) {
                   <FormItem>
                     <FormControl>
                       <Select {...field} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-32">
+                        <SelectTrigger className="w-36">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="proxy">Proxy</SelectItem>
+                          <SelectItem value="local">
+                            {t("knowledge.localCrawler")}
+                          </SelectItem>
                           <SelectItem value="jina">Jina Reader</SelectItem>
                         </SelectContent>
                       </Select>
@@ -178,14 +113,9 @@ function Crawler({ open, onClose }: Props) {
               />
               <div className="inline-flex gap-2">
                 <Button type="reset" variant="secondary">
-                  Clear
+                  {t("knowledge.clear")}
                 </Button>
-                <Button type="submit" disabled={isFetching}>
-                  <span>Fetch</span>
-                  {isFetching ? (
-                    <LoaderCircle className="animate-spin ml-1" />
-                  ) : null}
-                </Button>
+                <Button type="submit">{t("knowledge.fetch")}</Button>
               </div>
             </DialogFooter>
           </form>

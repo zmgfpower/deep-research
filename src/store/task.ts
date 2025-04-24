@@ -81,7 +81,6 @@ export const useTaskStore = create(
       addResource: (resource) =>
         set((state) => ({ resources: [resource, ...state.resources] })),
       updateResource: (id, resource) => {
-        console.log(id, resource);
         const newResources = get().resources.map((item) => {
           return item.id === id ? { ...item, ...resource } : item;
         });
