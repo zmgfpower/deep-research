@@ -3,6 +3,7 @@
   "theme": "Theme",
   "openSource": "Open Source",
   "copyright": "Created with ❤️ by {{name}} team",
+  "searchPlaceholder": "Please enter keywords",
   "research": {
     "common": {
       "startThinking": "Start Thinking",

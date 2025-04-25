@@ -2,7 +2,9 @@
 import { useState, useMemo, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { TrashIcon, FileOutput } from "lucide-react";
+import Fuse from "fuse.js";
 import dayjs from "dayjs";
+import SearchArea from "@/components/Internal/SearchArea";
 import {
   Dialog,
   DialogContent,
@@ -58,6 +60,14 @@ function History({ open, onClose }: HistoryProps) {
     remove(id);
   }
 
+  function handleSearch(value: string) {
+    const options = { keys: ["question", "finalReport"] };
+    const knowledgeIndex = Fuse.createIndex(options.keys, history);
+    const fuse = new Fuse(history, options, knowledgeIndex);
+    const result = fuse.search(value);
+    setHistoryList(result.map((value) => value.item));
+  }
+
   function handleClose(open: boolean) {
     if (!open) onClose();
   }
@@ -80,6 +90,12 @@ function History({ open, onClose }: HistoryProps) {
           <DialogTitle>{t("history.title")}</DialogTitle>
           <DialogDescription>{t("history.description")}</DialogDescription>
         </DialogHeader>
+        <div className="flex justify-end">
+          <SearchArea
+            onChange={handleSearch}
+            onClear={() => setHistoryList(history.slice(0, PAGE_SIZE))}
+          />
+        </div>
         <div className="max-h-[65vh] overflow-y-auto">
           {historyList.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">

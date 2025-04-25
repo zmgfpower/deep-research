@@ -6,6 +6,13 @@ interface Resource {
   status: "unprocessed" | "processing" | "completed" | "failed";
 }
 
+interface FileMeta {
+  name: string;
+  size: number;
+  type: string;
+  lastModified: number;
+}
+
 interface Knowledge {
   id: string;
   title: string;
@@ -44,11 +51,4 @@ interface WebSearchResult {
   content: string;
   url: string;
   title?: string;
-}
-
-interface FileMeta {
-  name: string;
-  size: number;
-  type: string;
-  lastModified: number;
 }

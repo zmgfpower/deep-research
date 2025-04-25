@@ -3,9 +3,11 @@ import dynamic from "next/dynamic";
 import { useState, useMemo, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { TrashIcon, FilePenLine, FilePlus2 } from "lucide-react";
+import Fuse from "fuse.js";
 import { toast } from "sonner";
 import dayjs from "dayjs";
 import ResourceIcon from "./ResourceIcon";
+import SearchArea from "@/components/Internal/SearchArea";
 import {
   Dialog,
   DialogHeader,
@@ -27,6 +29,7 @@ import useKnowledge from "@/hooks/useKnowledge";
 import { useKnowledgeStore } from "@/store/knowledge";
 import { useTaskStore } from "@/store/task";
 import { getTextByteSize, formatSize } from "@/utils/file";
+import { cn } from "@/utils/style";
 
 const Content = dynamic(() => import("./Content"));
 
@@ -66,6 +69,14 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
     });
     setCurrentId(id);
     setTab("edit");
+  }
+
+  function handleSearch(value: string) {
+    const options = { keys: ["title", "content", "fileMeta.name", "url"] };
+    const knowledgeIndex = Fuse.createIndex(options.keys, knowledges);
+    const fuse = new Fuse(knowledges, options, knowledgeIndex);
+    const result = fuse.search(value);
+    setKnowledgeList(result.map((value) => value.item));
   }
 
   function addToResources(id: string) {
@@ -126,7 +137,11 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
           <DialogTitle>{t("knowledge.title")}</DialogTitle>
           <DialogDescription>{t("knowledge.description")}</DialogDescription>
         </DialogHeader>
-        <div className="mt-4">
+        <div
+          className={cn("flex justify-between mt-4", {
+            hidden: tab !== "list",
+          })}
+        >
           <Button
             variant="secondary"
             title={t("knowledge.createTip")}
@@ -134,6 +149,11 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
           >
             {t("knowledge.create")}
           </Button>
+          <SearchArea
+            className="max-sm:w-52"
+            onChange={handleSearch}
+            onClear={() => setKnowledgeList(knowledges.slice(0, PAGE_SIZE))}
+          />
         </div>
         <div className="max-h-[65vh] overflow-y-auto">
           <Tabs value={tab} className="w-full">
@@ -172,7 +192,7 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
                                 className="w-4 h-4 mr-1"
                                 type={item.type}
                               />{" "}
-                              <span className="truncate w-80 max-lg:w-56 max-sm:w-40 cursor-pointer hover:text-blue-500">
+                              <span className="truncate w-80 max-lg:w-52 max-sm:w-40 cursor-pointer hover:text-blue-500">
                                 {item.title}
                               </span>
                             </p>
@@ -233,7 +253,7 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
               {currentId ? (
                 <Content
                   id={currentId}
-                  editClassName="h-72 overflow-y-auto rounded-md border p-1 text-sm"
+                  editClassName="magicdown-editor h-72 overflow-y-auto rounded-md border p-1 text-sm"
                   onBack={() => handleBack()}
                 ></Content>
               ) : null}
