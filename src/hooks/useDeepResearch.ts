@@ -15,6 +15,7 @@ import {
   getSystemPrompt,
   getOutputGuidelinesPrompt,
   generateQuestionsPrompt,
+  writeReportPlanPrompt,
   generateSerpQueriesPrompt,
   processResultPrompt,
   processSearchResultPrompt,
@@ -86,6 +87,29 @@ function useDeepResearch() {
       content += textPart;
       taskStore.updateQuestions(content);
     }
+  }
+
+  async function writeReportPlan() {
+    const { language } = useSettingStore.getState();
+    const { query } = useTaskStore.getState();
+    const { thinkingModel } = getModel();
+    setStatus(t("research.common.thinking"));
+    const result = streamText({
+      model: createProvider(thinkingModel),
+      system: getSystemPrompt(),
+      prompt: [
+        writeReportPlanPrompt(query),
+        getResponseLanguagePrompt(language),
+      ].join("\n\n"),
+      experimental_transform: smoothTextStream(),
+      onError: handleError,
+    });
+    let content = "";
+    for await (const textPart of result.textStream) {
+      content += textPart;
+      taskStore.updateReportPlan(content);
+    }
+    return content;
   }
 
   async function searchLocalKnowledges(query: string, researchGoal: string) {
@@ -257,12 +281,6 @@ function useDeepResearch() {
                 getResponseLanguagePrompt(language),
               ].join("\n\n"),
               experimental_transform: smoothTextStream(),
-              onFinish: () => {
-                taskStore.updateTask(item.query, {
-                  state: "completed",
-                  sources,
-                });
-              },
               onError: (err) => {
                 taskStore.updateTask(item.query, { state: "failed" });
                 handleError(err);
@@ -279,6 +297,10 @@ function useDeepResearch() {
               sources.push(part.source);
             }
           }
+          taskStore.updateTask(item.query, {
+            state: "completed",
+            sources,
+          });
           return content;
         });
       })
@@ -287,7 +309,7 @@ function useDeepResearch() {
 
   async function reviewSearchResult() {
     const { language } = useSettingStore.getState();
-    const { query, tasks, suggestion } = useTaskStore.getState();
+    const { reportPlan, tasks, suggestion } = useTaskStore.getState();
     const { thinkingModel } = getModel();
     setStatus(t("research.common.research"));
     const learnings = tasks.map((item) => item.learning);
@@ -295,7 +317,7 @@ function useDeepResearch() {
       model: createProvider(thinkingModel),
       system: getSystemPrompt(),
       prompt: [
-        reviewSerpQueriesPrompt(query, learnings, suggestion),
+        reviewSerpQueriesPrompt(reportPlan, learnings, suggestion),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
       experimental_transform: smoothTextStream(),
@@ -331,7 +353,7 @@ function useDeepResearch() {
 
   async function writeFinalReport() {
     const { language } = useSettingStore.getState();
-    const { query, tasks, setId, setTitle, setSources, requirement } =
+    const { reportPlan, tasks, setId, setTitle, setSources, requirement } =
       useTaskStore.getState();
     const { save } = useHistoryStore.getState();
     const { thinkingModel } = getModel();
@@ -341,7 +363,7 @@ function useDeepResearch() {
       model: createProvider(thinkingModel),
       system: [getSystemPrompt(), getOutputGuidelinesPrompt()].join("\n\n"),
       prompt: [
-        writeFinalReportPrompt(query, learnings, requirement),
+        writeFinalReportPrompt(reportPlan, learnings, requirement),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
       experimental_transform: smoothTextStream(),
@@ -369,7 +391,7 @@ function useDeepResearch() {
 
   async function deepResearch() {
     const { language } = useSettingStore.getState();
-    const { query } = useTaskStore.getState();
+    const { query, reportPlan } = useTaskStore.getState();
     const { thinkingModel } = getModel();
     setStatus(t("research.common.thinking"));
     try {
@@ -378,7 +400,7 @@ function useDeepResearch() {
         model: createProvider(thinkingModel),
         system: getSystemPrompt(),
         prompt: [
-          generateSerpQueriesPrompt(query),
+          generateSerpQueriesPrompt(query, reportPlan),
           getResponseLanguagePrompt(language),
         ].join("\n\n"),
         experimental_transform: smoothTextStream(),
@@ -418,6 +440,7 @@ function useDeepResearch() {
     status,
     deepResearch,
     askQuestions,
+    writeReportPlan,
     runSearchTask,
     reviewSearchResult,
     writeFinalReport,

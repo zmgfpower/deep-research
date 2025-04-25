@@ -77,13 +77,24 @@ function FinalReport() {
   }, [taskStore.requirement, form]);
 
   function getFinakReportContent() {
-    const { finalReport, sources } = useTaskStore.getState();
+    const { finalReport, resources, sources } = useTaskStore.getState();
 
     return [
       finalReport,
+      resources.length > 0
+        ? [
+            "---",
+            `## ${t("research.finalReport.localResearchedInfor", {
+              total: resources.length,
+            })}`,
+            `${resources
+              .map((source, idx) => `${idx + 1}. ${source.name}`)
+              .join("\n")}`,
+          ].join("\n")
+        : "",
       sources.length > 0
         ? [
-            "\n\n---",
+            "---",
             `## ${t("research.finalReport.researchedInfor", {
               total: sources.length,
             })}`,
@@ -93,7 +104,7 @@ function FinalReport() {
                   `${idx + 1}. [${source.title || source.url}](${source.url})`
               )
               .join("\n")}`,
-          ].join("\n\n")
+          ].join("\n")
         : "",
     ].join("\n\n");
   }
@@ -175,6 +186,21 @@ function FinalReport() {
               </>
             }
           />
+          {taskStore.resources.length > 0 ? (
+            <div className="prose prose-slate dark:prose-invert">
+              <hr className="my-6" />
+              <h2>
+                {t("research.finalReport.localResearchedInfor", {
+                  total: taskStore.resources.length,
+                })}
+              </h2>
+              <ol>
+                {taskStore.resources.map((resource) => {
+                  return <li key={resource.id}>{resource.name}</li>;
+                })}
+              </ol>
+            </div>
+          ) : null}
           {taskStore.sources?.length > 0 ? (
             <div className="prose prose-slate dark:prose-invert">
               <hr className="my-6" />

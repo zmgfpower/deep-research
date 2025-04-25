@@ -17,18 +17,22 @@
       "research": "研究中...",
       "writing": "撰写中...",
       "newResearch": "开始新研究",
+      "restudy": "重新研究",
       "delete": "删除"
     },
     "topic": {
       "title": "1. 研究方向",
-      "topicLabel": "研究主题",
+      "topicLabel": "1.1 研究主题",
       "topicPlaceholder": "任何您想了解的问题..."
     },
     "feedback": {
       "title": "2. 提出您的想法",
       "emptyTip": "等待确定研究主题...",
       "feedbackLabel": "您的回答（可选）",
-      "feedbackPlaceholder": "畅所欲言，谈谈您的见解..."
+      "feedbackPlaceholder": "畅所欲言，谈谈您的见解...",
+      "questions": "2.1 相关问题",
+      "reportPlan": "2.2 研究报告方案",
+      "writeReportPlan": "撰写报告方案"
     },
     "searchResult": {
       "title": "3. 信息搜集",
@@ -40,6 +44,7 @@
       "title": "4. 最终报告",
       "emptyTip": "等待数据汇总...",
       "researchedInfor": "已研究 {{total}} 个网站",
+      "localResearchedInfor": "已研究 {{total}} 个本地资源",
       "writingRequirementLabel": "写作要求（可选）",
       "writingRequirementPlaceholder": "您可以提出任何与撰写报告相关的要求。"
     }
@@ -82,7 +87,7 @@
     "localCrawler": "本地爬取器",
     "clear": "清除",
     "fetch": "获取",
-    "localResourceTitle": "本地研究资源 (可选)",
+    "localResourceTitle": "1.2 本地研究资源 (可选)",
     "addResource": "添加资源",
     "knowledge": "知识",
     "localFile": "本地文件",

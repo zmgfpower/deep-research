@@ -28,13 +28,14 @@ const formSchema = z.object({
 function Feedback() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const { status, deepResearch } = useDeepResearch();
+  const { status, deepResearch, writeReportPlan } = useDeepResearch();
   const {
     formattedTime,
     start: accurateTimerStart,
     stop: accurateTimerStop,
   } = useAccurateTimer();
   const [isThinking, setIsThinking] = useState<boolean>(false);
+  const [isResearch, setIsResaerch] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,9 +44,16 @@ function Feedback() {
     },
   });
 
-  useEffect(() => {
-    form.setValue("feedback", taskStore.feedback);
-  }, [taskStore.feedback, form]);
+  async function startDeepResearch() {
+    try {
+      accurateTimerStart();
+      setIsResaerch(true);
+      await deepResearch();
+    } finally {
+      setIsResaerch(false);
+      accurateTimerStop();
+    }
+  }
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
     const { question, questions, setFeedback } = useTaskStore.getState();
@@ -59,12 +67,16 @@ function Feedback() {
     try {
       accurateTimerStart();
       setIsThinking(true);
-      await deepResearch();
+      await writeReportPlan();
       setIsThinking(false);
     } finally {
       accurateTimerStop();
     }
   }
+
+  useEffect(() => {
+    form.setValue("feedback", taskStore.feedback);
+  }, [taskStore.feedback, form]);
 
   return (
     <section className="p-4 border rounded-md mt-4 print:hidden">
@@ -75,8 +87,11 @@ function Feedback() {
         <div>{t("research.feedback.emptyTip")}</div>
       ) : (
         <div>
+          <h4 className="mt-4 font-semibold">
+            {t("research.feedback.questions")}
+          </h4>
           <MagicDown
-            className="mt-6 min-h-20"
+            className="mt-2 min-h-20"
             value={taskStore.questions}
             onChange={(value) => taskStore.updateQuestions(value)}
           ></MagicDown>
@@ -113,13 +128,39 @@ function Feedback() {
                     <small className="font-mono">{formattedTime}</small>
                   </>
                 ) : (
-                  t("research.common.startResearch")
+                  t("research.feedback.writeReportPlan")
                 )}
               </Button>
             </form>
           </Form>
         </div>
       )}
+      {taskStore.reportPlan !== "" ? (
+        <div className="mt-6">
+          <h4 className="font-semibold">{t("research.feedback.reportPlan")}</h4>
+          <MagicDown
+            className="mt-2 min-h-20"
+            value={taskStore.reportPlan}
+            onChange={(value) => taskStore.updateReportPlan(value)}
+          ></MagicDown>
+          <Button
+            className="w-full mt-4"
+            variant="default"
+            onClick={() => startDeepResearch()}
+            disabled={isResearch}
+          >
+            {isResearch ? (
+              <>
+                <LoaderCircle className="animate-spin" />
+                <span>{status}</span>
+                <small className="font-mono">{formattedTime}</small>
+              </>
+            ) : (
+              t("research.common.startResearch")
+            )}
+          </Button>
+        </div>
+      ) : null}
     </section>
   );
 }

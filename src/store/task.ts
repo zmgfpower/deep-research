@@ -7,6 +7,7 @@ export interface TaskStore {
   question: string;
   resources: Resource[];
   questions: string;
+  reportPlan: string;
   finalReport: string;
   query: string;
   title: string;
@@ -31,6 +32,7 @@ interface TaskFunction {
   updateResource: (id: string, resource: Partial<Resource>) => void;
   removeResource: (id: string) => boolean;
   updateQuestions: (questions: string) => void;
+  updateReportPlan: (plan: string) => void;
   updateFinalReport: (report: string) => void;
   setSources: (sources: Source[]) => void;
   setFeedback: (feedback: string) => void;
@@ -45,6 +47,7 @@ const defaultValues: TaskStore = {
   question: "",
   resources: [],
   questions: "",
+  reportPlan: "",
   finalReport: "",
   query: "",
   title: "",
@@ -93,6 +96,7 @@ export const useTaskStore = create(
         return true;
       },
       updateQuestions: (questions) => set(() => ({ questions })),
+      updateReportPlan: (plan) => set(() => ({ reportPlan: plan })),
       updateFinalReport: (report) => set(() => ({ finalReport: report })),
       setSources: (sources) => set(() => ({ sources })),
       setFeedback: (feedback) => set(() => ({ feedback })),

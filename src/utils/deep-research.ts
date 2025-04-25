@@ -151,7 +151,22 @@ export function generateQuestionsPrompt(query: string) {
   ].join("\n\n");
 }
 
-export function generateSerpQueriesPrompt(query: string) {
+export function writeReportPlanPrompt(query: string) {
+  const guidelines = [
+    "- Ensure each section has a distinct purpose with no content overlap",
+    "- Combine related concepts rather than separating them",
+    "- CRITICAL: Every section MUST be directly relevant to the main topic",
+    "- Avoid tangential or loosely related sections that don't directly address the core topic",
+  ].join("\n");
+  return [
+    `Given the following query from the user:\n<query>${query}</query>`,
+    `Generate a list of sections for the report based on the topic and feedback. Your plan should be tight and focused with NO overlapping sections or unnecessary filler. Each section needs a sentence summarizing its content.`,
+    `Integration guidelines:\n<guidelines>\n${guidelines}\n</guidelines>`,
+    `Before submitting, review your structure to ensure it has no redundant sections and follows a logical flow.`,
+  ].join("\n\n");
+}
+
+export function generateSerpQueriesPrompt(query: string, plan: string) {
   const SERPQuerySchema = getSERPQuerySchema();
   const outputSchema = JSON.stringify(
     zodToJsonSchema(SERPQuerySchema),
@@ -160,8 +175,8 @@ export function generateSerpQueriesPrompt(query: string) {
   );
 
   return [
-    `Given the following query from the user:\n<query>${query}</query>`,
-    `Based on previous user query, generate a list of SERP queries to further research the topic. Make sure each query is unique and not similar to each other.`,
+    `This is the report plan after user confirmation:\n<plan>${plan}</plan>`,
+    `Based on previous report plan, generate a list of SERP queries to further research the topic. Make sure each query is unique and not similar to each other.`,
     `You MUST respond in \`JSON\` matching this \`JSON schema\`:\n\`\`\`json\n${outputSchema}\n\`\`\``,
     `Expected output:\n\`\`\`json\n[{query: "This is a sample query. ", researchGoal: "This is the reason for the query. "}]\n\`\`\``,
   ].join("\n\n");
@@ -169,7 +184,7 @@ export function generateSerpQueriesPrompt(query: string) {
 
 export function processResultPrompt(query: string, researchGoal: string) {
   return [
-    `Please use the following query to get the latest information via google search tool:\n<query>${query}</query>`,
+    `Please use the following query to get the latest information via the web:\n<query>${query}</query>`,
     `You need to organize the searched information according to the following requirements:\n<researchGoal>\n${researchGoal}\n</researchGoal>`,
     `You need to think like a human researcher. Generate a list of learnings from the search results. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.`,
   ].join("\n\n");
@@ -208,7 +223,7 @@ export function processSearchKnowledgeResultPrompt(
 }
 
 export function reviewSerpQueriesPrompt(
-  query: string,
+  plan: string,
   learnings: string[],
   suggestion: string
 ) {
@@ -222,7 +237,7 @@ export function reviewSerpQueriesPrompt(
     .map((learning) => `<learning>\n${learning}\n</learning>`)
     .join("\n");
   return [
-    `Given the following query from the user:\n<query>${query}</query>`,
+    `This is the report plan after user confirmation:\n<plan>${plan}</plan>`,
     `Here are all the learnings from previous research:\n<learnings>\n${learningsString}\n</learnings>`,
     suggestion !== ""
       ? `This is the user's suggestion for research direction:\n<suggestion>\n${suggestion}\n</suggestion>`
@@ -236,7 +251,7 @@ export function reviewSerpQueriesPrompt(
 }
 
 export function writeFinalReportPrompt(
-  query: string,
+  plan: string,
   learnings: string[],
   requirement: string
 ) {
@@ -244,7 +259,8 @@ export function writeFinalReportPrompt(
     .map((learning) => `<learning>\n${learning}\n</learning>`)
     .join("\n");
   return [
-    `Given the following query from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n<query>${query}</query>`,
+    `This is the report plan after user confirmation:\n<plan>${plan}</plan>`,
+    `Write a final report based on the report plan using the learnings from research. Make it as as detailed as possible, aim for 5 pages or more, the more the better, include ALL the learnings from research.`,
     `Here are all the learnings from previous research:\n<learnings>\n${learningsString}\n</learnings>`,
     requirement !== ""
       ? `Please write according to the user's writing requirements:\n<requirement>${requirement}</requirement>`

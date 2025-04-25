@@ -17,18 +17,22 @@
       "research": "Research...",
       "writing": "Writing...",
       "newResearch": "New Research",
+      "restudy": "Re-study",
       "delete": "Delete"
     },
     "topic": {
       "title": "1. Research Topics",
-      "topicLabel": "Research topics",
+      "topicLabel": "1.1 Research topics",
       "topicPlaceholder": "Any questions you want to know..."
     },
     "feedback": {
       "title": "2. Ask Question",
       "emptyTip": "Waiting for research topic...",
       "feedbackLabel": "Your Answer (Optional)",
-      "feedbackPlaceholder": "You can answer whatever you want..."
+      "feedbackPlaceholder": "You can answer whatever you want...",
+      "questions": "2.1 Related questions",
+      "reportPlan": "2.2 Research report plan",
+      "writeReportPlan": "Write Report Plan"
     },
     "searchResult": {
       "title": "3. Information Collection",
@@ -40,6 +44,7 @@
       "title": "4. Final Report",
       "emptyTip": "Waiting for data to be collated...",
       "researchedInfor": "Researched {{total}} websites",
+      "localResearchedInfor": "Researched {{total}} local resources",
       "writingRequirementLabel": "Writing requirements (optional)",
       "writingRequirementPlaceholder": "You can raise any request related to report writing."
     }
@@ -82,7 +87,7 @@
     "localCrawler": "Local Crawler",
     "clear": "Clear",
     "fetch": "Fetch",
-    "localResourceTitle": "Local Research Resources (optional)",
+    "localResourceTitle": "1.2 Local research resources (optional)",
     "addResource": "Add Resource",
     "knowledge": "Knowledge",
     "localFile": "Local File",

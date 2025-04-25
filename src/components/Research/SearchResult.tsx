@@ -11,6 +11,7 @@ import {
   TextSearch,
   Download,
   Trash,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/Internal/Button";
 import {
@@ -104,6 +105,19 @@ function SearchResult() {
     }
   }
 
+  async function handleRetry(query: string, researchGoal: string) {
+    const { updateTask } = useTaskStore.getState();
+    const newTask: SearchTask = {
+      query,
+      researchGoal,
+      learning: "",
+      sources: [],
+      state: "unprocessed",
+    };
+    updateTask(query, newTask);
+    await runSearchTask([newTask]);
+  }
+
   function handleRemove(query: string) {
     const { removeTask } = useTaskStore.getState();
     removeTask(query);
@@ -138,6 +152,20 @@ function SearchResult() {
                       }
                       tools={
                         <>
+                          <Button
+                            className="float-menu-button"
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            title={t("research.common.restudy")}
+                            side="left"
+                            sideoffset={8}
+                            onClick={() =>
+                              handleRetry(item.query, item.researchGoal)
+                            }
+                          >
+                            <RotateCcw />
+                          </Button>
                           <Button
                             className="float-menu-button"
                             type="button"
