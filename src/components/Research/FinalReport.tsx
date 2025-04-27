@@ -2,10 +2,17 @@
 import dynamic from "next/dynamic";
 import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Download, FileText, Signature, LoaderCircle } from "lucide-react";
+import {
+  Download,
+  FileText,
+  Signature,
+  LoaderCircle,
+  NotebookText,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { Button } from "@/components/Internal/Button";
 import {
   Form,
@@ -24,7 +31,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
 import useDeepResearch from "@/hooks/useDeepResearch";
+import useKnowledge from "@/hooks/useKnowledge";
 import { useTaskStore } from "@/store/task";
+import { useKnowledgeStore } from "@/store/knowledge";
 import { getSystemPrompt } from "@/utils/deep-research";
 import { downloadFile } from "@/utils/file";
 
@@ -39,6 +48,7 @@ function FinalReport() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
   const { status, writeFinalReport } = useDeepResearch();
+  const { generateId } = useKnowledge();
   const {
     formattedTime,
     start: accurateTimerStart,
@@ -71,10 +81,6 @@ function FinalReport() {
       accurateTimerStop();
     }
   }
-
-  useEffect(() => {
-    form.setValue("requirement", taskStore.requirement);
-  }, [taskStore.requirement, form]);
 
   function getFinakReportContent() {
     const { finalReport, resources, sources } = useTaskStore.getState();
@@ -109,12 +115,31 @@ function FinalReport() {
     ].join("\n\n");
   }
 
+  function addToKnowledgeBase() {
+    const { title } = useTaskStore.getState();
+    const { save } = useKnowledgeStore.getState();
+    const currentTime = Date.now();
+    save({
+      id: generateId("knowledge"),
+      title,
+      content: getFinakReportContent(),
+      type: "knowledge",
+      createdAt: currentTime,
+      updatedAt: currentTime,
+    });
+    toast.message(t("research.common.addToKnowledgeBaseTip"));
+  }
+
   async function handleDownloadPDF() {
     const originalTitle = document.title;
     document.title = taskStore.title;
     window.print();
     document.title = originalTitle;
   }
+
+  useEffect(() => {
+    form.setValue("requirement", taskStore.requirement);
+  }, [taskStore.requirement, form]);
 
   return (
     <section className="p-4 border rounded-md mt-4 print:border-none">
@@ -143,6 +168,18 @@ function FinalReport() {
                 <div className="px-1">
                   <Separator className="dark:bg-slate-700" />
                 </div>
+                <Button
+                  className="float-menu-button"
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  title={t("research.common.addToKnowledgeBase")}
+                  side="left"
+                  sideoffset={8}
+                  onClick={() => addToKnowledgeBase()}
+                >
+                  <NotebookText />
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button

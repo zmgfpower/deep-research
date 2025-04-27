@@ -30,6 +30,7 @@ type Props = {
   onClose: () => void;
 };
 
+const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE;
 const URLRegExp = /^https?:\/\/.+/;
 
 const formSchema = z.object({
@@ -82,6 +83,7 @@ function Crawler({ open, onClose }: Props) {
                 <FormItem>
                   <FormControl>
                     <Input
+                      className="text-sm"
                       placeholder={t("knowledge.urlPlaceholder")}
                       {...field}
                     />
@@ -89,7 +91,7 @@ function Crawler({ open, onClose }: Props) {
                 </FormItem>
               )}
             />
-            <DialogFooter className="flex sm:justify-between">
+            <DialogFooter className="flex justify-between sm:justify-between flex-row">
               <FormField
                 control={form.control}
                 name="crawler"
@@ -101,7 +103,10 @@ function Crawler({ open, onClose }: Props) {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="local">
+                          <SelectItem
+                            className={BUILD_MODE === "export" ? "hidden" : ""}
+                            value="local"
+                          >
                             {t("knowledge.localCrawler")}
                           </SelectItem>
                           <SelectItem value="jina">Jina Reader</SelectItem>

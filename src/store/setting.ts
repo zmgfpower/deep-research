@@ -114,7 +114,7 @@ export const defaultValues: SettingStore = {
   searxngApiProxy: "",
   parallelSearch: 1,
   searchMaxResult: 5,
-  crawler: "local",
+  crawler: "jina",
   language: "",
   theme: "system",
   debug: "disable",

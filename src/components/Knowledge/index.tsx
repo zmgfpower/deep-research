@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import useKnowledge from "@/hooks/useKnowledge";
 import { useKnowledgeStore } from "@/store/knowledge";
 import { useTaskStore } from "@/store/task";
@@ -155,7 +156,7 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
             onClear={() => setKnowledgeList(knowledges.slice(0, PAGE_SIZE))}
           />
         </div>
-        <div className="max-h-[65vh] overflow-y-auto">
+        <ScrollArea className="max-h-[65vh]">
           <Tabs value={tab} className="w-full">
             <TabsContent value="list">
               {knowledgeList.length === 0 ? (
@@ -259,7 +260,7 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
               ) : null}
             </TabsContent>
           </Tabs>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import {
   LoaderCircle,
   CircleCheck,
@@ -12,6 +13,7 @@ import {
   Download,
   Trash,
   RotateCcw,
+  NotebookText,
 } from "lucide-react";
 import { Button } from "@/components/Internal/Button";
 import {
@@ -31,7 +33,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
 import useDeepResearch from "@/hooks/useDeepResearch";
+import useKnowledge from "@/hooks/useKnowledge";
 import { useTaskStore } from "@/store/task";
+import { useKnowledgeStore } from "@/store/knowledge";
 import { downloadFile } from "@/utils/file";
 
 const MagicDown = dynamic(() => import("@/components/MagicDown"));
@@ -55,6 +59,7 @@ function SearchResult() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
   const { status, runSearchTask, reviewSearchResult } = useDeepResearch();
+  const { generateId } = useKnowledge();
   const {
     formattedTime,
     start: accurateTimerStart,
@@ -69,13 +74,11 @@ function SearchResult() {
     },
   });
 
-  useEffect(() => {
-    form.setValue("suggestion", taskStore.suggestion);
-  }, [taskStore.suggestion, form]);
-
   function getSearchResultContent(item: SearchTask) {
     return [
-      `> ${item.researchGoal}\n---`,
+      `## ${item.query}`,
+      `> ${item.researchGoal}`,
+      "---",
       item.learning,
       item.sources?.length > 0
         ? `#### ${t("research.common.sources")}\n\n${item.sources
@@ -105,6 +108,20 @@ function SearchResult() {
     }
   }
 
+  function addToKnowledgeBase(item: SearchTask) {
+    const { save } = useKnowledgeStore.getState();
+    const currentTime = Date.now();
+    save({
+      id: generateId("knowledge"),
+      title: item.query,
+      content: getSearchResultContent(item),
+      type: "knowledge",
+      createdAt: currentTime,
+      updatedAt: currentTime,
+    });
+    toast.message(t("research.common.addToKnowledgeBaseTip"));
+  }
+
   async function handleRetry(query: string, researchGoal: string) {
     const { updateTask } = useTaskStore.getState();
     const newTask: SearchTask = {
@@ -122,6 +139,10 @@ function SearchResult() {
     const { removeTask } = useTaskStore.getState();
     removeTask(query);
   }
+
+  useEffect(() => {
+    form.setValue("suggestion", taskStore.suggestion);
+  }, [taskStore.suggestion, form]);
 
   return (
     <section className="p-4 border rounded-md mt-4 print:hidden">
@@ -152,6 +173,9 @@ function SearchResult() {
                       }
                       tools={
                         <>
+                          <div className="px-1">
+                            <Separator className="dark:bg-slate-700" />
+                          </div>
                           <Button
                             className="float-menu-button"
                             type="button"
@@ -181,6 +205,18 @@ function SearchResult() {
                           <div className="px-1">
                             <Separator className="dark:bg-slate-700" />
                           </div>
+                          <Button
+                            className="float-menu-button"
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            title={t("research.common.addToKnowledgeBase")}
+                            side="left"
+                            sideoffset={8}
+                            onClick={() => addToKnowledgeBase(item)}
+                          >
+                            <NotebookText />
+                          </Button>
                           <Button
                             className="float-menu-button"
                             type="button"

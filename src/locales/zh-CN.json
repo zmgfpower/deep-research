@@ -17,6 +17,8 @@
       "research": "研究中...",
       "writing": "撰写中...",
       "newResearch": "开始新研究",
+      "addToKnowledgeBase": "添加到知识库",
+      "addToKnowledgeBaseTip": "已添加到知识库",
       "restudy": "重新研究",
       "delete": "删除"
     },
@@ -30,7 +32,7 @@
       "emptyTip": "等待确定研究主题...",
       "feedbackLabel": "您的回答（可选）",
       "feedbackPlaceholder": "畅所欲言，谈谈您的见解...",
-      "questions": "2.1 相关问题",
+      "questions": "2.1 系统提问",
       "reportPlan": "2.2 研究报告方案",
       "writeReportPlan": "撰写报告方案"
     },

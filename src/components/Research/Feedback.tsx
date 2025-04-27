@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
+import { Button } from "@/components/Internal/Button";
 import {
   Form,
   FormControl,
@@ -14,7 +15,6 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import useDeepResearch from "@/hooks/useDeepResearch";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
 import { useTaskStore } from "@/store/task";
@@ -87,7 +87,7 @@ function Feedback() {
         <div>{t("research.feedback.emptyTip")}</div>
       ) : (
         <div>
-          <h4 className="mt-4 font-semibold">
+          <h4 className="mt-4 text-base font-semibold">
             {t("research.feedback.questions")}
           </h4>
           <MagicDown
@@ -137,7 +137,9 @@ function Feedback() {
       )}
       {taskStore.reportPlan !== "" ? (
         <div className="mt-6">
-          <h4 className="font-semibold">{t("research.feedback.reportPlan")}</h4>
+          <h4 className="text-base font-semibold">
+            {t("research.feedback.reportPlan")}
+          </h4>
           <MagicDown
             className="mt-2 min-h-20"
             value={taskStore.reportPlan}

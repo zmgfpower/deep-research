@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTaskStore } from "@/store/task";
 import { useHistoryStore, type ResearchHistory } from "@/store/history";
 
@@ -96,7 +97,7 @@ function History({ open, onClose }: HistoryProps) {
             onClear={() => setHistoryList(history.slice(0, PAGE_SIZE))}
           />
         </div>
-        <div className="max-h-[65vh] overflow-y-auto">
+        <ScrollArea className="max-h-[65vh]">
           {historyList.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               {t("history.noHistory")}
@@ -167,7 +168,7 @@ function History({ open, onClose }: HistoryProps) {
               </div>
             </>
           )}
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

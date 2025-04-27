@@ -17,6 +17,8 @@
       "research": "Research...",
       "writing": "Writing...",
       "newResearch": "New Research",
+      "addToKnowledgeBase": "Add to Knowledge Base",
+      "addToKnowledgeBaseTip": "Added to Knowledge Base",
       "restudy": "Re-study",
       "delete": "Delete"
     },
@@ -30,7 +32,7 @@
       "emptyTip": "Waiting for research topic...",
       "feedbackLabel": "Your Answer (Optional)",
       "feedbackPlaceholder": "You can answer whatever you want...",
-      "questions": "2.1 Related questions",
+      "questions": "2.1 System Questions",
       "reportPlan": "2.2 Research report plan",
       "writeReportPlan": "Write Report Plan"
     },

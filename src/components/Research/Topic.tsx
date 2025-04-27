@@ -64,9 +64,19 @@ function Topic() {
     },
   });
 
-  async function handleSubmit(values: z.infer<typeof formSchema>) {
+  function handleCheck(): boolean {
     const { mode } = useSettingStore.getState();
     if ((mode === "local" && hasApiKey()) || mode === "proxy") {
+      return true;
+    } else {
+      const { setOpenSetting } = useGlobalStore.getState();
+      setOpenSetting(true);
+      return false;
+    }
+  }
+
+  async function handleSubmit(values: z.infer<typeof formSchema>) {
+    if (handleCheck()) {
       const { id, setQuestion } = useTaskStore.getState();
       try {
         setIsThinking(true);
@@ -81,9 +91,6 @@ function Topic() {
         setIsThinking(false);
         accurateTimerStop();
       }
-    } else {
-      const { setOpenSetting } = useGlobalStore.getState();
-      setOpenSetting(true);
     }
   }
 
@@ -140,7 +147,7 @@ function Topic() {
             name="topic"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="mb-2 font-semibold">
+                <FormLabel className="mb-2 text-base font-semibold">
                   {t("research.topic.topicLabel")}
                 </FormLabel>
                 <FormControl>
@@ -154,7 +161,7 @@ function Topic() {
             )}
           />
           <FormItem className="mt-2">
-            <FormLabel className="mb-2 font-semibold">
+            <FormLabel className="mb-2 text-base font-semibold">
               {t("knowledge.localResourceTitle")}
             </FormLabel>
             <FormControl onSubmit={(ev) => ev.stopPropagation()}>
@@ -179,12 +186,16 @@ function Topic() {
                       <span>{t("knowledge.knowledge")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() =>
+                        handleCheck() && fileInputRef.current?.click()
+                      }
                     >
                       <Paperclip />
                       <span>{t("knowledge.localFile")}</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setOpenCrawler(true)}>
+                    <DropdownMenuItem
+                      onClick={() => handleCheck() && setOpenCrawler(true)}
+                    >
                       <Link />
                       <span>{t("knowledge.webPage")}</span>
                     </DropdownMenuItem>
