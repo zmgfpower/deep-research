@@ -195,14 +195,23 @@ export function processSearchResultPrompt(
   researchGoal: string,
   results: Source[]
 ) {
-  const contents = results.map(
-    (result) => `<content url="${result.url}">\n${result.content}\n</content>`
+  const context = results.map(
+    (result, idx) =>
+      `<content index="${idx + 1}" url="${result.url}">\n${
+        result.content
+      }\n</content>`
   );
+  const citationRules = [
+    "- Please cite the context at the end of sentences when appropriate.",
+    "- Please use the format of citation number [number] to reference the context in corresponding parts of your answer.",
+    "- If a sentence comes from multiple contexts, please list all relevant citation numbers, e.g., [1][2]. Remember not to group citations at the end but list them in the corresponding parts of your answer.",
+  ];
   return [
     `Given the following contents from a SERP search for the query:\n<query>${query}</query>.`,
     `You need to organize the searched information according to the following requirements:\n<researchGoal>\n${researchGoal}\n</researchGoal>`,
-    `<contents>${contents.join("\n")}</contents>`,
+    `<context>${context.join("\n")}</context>`,
     `You need to think like a human researcher. Generate a list of learnings from the contents. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.`,
+    `Citation Rules:\n${citationRules.join("\n")}`,
   ].join("\n\n");
 }
 
@@ -211,14 +220,23 @@ export function processSearchKnowledgeResultPrompt(
   researchGoal: string,
   results: Knowledge[]
 ) {
-  const contents = results.map(
-    (result) => `<content title=${result.title}>\n${result.content}\n</content>`
+  const context = results.map(
+    (result, idx) =>
+      `<content index="${idx + 1}" url="${location.host}">\n${
+        result.content
+      }\n</content>`
   );
+  const citationRules = [
+    "- Please cite the context at the end of sentences when appropriate.",
+    "- Please use the format of citation [number] to reference the context in corresponding parts of your answer.",
+    "- If a sentence comes from multiple contexts, please list all relevant citation numbers, e.g., [1][2]. Remember not to group citations at the end but list them in the corresponding parts of your answer.",
+  ];
   return [
     `Given the following contents from a local knowledge base search for the query:\n<query>${query}</query>.`,
     `You need to organize the searched information according to the following requirements:\n<researchGoal>\n${researchGoal}\n</researchGoal>`,
-    `<contents>${contents.join("\n")}</contents>`,
+    `<context>${context.join("\n")}</context>`,
     `You need to think like a human researcher. Generate a list of learnings from the contents. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.`,
+    `Citation Rules:\n${citationRules.join("\n")}`,
   ].join("\n\n");
 }
 
@@ -253,19 +271,36 @@ export function reviewSerpQueriesPrompt(
 export function writeFinalReportPrompt(
   plan: string,
   learnings: string[],
+  sources: Source[],
   requirement: string
 ) {
   const learningsString = learnings
     .map((learning) => `<learning>\n${learning}\n</learning>`)
     .join("\n");
+  const sourcesString = sources
+    .map(
+      (source, idx) =>
+        `<source index="${idx + 1}" url="${source.url}">\n${
+          source.title
+        }\n</source>`
+    )
+    .join("\n");
+  const citationRules = [
+    "- Please cite the learnings reference link at the end of sentences when appropriate.",
+    "- Please use the reference format [number], to reference the learnings link in corresponding parts of your answer.",
+    "- If a sentence comes from multiple learnings reference link, please list all relevant citation numbers, e.g., [1][2]. Remember not to group citations at the end but list them in the corresponding parts of your answer.",
+    "- Do not add references at the end of your report.",
+  ];
   return [
     `This is the report plan after user confirmation:\n<plan>${plan}</plan>`,
     `Write a final report based on the report plan using the learnings from research. Make it as as detailed as possible, aim for 5 pages or more, the more the better, include ALL the learnings from research.`,
     `Here are all the learnings from previous research:\n<learnings>\n${learningsString}\n</learnings>`,
+    `Here are all the sources from previous research:\n<sources>\n${sourcesString}\n</sources>`,
     requirement !== ""
       ? `Please write according to the user's writing requirements:\n<requirement>${requirement}</requirement>`
       : "",
     `You need to write this report like a human researcher. Humans don not wrap their writing in markdown blocks. Contains diverse data information such as table, katex formulas, mermaid diagrams, etc. in the form of markdown syntax. **DO NOT** output anything other than report.`,
+    `Citation Rules:\n${citationRules.join("\n")}`,
   ].join("\n\n");
 }
 

@@ -14,10 +14,12 @@
     @apply ps-4;
   }
   hr {
-    margin-top: 1.5em;
-    margin-bottom: 1.5em;
+    @apply mt-6 mb-6;
   }
   .katex-display {
     overflow-y: auto;
+  }
+  a.reference {
+    @apply text-xs before:content-["["] after:content-["]"];
   }
 }

@@ -91,10 +91,13 @@ function Magicdown({ children: content, ...rest }: Options) {
             );
           }
           const isInternal = /^\/#/i.test(href);
+          const isReferenceLink = /^[0-9]*$/.test(children?.toString() || "");
           return (
             <a
               {...omit(rest, ["node"])}
-              className={clsx("break-all", className)}
+              className={clsx("break-all", className, {
+                reference: isReferenceLink,
+              })}
               href={href}
               target={isInternal ? "_self" : target ?? "_blank"}
             >

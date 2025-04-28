@@ -26,7 +26,7 @@ import {
 } from "@/utils/deep-research";
 import { isNetworkingModel } from "@/utils/model";
 import { parseError } from "@/utils/error";
-import { pick, flat } from "radash";
+import { pick, flat, unique } from "radash";
 
 function getResponseLanguagePrompt(lang: string) {
   return `**Respond in ${lang}**`;
@@ -223,7 +223,14 @@ function useDeepResearch() {
               item.query,
               item.researchGoal
             );
-            content += `${knowledges}\n\n---\n\n`;
+            content += `${knowledges}\n\n${resources
+              .map(
+                (item, idx) =>
+                  `[${idx + 1}]: ${location.host}${
+                    item.name ? ` "${item.name.replaceAll('"', " ")}"` : ""
+                  }`
+              )
+              .join("\n")}\n---\n\n`;
           }
           if (enableSearch) {
             if (searchProvider !== "model") {
@@ -297,8 +304,21 @@ function useDeepResearch() {
               sources.push(part.source);
             }
           }
+          if (sources.length > 0) {
+            content +=
+              "\n\n" +
+              sources
+                .map(
+                  (item, idx) =>
+                    `[${idx + 1}]: ${item.url}${
+                      item.title ? ` "${item.title.replaceAll('"', " ")}"` : ""
+                    }`
+                )
+                .join("\n");
+          }
           taskStore.updateTask(item.query, {
             state: "completed",
+            learning: content,
             sources,
           });
           return content;
@@ -353,17 +373,40 @@ function useDeepResearch() {
 
   async function writeFinalReport() {
     const { language } = useSettingStore.getState();
-    const { reportPlan, tasks, setId, setTitle, setSources, requirement } =
-      useTaskStore.getState();
+    const {
+      reportPlan,
+      tasks,
+      resources,
+      setId,
+      setTitle,
+      setSources,
+      requirement,
+      updateFinalReport,
+    } = useTaskStore.getState();
     const { save } = useHistoryStore.getState();
     const { thinkingModel } = getModel();
     setStatus(t("research.common.writing"));
+    updateFinalReport("");
+    setTitle("");
+    setSources([]);
     const learnings = tasks.map((item) => item.learning);
+    const sources: Source[] = unique(
+      [
+        ...resources.map((item) => ({ title: item.name, url: location.host })),
+        ...flat(tasks.map((item) => (item.sources ? item.sources : []))),
+      ],
+      (item) => item.url
+    );
     const result = streamText({
       model: createProvider(thinkingModel),
       system: [getSystemPrompt(), getOutputGuidelinesPrompt()].join("\n\n"),
       prompt: [
-        writeFinalReportPrompt(reportPlan, learnings, requirement),
+        writeFinalReportPrompt(
+          reportPlan,
+          learnings,
+          sources.map((item) => pick(item, ["title", "url"])),
+          requirement
+        ),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
       experimental_transform: smoothTextStream(),
@@ -372,17 +415,27 @@ function useDeepResearch() {
     let content = "";
     for await (const textPart of result.textStream) {
       content += textPart;
-      taskStore.updateFinalReport(content);
+      updateFinalReport(content);
+    }
+    if (sources.length > 0) {
+      content +=
+        "\n\n" +
+        sources
+          .map(
+            (item, idx) =>
+              `[${idx + 1}]: ${item.url}${
+                item.title ? ` "${item.title.replaceAll('"', " ")}"` : ""
+              }`
+          )
+          .join("\n");
+      updateFinalReport(content);
     }
     const title = content
       .split("\n\n")[0]
       .replaceAll("#", "")
-      .replaceAll("**", "")
+      .replaceAll("*", "")
       .trim();
     setTitle(title);
-    const sources = flat(
-      tasks.map((item) => (item.sources ? item.sources : []))
-    );
     setSources(sources);
     const id = save(taskStore.backup());
     setId(id);

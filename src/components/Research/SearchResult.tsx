@@ -82,7 +82,10 @@ function SearchResult() {
       item.learning,
       item.sources?.length > 0
         ? `#### ${t("research.common.sources")}\n\n${item.sources
-            .map((source) => `- [${source.title || source.url}](${source.url})`)
+            .map(
+              (source, idx) =>
+                `${idx + 1}. [${source.title || source.url}][${idx + 1}]`
+            )
             .join("\n")}`
         : "",
     ].join("\n\n");

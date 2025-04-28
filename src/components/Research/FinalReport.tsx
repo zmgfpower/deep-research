@@ -107,7 +107,7 @@ function FinalReport() {
             `${sources
               .map(
                 (source, idx) =>
-                  `${idx + 1}. [${source.title || source.url}](${source.url})`
+                  `${idx + 1}. [${source.title || source.url}][${idx + 1}]`
               )
               .join("\n")}`,
           ].join("\n")
