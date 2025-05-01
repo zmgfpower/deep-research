@@ -5,7 +5,7 @@ import useModelProvider from "@/hooks/useAiProvider";
 import { useKnowledgeStore } from "@/store/knowledge";
 import { useTaskStore } from "@/store/task";
 import { useSettingStore } from "@/store/setting";
-import { informationCollectorPrompt } from "@/utils/deep-research";
+import { rewritingPrompt } from "@/constants/prompts";
 import { fileParser } from "@/utils/parser";
 import { generateSignature } from "@/utils/signature";
 import { getTextByteSize } from "@/utils/file";
@@ -131,7 +131,7 @@ function useKnowledge() {
           const result = streamText({
             model: createProvider(networkingModel),
             prompt: text,
-            system: informationCollectorPrompt(),
+            system: rewritingPrompt,
             onFinish: () => {
               const currentTime = Date.now();
               knowledgeStore.save({
@@ -234,7 +234,7 @@ function useKnowledge() {
           const stream = streamText({
             model: createProvider(networkingModel),
             prompt: result.content,
-            system: informationCollectorPrompt(),
+            system: rewritingPrompt,
             onFinish: () => {
               const currentTime = Date.now();
               knowledgeStore.save({

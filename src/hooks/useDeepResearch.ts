@@ -12,9 +12,9 @@ import { useTaskStore } from "@/store/task";
 import { useHistoryStore } from "@/store/history";
 import { useSettingStore } from "@/store/setting";
 import { useKnowledgeStore } from "@/store/knowledge";
+import { outputGuidelinesPrompt } from "@/constants/prompts";
 import {
   getSystemPrompt,
-  getOutputGuidelinesPrompt,
   generateQuestionsPrompt,
   writeReportPlanPrompt,
   generateSerpQueriesPrompt,
@@ -424,7 +424,7 @@ function useDeepResearch() {
     );
     const result = streamText({
       model: createProvider(thinkingModel),
-      system: [getSystemPrompt(), getOutputGuidelinesPrompt()].join("\n\n"),
+      system: [getSystemPrompt(), outputGuidelinesPrompt].join("\n\n"),
       prompt: [
         writeFinalReportPrompt(
           reportPlan,
@@ -469,7 +469,7 @@ function useDeepResearch() {
 
   async function deepResearch() {
     const { language } = useSettingStore.getState();
-    const { query, reportPlan } = useTaskStore.getState();
+    const { reportPlan } = useTaskStore.getState();
     const { thinkingModel } = getModel();
     setStatus(t("research.common.thinking"));
     try {
@@ -478,7 +478,7 @@ function useDeepResearch() {
         model: createProvider(thinkingModel),
         system: getSystemPrompt(),
         prompt: [
-          generateSerpQueriesPrompt(query, reportPlan),
+          generateSerpQueriesPrompt(reportPlan),
           getResponseLanguagePrompt(language),
         ].join("\n\n"),
         experimental_transform: smoothTextStream(),

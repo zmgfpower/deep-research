@@ -140,6 +140,7 @@ const formSchema = z.object({
   bochaApiKey: z.string().optional(),
   bochaApiProxy: z.string().optional(),
   searxngApiProxy: z.string().optional(),
+  searxngScope: z.string().optional(),
   parallelSearch: z.number().min(1).max(5),
   searchMaxResult: z.number().min(1).max(10),
   language: z.string().optional(),
@@ -2663,6 +2664,35 @@ function Setting({ open, onClose }: SettingProps) {
                               disabled={form.getValues("enableSearch") === "0"}
                               {...field}
                             />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="searxngScope"
+                      render={({ field }) => (
+                        <FormItem className="from-item">
+                          <FormLabel className="col-span-1">
+                            {t("setting.searchScope")}
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="col-span-3">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">
+                                  {t("setting.all")}
+                                </SelectItem>
+                                <SelectItem value="academic">
+                                  {t("setting.academic")}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
                           </FormControl>
                         </FormItem>
                       )}

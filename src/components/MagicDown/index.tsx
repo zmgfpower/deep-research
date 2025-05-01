@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import { useState, useRef, memo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { CodeXml, Eye } from "lucide-react";
+import { FilePenLine, Save } from "lucide-react";
 import FloatingMenu from "@/components/Internal/FloatingMenu";
 import { Button } from "@/components/Internal/Button";
 import { useMobile } from "@/hooks/useMobile";
@@ -51,7 +51,7 @@ function MagicDown({ value, onChange, className, tools }: Props) {
               variant="ghost"
               onClick={() => setMode("editor")}
             >
-              <CodeXml />
+              <FilePenLine />
             </Button>
           ) : (
             <Button
@@ -63,7 +63,7 @@ function MagicDown({ value, onChange, className, tools }: Props) {
               variant="ghost"
               onClick={() => setMode("view")}
             >
-              <Eye />
+              <Save />
             </Button>
           )}
           {tools ? tools : null}
