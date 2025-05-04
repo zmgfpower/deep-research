@@ -1,4 +1,8 @@
-import { useRef, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { Copy, CopyCheck } from "lucide-react";
+import copy from "copy-to-clipboard";
+import { Button } from "@/components/Internal/Button";
 import { capitalize, get } from "radash";
 
 import "./style.css";
@@ -99,14 +103,43 @@ function getLangAlias(lang: string): string {
 }
 
 function Code({ children, lang }: Props) {
+  const { t } = useTranslation();
   const codeWrapperRef = useRef<HTMLDivElement>(null);
+  const [waitingCopy, setWaitingCopy] = useState<boolean>(false);
+
+  const handleCopy = () => {
+    if (codeWrapperRef.current) {
+      setWaitingCopy(true);
+      copy(codeWrapperRef.current.innerText);
+      setTimeout(() => {
+        setWaitingCopy(false);
+      }, 1200);
+    }
+  };
 
   return (
     <>
-      <div className="flex h-10 w-full items-center justify-between overflow-x-auto break-all rounded-t bg-gray-200 pl-4 pr-3 text-sm text-slate-500 dark:bg-[rgb(31,41,55)]">
+      <div className="flex h-10 w-full items-center justify-between overflow-x-auto break-all rounded-t bg-slate-200 pl-4 pr-3 text-sm text-slate-500 dark:bg-slate-900">
         {lang ? <span title={lang}>{getLangAlias(lang)}</span> : <span></span>}
+        <div>
+          <Button
+            className="h-6 w-6 rounded-sm p-1 dark:hover:bg-slate-900/80 print:hidden"
+            variant="ghost"
+            title={t("editor.copy")}
+            onClick={() => handleCopy()}
+          >
+            {waitingCopy ? (
+              <CopyCheck className="h-full w-full text-green-500" />
+            ) : (
+              <Copy className="h-full w-full" />
+            )}
+          </Button>
+        </div>
       </div>
-      <div ref={codeWrapperRef} className="overflow-auto rounded-b">
+      <div
+        ref={codeWrapperRef}
+        className="overflow-auto rounded-b bg-slate-50 dark:bg-slate-800"
+      >
         {children}
       </div>
     </>

@@ -225,7 +225,7 @@ function SearchResult() {
                             type="button"
                             size="icon"
                             variant="ghost"
-                            title={t("editor.export")}
+                            title={t("research.common.export")}
                             side="left"
                             sideoffset={8}
                             onClick={() =>

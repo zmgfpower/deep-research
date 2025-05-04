@@ -6,16 +6,16 @@ export interface TaskStore {
   id: string;
   question: string;
   resources: Resource[];
-  questions: string;
-  reportPlan: string;
-  finalReport: string;
   query: string;
-  title: string;
-  suggestion: string;
-  requirement: string;
-  tasks: SearchTask[];
-  sources: Source[];
+  questions: string;
   feedback: string;
+  reportPlan: string;
+  suggestion: string;
+  tasks: SearchTask[];
+  requirement: string;
+  title: string;
+  finalReport: string;
+  sources: Source[];
 }
 
 interface TaskFunction {
@@ -46,16 +46,16 @@ const defaultValues: TaskStore = {
   id: "",
   question: "",
   resources: [],
-  questions: "",
-  reportPlan: "",
-  finalReport: "",
   query: "",
-  title: "",
-  suggestion: "",
-  requirement: "",
-  tasks: [],
-  sources: [],
+  questions: "",
   feedback: "",
+  reportPlan: "",
+  suggestion: "",
+  tasks: [],
+  requirement: "",
+  title: "",
+  finalReport: "",
+  sources: [],
 };
 
 export const useTaskStore = create(

@@ -2,7 +2,8 @@
 import dynamic from "next/dynamic";
 import { useState, useRef, memo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { FilePenLine, Save } from "lucide-react";
+import copy from "copy-to-clipboard";
+import { FilePenLine, Save, Copy, CopyCheck } from "lucide-react";
 import FloatingMenu from "@/components/Internal/FloatingMenu";
 import { Button } from "@/components/Internal/Button";
 import { useMobile } from "@/hooks/useMobile";
@@ -23,6 +24,15 @@ function MagicDown({ value, onChange, className, tools }: Props) {
   const isMobile = useMobile(450);
   const containerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<"editor" | "view">("view");
+  const [waitingCopy, setWaitingCopy] = useState<boolean>(false);
+
+  const handleCopy = () => {
+    setWaitingCopy(true);
+    copy(value);
+    setTimeout(() => {
+      setWaitingCopy(false);
+    }, 1200);
+  };
 
   return (
     <div className={cn("relative", className)} ref={containerRef}>
@@ -66,6 +76,21 @@ function MagicDown({ value, onChange, className, tools }: Props) {
               <Save />
             </Button>
           )}
+          <Button
+            className="float-menu-button"
+            title={t("research.common.copy")}
+            side="left"
+            sideoffset={8}
+            size="icon"
+            variant="ghost"
+            onClick={() => handleCopy()}
+          >
+            {waitingCopy ? (
+              <CopyCheck className="h-full w-full text-green-500" />
+            ) : (
+              <Copy className="h-full w-full" />
+            )}
+          </Button>
           {tools ? tools : null}
         </div>
       </FloatingMenu>

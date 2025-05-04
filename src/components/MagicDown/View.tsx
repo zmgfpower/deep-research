@@ -10,6 +10,8 @@ import { clsx } from "clsx";
 import { omit } from "radash";
 
 import "katex/dist/katex.min.css";
+import "./style.css";
+import "./highlight.css";
 
 const Code = dynamic(() => import("./Code"));
 const Mermaid = dynamic(() => import("./Mermaid"));

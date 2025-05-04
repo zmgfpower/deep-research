@@ -28,6 +28,9 @@
 }
 
 .magicdown-view {
+  .hljs {
+    background-color: transparent;
+  }
   ul {
     @apply ps-4;
   }

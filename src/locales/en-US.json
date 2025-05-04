@@ -22,6 +22,8 @@
       "restudy": "Re-study",
       "edit": "Edit",
       "save": "Save",
+      "copy": "Copy",
+      "export": "Export",
       "delete": "Delete"
     },
     "topic": {
@@ -61,7 +63,12 @@
     "emptyTip": "No history records",
     "date": "Date",
     "actions": "Action",
+    "import": "Import",
+    "importTip": "Import Research",
+    "importSuccess": "{{title}} Imported successfully.",
+    "importFailed": "{{title}} Import failed.",
     "load": "Load",
+    "export": "Export",
     "delete": "Delete",
     "loadMore": "Load More History",
     "close": "Close",
@@ -128,6 +135,7 @@
     "send": "Send"
   },
   "editor": {
+    "copy": "Copy",
     "tooltip": {
       "bold": "Bold",
       "italic": "Italic",
