@@ -13,9 +13,8 @@ export const preferredRegion = [
 ];
 
 export async function POST(req: NextRequest) {
-  const { url } = await req.json();
-
   try {
+    const { url } = await req.json();
     if (!url) throw new Error("Missing parameters!");
     const response = await fetch(url, { next: { revalidate: 60 } });
     const result = await response.text();

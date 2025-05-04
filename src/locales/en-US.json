@@ -20,6 +20,8 @@
       "addToKnowledgeBase": "Add to Knowledge Base",
       "addToKnowledgeBaseTip": "Added to Knowledge Base",
       "restudy": "Re-study",
+      "edit": "Edit",
+      "save": "Save",
       "delete": "Delete"
     },
     "topic": {
@@ -40,7 +42,8 @@
       "title": "3. Information Collection",
       "emptyTip": "Waiting for research task...",
       "suggestionLabel": "Research suggestions (Optional)",
-      "suggestionPlaceholder": "Whether to add or adjust research directions..."
+      "suggestionPlaceholder": "Whether to add or adjust research directions...",
+      "references": "References"
     },
     "finalReport": {
       "title": "4. Final Report",
@@ -91,6 +94,8 @@
     "fetch": "Fetch",
     "localResourceTitle": "1.2 Local research resources (optional)",
     "addResource": "Add Resource",
+    "addResourceMessage": "{{title}} has been added to the resource.",
+    "resourceNotFound": "Resource not found",
     "knowledge": "Knowledge",
     "localFile": "Local File",
     "webPage": "Web Page",
@@ -121,6 +126,96 @@
     "continuation": "Continuation",
     "addEmojis": "Add Emojis",
     "send": "Send"
+  },
+  "editor": {
+    "tooltip": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "strikethrough": "Strikethrough",
+      "code": "Code",
+      "math": "Math",
+      "link": "Link",
+      "quote": "Quote"
+    },
+    "slash": {
+      "heading": {
+        "name": "Heading",
+        "description": "Insert Heading"
+      },
+      "h1": {
+        "name": "Heading 1",
+        "description": "Insert Heading 1"
+      },
+      "h2": {
+        "name": "Heading 2",
+        "description": "Insert Heading 2"
+      },
+      "h3": {
+        "name": "Heading 3",
+        "description": "Insert Heading 3"
+      },
+      "h4": {
+        "name": "Heading 4",
+        "description": "Insert Heading 4"
+      },
+      "h5": {
+        "name": "Heading 5",
+        "description": "Insert Heading 5"
+      },
+      "h6": {
+        "name": "Heading 6",
+        "description": "Insert Heading 6"
+      },
+      "list": {
+        "name": "List",
+        "description": "Insert List"
+      },
+      "ul": {
+        "name": "Bullet List",
+        "description": "Insert Bullet List Item"
+      },
+      "ol": {
+        "name": "Ordered List",
+        "description": "Insert Ordered List Item"
+      },
+      "todo": {
+        "name": "Todo List",
+        "description": "Insert Todo List Item"
+      },
+      "advanced": {
+        "name": "Advanced",
+        "description": "Advanced Commands"
+      },
+      "link": {
+        "name": "Link",
+        "description": "Insert Link"
+      },
+      "image": {
+        "name": "Image",
+        "description": "Insert Image"
+      },
+      "code": {
+        "name": "Code Block",
+        "description": "Insert Code Block"
+      },
+      "math": {
+        "name": "Math Block",
+        "description": "Insert Math Block"
+      },
+      "table": {
+        "name": "Table",
+        "description": "Insert a 3x3 Table"
+      },
+      "quote": {
+        "name": "Quote",
+        "description": "Insert Quote"
+      },
+      "horizontal": {
+        "name": "Horizontal",
+        "description": "Insert Horizontal"
+      }
+    },
+    "placeholder": "Please enter text, or enter \"/ \" to use commands"
   },
   "setting": {
     "title": "Setting",

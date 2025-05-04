@@ -91,9 +91,11 @@ function Knowledge({ open, onClose }: KnowledgeProps) {
         size: getTextByteSize(knowledge.content),
         status: "completed",
       });
-      toast.message(`${knowledge.title} has been added to the resource.`);
+      toast.message(
+        t("knowledge.addResourceMessage", { title: knowledge.title })
+      );
     } else {
-      toast.error("Resource not found");
+      toast.error(t("knowledge.resourceNotFound"));
     }
   }
 

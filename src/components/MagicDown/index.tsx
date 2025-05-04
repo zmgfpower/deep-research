@@ -44,7 +44,7 @@ function MagicDown({ value, onChange, className, tools }: Props) {
           {mode === "view" ? (
             <Button
               className="float-menu-button"
-              title={t("editor.edit")}
+              title={t("research.common.edit")}
               side="left"
               sideoffset={8}
               size="icon"
@@ -56,7 +56,7 @@ function MagicDown({ value, onChange, className, tools }: Props) {
           ) : (
             <Button
               className="float-menu-button"
-              title={t("editor.save")}
+              title={t("research.common.save")}
               side="left"
               sideoffset={8}
               size="icon"

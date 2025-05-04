@@ -188,6 +188,7 @@ You need to organize the searched information according to the following require
 You need to think like a human researcher. Generate a list of learnings from the search results. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.`;
 
 export const citationRulesPrompt = `Citation Rules:
+
 - Please cite the context at the end of sentences when appropriate.
 - Please use the format of citation number [number] to reference the context in corresponding parts of your answer.
 - If a sentence comes from multiple contexts, please list all relevant citation numbers, e.g., [1][2]. Remember not to group citations at the end but list them in the corresponding parts of your answer.`;
@@ -226,9 +227,7 @@ The following contexts from the SERP search:
 {context}
 </context>
 
-You need to think like a human researcher. Generate a list of learnings from the contents. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.
-
-${citationRulesPrompt}`;
+You need to think like a human researcher. Generate a list of learnings from the contents. Make sure each learning is unique and not similar to each other. The learnings should be to the point, as detailed and information dense as possible. Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.`;
 
 export const reviewPrompt = `This is the report plan after user confirmation:
 <plan>

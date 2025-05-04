@@ -224,14 +224,15 @@ function useDeepResearch() {
               item.query,
               item.researchGoal
             );
-            content += `${knowledges}\n\n${resources
-              .map(
-                (item, idx) =>
-                  `[${idx + 1}]: ${location.host}${
-                    item.name ? ` "${item.name.replaceAll('"', " ")}"` : ""
-                  }`
-              )
-              .join("\n")}\n---\n\n`;
+            content += [
+              knowledges,
+              `### ${t("research.searchResult.references")}`,
+              resources
+                .map((item, idx) => `${idx + 1}. ${item.name}`)
+                .join("\n"),
+              "---",
+              "",
+            ].join("\n\n");
           }
           if (enableSearch) {
             if (searchProvider !== "model") {
@@ -456,7 +457,7 @@ function useDeepResearch() {
       updateFinalReport(content);
     }
     const title = content
-      .split("\n\n")[0]
+      .split("\n")[0]
       .replaceAll("#", "")
       .replaceAll("*", "")
       .trim();
