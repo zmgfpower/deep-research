@@ -1,4 +1,7 @@
 .magicdown-editor {
+  .cm-line {
+    @apply leading-8 empty:my-0;
+  }
   .cm-editor {
     @apply bg-transparent dark:text-slate-200;
     &.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground,

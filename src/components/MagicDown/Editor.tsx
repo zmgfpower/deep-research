@@ -1,6 +1,12 @@
 import { useState, useLayoutEffect, useEffect, useRef, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { MagicdownEditor } from "@xiangfa/mdeditor";
+import View from "./View";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { cn } from "@/utils/style";
 
 import "./style.css";
@@ -135,14 +141,27 @@ function Editor({ className, defaultValue, onChange }: EditorProps) {
   }, [t]);
 
   return (
-    <div
-      className={cn(
-        "relative text-base whitespace-break-spaces rounded-md border p-1",
-        className
-      )}
-      ref={markdownEditorRef}
-      onBlur={() => onChange(content)}
-    ></div>
+    <ResizablePanelGroup
+      className="flex rounded-md border"
+      direction="horizontal"
+    >
+      <ResizablePanel>
+        <div
+          className={cn(
+            "relative flex-1 text-base whitespace-break-spaces p-1.5",
+            className
+          )}
+          ref={markdownEditorRef}
+          onBlur={() => onChange(content)}
+        ></div>
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel>
+        <div className="magicdown-view flex-1 prose prose-slate dark:prose-invert max-w-full p-2">
+          <View>{content}</View>
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }
 

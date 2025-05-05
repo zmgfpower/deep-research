@@ -269,12 +269,15 @@ Please write according to the user's writing requirements:
 </requirement>
 
 Write a final report based on the report plan using the learnings from research. Make it as as detailed as possible, aim for 5 pages or more, the more the better, include ALL the learnings from research.
+**Respond only the final report content, and no additional text before or after.**
 
 Citation Rules:
-- Please cite the learnings reference link at the end of sentences when appropriate.
+- Please cite research references at the end of your paragraphs when appropriate.
+- If the citation is from the reference, please **ignore**. Include only references from sources.
 - Please use the reference format [number], to reference the learnings link in corresponding parts of your answer.
-- If a sentence comes from multiple learnings reference link, please list all relevant citation numbers, e.g., [1][2]. Remember not to group citations at the end but list them in the corresponding parts of your answer.
-- Do not add references at the end of your report.`;
+- If a paragraphs comes from multiple learnings reference link, please list all relevant citation numbers, e.g., [1][2]. Remember not to group citations at the end but list them in the corresponding parts of your answer. Control the number of footnotes.
+- Do not have more than 3 reference link in a paragraph, and keep only the most relevant ones.
+- Do not add references at the end of the report.`;
 
 export const rewritingPrompt = `You are tasked with re-writing the following content to markdown. Ensure you do not change the meaning or story behind the content.
 

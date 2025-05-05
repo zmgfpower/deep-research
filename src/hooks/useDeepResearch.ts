@@ -227,9 +227,7 @@ function useDeepResearch() {
             content += [
               knowledges,
               `### ${t("research.searchResult.references")}`,
-              resources
-                .map((item, idx) => `${idx + 1}. ${item.name}`)
-                .join("\n"),
+              resources.map((item) => `- ${item.name}`).join("\n"),
               "---",
               "",
             ].join("\n\n");
@@ -402,7 +400,6 @@ function useDeepResearch() {
     const {
       reportPlan,
       tasks,
-      resources,
       setId,
       setTitle,
       setSources,
@@ -417,10 +414,7 @@ function useDeepResearch() {
     setSources([]);
     const learnings = tasks.map((item) => item.learning);
     const sources: Source[] = unique(
-      [
-        ...resources.map((item) => ({ title: item.name, url: location.host })),
-        ...flat(tasks.map((item) => (item.sources ? item.sources : []))),
-      ],
+      flat(tasks.map((item) => (item.sources ? item.sources : []))),
       (item) => item.url
     );
     const result = streamText({

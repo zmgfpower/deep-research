@@ -231,11 +231,11 @@ function FinalReport() {
                   total: taskStore.resources.length,
                 })}
               </h2>
-              <ol>
+              <ul>
                 {taskStore.resources.map((resource) => {
                   return <li key={resource.id}>{resource.name}</li>;
                 })}
-              </ol>
+              </ul>
             </div>
           ) : null}
           {taskStore.sources?.length > 0 ? (

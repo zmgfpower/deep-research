@@ -28,14 +28,12 @@ import { useTaskStore, type TaskStore } from "@/store/task";
 import { useHistoryStore, type ResearchHistory } from "@/store/history";
 import { downloadFile } from "@/utils/file";
 import { fileParser } from "@/utils/parser";
-import { omit } from "radash";
 
 interface HistoryProps {
   open: boolean;
   onClose: () => void;
 }
 
-const VERSION = process.env.NEXT_PUBLIC_VERSION;
 const PAGE_SIZE = 20;
 
 const resourceSchema = z.object({
@@ -97,7 +95,7 @@ function History({ open, onClose }: HistoryProps) {
     const data = JSON.parse(text) as z.infer<typeof taskStoreSchema>;
     const verifyFileformat = taskStoreSchema.safeParse(data);
     if (verifyFileformat.success) {
-      save(omit(data, ["version"]) as TaskStore);
+      save(data as TaskStore);
       toast.message(t("history.importSuccess", { title: file.name }));
     } else {
       console.error(verifyFileformat.error);
@@ -120,7 +118,7 @@ function History({ open, onClose }: HistoryProps) {
     const data = load(id);
     if (data) {
       downloadFile(
-        JSON.stringify({ ...data, version: VERSION }, null, 4),
+        JSON.stringify(data, null, 4),
         `${data.title}.json`,
         "application/json;charset=utf-8"
       );
