@@ -42,8 +42,6 @@ MISTRAL_API_BASE_URL=
 AZURE_API_KEY=
 # (Optional) Server-side Azure Resource Name. The resource name is used in the assembled URL: `https://{AZURE_RESOURCE_NAME}.openai.azure.com/openai/deployments`
 AZURE_RESOURCE_NAME=
-# (Optional) Server-side Azure API Version.
-AZURE_API_VERSION=
 
 # (Optional) Server-side Compatible with OpenAI API Key (Required for server API calls)
 OPENAI_COMPATIBLE_API_KEY=

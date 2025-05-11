@@ -35,6 +35,11 @@ export function detectLanguage() {
   return lang;
 }
 
+function getLocalLanguage() {
+  const settings = JSON.parse(localStorage.getItem("setting") || "{}");
+  return settings.state?.language;
+}
+
 i18next
   .use(initReactI18next)
   .use(
@@ -43,6 +48,7 @@ i18next
     })
   )
   .init({
+    lng: getLocalLanguage(),
     supportedLngs: keys(locales),
     fallbackLng: "en-US",
   });

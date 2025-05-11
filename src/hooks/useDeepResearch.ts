@@ -24,7 +24,7 @@ import {
   reviewSerpQueriesPrompt,
   writeFinalReportPrompt,
   getSERPQuerySchema,
-} from "@/utils/deep-research";
+} from "@/utils/deep-research/prompts";
 import { isNetworkingModel } from "@/utils/model";
 import { parseError } from "@/utils/error";
 import { pick, flat, unique } from "radash";
@@ -63,8 +63,8 @@ function handleError(error: unknown) {
 function useDeepResearch() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const { createProvider, getModel } = useModelProvider();
-  const { tavily, firecrawl, exa, bocha, searxng } = useWebSearch();
+  const { createModelProvider, getModel } = useModelProvider();
+  const { search } = useWebSearch();
   const [status, setStatus] = useState<string>("");
 
   async function askQuestions() {
@@ -73,7 +73,7 @@ function useDeepResearch() {
     const { thinkingModel } = getModel();
     setStatus(t("research.common.thinking"));
     const result = streamText({
-      model: createProvider(thinkingModel),
+      model: await createModelProvider(thinkingModel),
       system: getSystemPrompt(),
       prompt: [
         generateQuestionsPrompt(question),
@@ -96,7 +96,7 @@ function useDeepResearch() {
     const { thinkingModel } = getModel();
     setStatus(t("research.common.thinking"));
     const result = streamText({
-      model: createProvider(thinkingModel),
+      model: await createModelProvider(thinkingModel),
       system: getSystemPrompt(),
       prompt: [
         writeReportPlanPrompt(query),
@@ -130,7 +130,7 @@ function useDeepResearch() {
 
     const { networkingModel } = getModel();
     const searchResult = streamText({
-      model: createProvider(networkingModel),
+      model: await createModelProvider(networkingModel),
       system: getSystemPrompt(),
       prompt: [
         processSearchKnowledgeResultPrompt(query, researchGoal, knowledges),
@@ -168,9 +168,9 @@ function useDeepResearch() {
         provider === "google" &&
         isNetworkingModel(model)
       ) {
-        return createProvider(model, { useSearchGrounding: true });
+        return createModelProvider(model, { useSearchGrounding: true });
       } else {
-        return createProvider(model);
+        return createModelProvider(model);
       }
     };
     const getTools = (model: string) => {
@@ -235,17 +235,7 @@ function useDeepResearch() {
           if (enableSearch) {
             if (searchProvider !== "model") {
               try {
-                if (searchProvider === "tavily") {
-                  sources = await tavily(item.query);
-                } else if (searchProvider === "firecrawl") {
-                  sources = await firecrawl(item.query);
-                } else if (searchProvider === "exa") {
-                  sources = await exa(item.query);
-                } else if (searchProvider === "bocha") {
-                  sources = await bocha(item.query);
-                } else if (searchProvider === "searxng") {
-                  sources = await searxng(item.query);
-                }
+                sources = await search(item.query);
 
                 if (sources.length === 0) {
                   throw new Error("Invalid Search Results");
@@ -260,7 +250,7 @@ function useDeepResearch() {
                 return plimit.clearQueue();
               }
               searchResult = streamText({
-                model: createModel(networkingModel),
+                model: await createModel(networkingModel),
                 system: getSystemPrompt(),
                 prompt: [
                   processSearchResultPrompt(
@@ -275,7 +265,7 @@ function useDeepResearch() {
               });
             } else {
               searchResult = streamText({
-                model: createModel(networkingModel),
+                model: await createModel(networkingModel),
                 system: getSystemPrompt(),
                 prompt: [
                   processResultPrompt(item.query, item.researchGoal),
@@ -289,7 +279,7 @@ function useDeepResearch() {
             }
           } else {
             searchResult = streamText({
-              model: createProvider(networkingModel),
+              model: await createModelProvider(networkingModel),
               system: getSystemPrompt(),
               prompt: [
                 processResultPrompt(item.query, item.researchGoal),
@@ -366,7 +356,7 @@ function useDeepResearch() {
     setStatus(t("research.common.research"));
     const learnings = tasks.map((item) => item.learning);
     const result = streamText({
-      model: createProvider(thinkingModel),
+      model: await createModelProvider(thinkingModel),
       system: getSystemPrompt(),
       prompt: [
         reviewSerpQueriesPrompt(reportPlan, learnings, suggestion),
@@ -426,7 +416,7 @@ function useDeepResearch() {
       (item) => item.url
     );
     const result = streamText({
-      model: createProvider(thinkingModel),
+      model: await createModelProvider(thinkingModel),
       system: [getSystemPrompt(), outputGuidelinesPrompt].join("\n\n"),
       prompt: [
         writeFinalReportPrompt(
@@ -478,7 +468,7 @@ function useDeepResearch() {
     try {
       let queries = [];
       const result = streamText({
-        model: createProvider(thinkingModel),
+        model: await createModelProvider(thinkingModel),
         system: getSystemPrompt(),
         prompt: [
           generateSerpQueriesPrompt(reportPlan),

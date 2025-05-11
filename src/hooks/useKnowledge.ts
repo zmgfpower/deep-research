@@ -67,7 +67,7 @@ async function localCrawler(url: string) {
 }
 
 function useKnowledge() {
-  const { createProvider, getModel } = useModelProvider();
+  const { createModelProvider, getModel } = useModelProvider();
   const knowledgeStore = useKnowledgeStore();
 
   function generateId(
@@ -129,7 +129,7 @@ function useKnowledge() {
         if (text.length > 204800 || !file.type.startsWith("text/")) {
           let content = "";
           const result = streamText({
-            model: createProvider(networkingModel),
+            model: await createModelProvider(networkingModel),
             prompt: text,
             system: rewritingPrompt,
             onFinish: () => {
@@ -232,7 +232,7 @@ function useKnowledge() {
           const result = await localCrawler(url);
           let content = "";
           const stream = streamText({
-            model: createProvider(networkingModel),
+            model: await createModelProvider(networkingModel),
             prompt: result.content,
             system: rewritingPrompt,
             onFinish: () => {

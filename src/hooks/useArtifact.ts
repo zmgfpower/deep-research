@@ -30,14 +30,14 @@ function handleError(error: unknown) {
 }
 
 function useArtifact({ value, onChange }: ArtifactProps) {
-  const { createProvider, getModel } = useModelProvider();
+  const { createModelProvider, getModel } = useModelProvider();
   const [loadingAction, setLoadingAction] = useState<string>("");
 
   async function AIWrite(prompt: string, systemInstruction?: string) {
     const { thinkingModel } = getModel();
     setLoadingAction("aiWrite");
     const result = streamText({
-      model: createProvider(thinkingModel),
+      model: await createModelProvider(thinkingModel),
       prompt: AIWritePrompt(value, prompt, systemInstruction),
       experimental_transform: smoothTextStream(),
       onError: handleError,
@@ -55,7 +55,7 @@ function useArtifact({ value, onChange }: ArtifactProps) {
     const { thinkingModel } = getModel();
     setLoadingAction("translate");
     const result = streamText({
-      model: createProvider(thinkingModel),
+      model: await createModelProvider(thinkingModel),
       prompt: changeLanguagePrompt(value, lang, systemInstruction),
       experimental_transform: smoothTextStream(),
       onError: handleError,
@@ -73,7 +73,7 @@ function useArtifact({ value, onChange }: ArtifactProps) {
     const { thinkingModel } = getModel();
     setLoadingAction("readingLevel");
     const result = streamText({
-      model: createProvider(thinkingModel),
+      model: await createModelProvider(thinkingModel),
       prompt: changeReadingLevelPrompt(value, level, systemInstruction),
       experimental_transform: smoothTextStream(),
       onError: handleError,
@@ -91,7 +91,7 @@ function useArtifact({ value, onChange }: ArtifactProps) {
     const { thinkingModel } = getModel();
     setLoadingAction("adjustLength");
     const result = streamText({
-      model: createProvider(thinkingModel),
+      model: await createModelProvider(thinkingModel),
       prompt: adjustLengthPrompt(value, length, systemInstruction),
       experimental_transform: smoothTextStream(),
       onError: handleError,
@@ -109,7 +109,7 @@ function useArtifact({ value, onChange }: ArtifactProps) {
     const { thinkingModel } = getModel();
     setLoadingAction("continuation");
     const result = streamText({
-      model: createProvider(thinkingModel),
+      model: await createModelProvider(thinkingModel),
       prompt: continuationPrompt(value, systemInstruction),
       experimental_transform: smoothTextStream(),
       onError: handleError,
@@ -127,7 +127,7 @@ function useArtifact({ value, onChange }: ArtifactProps) {
     const { thinkingModel } = getModel();
     setLoadingAction("addEmojis");
     const result = streamText({
-      model: createProvider(thinkingModel),
+      model: await createModelProvider(thinkingModel),
       prompt: addEmojisPrompt(value, systemInstruction),
       experimental_transform: smoothTextStream(),
       onError: handleError,

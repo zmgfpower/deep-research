@@ -34,7 +34,7 @@ import useDeepResearch from "@/hooks/useDeepResearch";
 import useKnowledge from "@/hooks/useKnowledge";
 import { useTaskStore } from "@/store/task";
 import { useKnowledgeStore } from "@/store/knowledge";
-import { getSystemPrompt } from "@/utils/deep-research";
+import { getSystemPrompt } from "@/utils/deep-research/prompts";
 import { downloadFile } from "@/utils/file";
 
 const MagicDown = dynamic(() => import("@/components/MagicDown"));
