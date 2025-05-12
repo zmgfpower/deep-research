@@ -23,7 +23,7 @@ Deep Research uses a variety of powerful AI models to generate in-depth research
 - **Rapid Deep Research:** Generates comprehensive research reports in about 2 minutes, significantly accelerating your research process.
 - **Multi-platform Support:** Supports rapid deployment to Vercel, Cloudflare and other platforms.
 - **Powered by AI:** Utilizes the advanced AI models for accurate and insightful analysis.
-- **Support for Multi-LLM:** Supports a variety of mainstream large language models, including Gemini, OpenAI, Anthropic, Deepseek, Grok, OpenAI Compatible, OpenRouter, Ollama, etc.
+- **Support for Multi-LLM:** Supports a variety of mainstream large language models, including Gemini, OpenAI, Anthropic, Deepseek, Grok, Mistral, Azure OpenAI, any OpenAI Compatible LLMs, OpenRouter, Ollama, etc.
 - **Support Web Search:** Supports search engines such as Searxng, Tavily, Firecrawl, Exa, Bocha, etc., allowing LLMs that do not support search to use the web search function more conveniently.
 - **Thinking & Task Models:** Employs sophisticated "Thinking" and "Task" models to balance depth and speed, ensuring high-quality results quickly. Support switching research models.
 - **Support Further Research:** You can refine or adjust the research content at any stage of the project and support re-research from that stage.

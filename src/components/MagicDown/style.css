@@ -46,4 +46,16 @@
   a.reference {
     @apply text-xs before:content-["["] after:content-["]"];
   }
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-in;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

@@ -7,6 +7,7 @@ import remarkBreaks from "remark-breaks";
 import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
 import { clsx } from "clsx";
+import { animateText } from "@/utils/animateText";
 import { omit } from "radash";
 
 import "katex/dist/katex.min.css";
@@ -34,6 +35,7 @@ function Magicdown({ children: content, ...rest }: Options) {
       rehypePlugins={[
         [rehypeHighlight, { detect: true, ignoreMissing: true }],
         rehypeKatex,
+        animateText,
         ...rehypePlugins,
       ]}
       components={{
