@@ -77,6 +77,15 @@ BOCHA_API_BASE_URL=
 # (Optional) Server-side Searxng API Proxy URL. Default, `http://0.0.0.0:8080`
 SEARXNG_API_BASE_URL=
 
+# (Optional) MCP Server AI provider
+MCP_AI_PROVIDER=
+# (Optional) MCP Server search provider. Default, `model`
+MCP_SEARCH_PROVIDER=
+# (Optional) MCP Server thinking model, the core model used in deep research.
+MCP_THINKING_MODEL=
+# (Optional) MCP Server task model, used for secondary tasks, high output models are recommended.
+MCP_TASK_MODEL=
+
 # (Optional) Disable server-side AI provider usage permissions
 NEXT_PUBLIC_DISABLED_AI_PROVIDER=
 # (Optional) Disable server-side search provider usage permissions

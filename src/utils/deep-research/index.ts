@@ -19,7 +19,6 @@ export interface DeepResearchOptions {
   AIProvider: {
     baseURL?: string;
     apiKey?: string;
-    headers?: Record<string, string>;
     provider: string;
     thinkingModel: string;
     taskModel: string;
@@ -63,11 +62,7 @@ class DeepResearch {
 
   async getThinkingModel() {
     const { AIProvider } = this.options;
-    const AIProviderBaseOptions = pick(AIProvider, [
-      "baseURL",
-      "apiKey",
-      "headers",
-    ]);
+    const AIProviderBaseOptions = pick(AIProvider, ["baseURL", "apiKey"]);
     return await createAIProvider({
       provider: AIProvider.provider,
       model: AIProvider.thinkingModel,
@@ -77,11 +72,7 @@ class DeepResearch {
 
   async getTaskModel() {
     const { AIProvider } = this.options;
-    const AIProviderBaseOptions = pick(AIProvider, [
-      "baseURL",
-      "apiKey",
-      "headers",
-    ]);
+    const AIProviderBaseOptions = pick(AIProvider, ["baseURL", "apiKey"]);
     return await createAIProvider({
       provider: AIProvider.provider,
       model: AIProvider.taskModel,
