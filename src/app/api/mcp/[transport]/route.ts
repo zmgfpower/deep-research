@@ -68,6 +68,10 @@ const handler = createMcpRouteHandler(
       }
     );
   },
+  {
+    name: "deep-research",
+    version: "0.1.0",
+  },
   // Optional: Comes from the McpServer.options
   {
     capabilities: {
@@ -81,11 +85,7 @@ const handler = createMcpRouteHandler(
   },
   // Optional: Comes from the createMcpRouteHandler config
   {
-    streamableHttpEndpoint: "/mcp",
-    sseEndpoint: "/sse",
-    sseMessageEndpoint: "/message",
     basePath: "/api/mcp",
-    redisUrl: "redis://127.0.0.1:6381",
   }
 );
 

@@ -331,7 +331,8 @@ class DeepResearch {
       const reportPlan = await this.writeReportPlan(this.options.query);
       const tasks = await this.generateSERPQuery(reportPlan);
       const results = await this.runSearchTask(tasks);
-      return await this.writeFinalReport(reportPlan, results);
+      const finalReport = await this.writeFinalReport(reportPlan, results);
+      return finalReport;
     } catch (err) {
       this.onMessage(
         "error",
