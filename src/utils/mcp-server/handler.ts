@@ -11,7 +11,7 @@ import type { ServerOptions } from "@modelcontextprotocol/sdk/server/index.js";
 
 type BodyType = string | Buffer | Record<string, any> | null;
 interface SerializedRequest {
-  requestId: string;
+  sessionId: string;
   url: string;
   method: string;
   body: BodyType;
@@ -85,7 +85,7 @@ function deriveEndpointsFromBasePath(basePath: string): {
   const normalizedBasePath = basePath.replace(/\/$/, "");
 
   return {
-    streamableHttpEndpoint: `${normalizedBasePath}/mcp`,
+    streamableHttpEndpoint: `${normalizedBasePath}/streamable`,
     sseEndpoint: `${normalizedBasePath}/sse`,
     sseMessageEndpoint: `${normalizedBasePath}/message`,
   };
@@ -115,11 +115,10 @@ export function initializeMcpApiHandler(
   serverOptions: ServerOptions = {},
   config: Config = {
     basePath: "",
-    maxDuration: 60,
     verboseLogs: false,
   }
 ) {
-  const { basePath, maxDuration, verboseLogs } = config;
+  const { basePath, verboseLogs } = config;
 
   // If basePath is provided, derive endpoints from it
   const { streamableHttpEndpoint, sseEndpoint, sseMessageEndpoint } =
@@ -128,8 +127,7 @@ export function initializeMcpApiHandler(
     });
 
   const logger = createLogger(verboseLogs);
-
-  let transport: any;
+  const transports: Record<string, SSEServerTransport> = {};
 
   return async function mcpApiHandler(req: Request, res: ServerResponse) {
     const url = new URL(req.url || "");
@@ -156,19 +154,21 @@ export function initializeMcpApiHandler(
         body = b as string;
         return syntheticRes;
       };
-      await transport.handlePostMessage(req, syntheticRes);
 
-      const response = JSON.parse(
-        JSON.stringify({
+      const transport = transports[request.sessionId];
+      if (transport) {
+        await transport.handlePostMessage(req, syntheticRes);
+
+        const response = {
           status,
           body,
-        })
-      ) as {
-        status: number;
-        body: string;
-      };
-      res.statusCode = response.status;
-      res.end(response.body);
+        };
+        res.statusCode = response.status;
+        res.end(response.body);
+      } else {
+        res.statusCode = 400;
+        res.end("Invalid sessionId");
+      }
     };
 
     if (url.pathname === streamableHttpEndpoint) {
@@ -206,10 +206,10 @@ export function initializeMcpApiHandler(
 
         const server = new McpServer(serverInfo, serverOptions);
         initializeServer(server);
-        const statelessTransport = new StreamableHTTPServerTransport({
+        const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: undefined,
         });
-        await server.connect(statelessTransport);
+        await server.connect(transport);
 
         // Parse the request body
         let bodyContent: BodyType;
@@ -226,12 +226,13 @@ export function initializeMcpApiHandler(
           headers: Object.fromEntries(req.headers),
           body: bodyContent,
         });
-        await statelessTransport.handleRequest(incomingRequest, res);
+        await transport.handleRequest(incomingRequest, res);
       }
     } else if (url.pathname === sseEndpoint) {
       logger.log("Got new SSE connection");
-      transport = new SSEServerTransport(sseMessageEndpoint, res);
+      const transport = new SSEServerTransport(sseMessageEndpoint, res);
       const sessionId = transport.sessionId;
+      transports[transport.sessionId] = transport;
       const server = new McpServer(serverInfo, serverOptions);
       initializeServer(server);
 
@@ -241,29 +242,19 @@ export function initializeMcpApiHandler(
 
       logger.log(`Subscribed to requests:${sessionId}`);
 
-      let timeout: NodeJS.Timeout;
-      let resolveTimeout: (value: unknown) => void;
-      const waitPromise = new Promise((resolve) => {
-        resolveTimeout = resolve;
-        timeout = setTimeout(() => {
-          resolve("max duration reached");
-        }, (maxDuration ?? 60) * 1000);
-      });
-
       async function cleanup() {
-        clearTimeout(timeout);
+        if (transports[sessionId]) {
+          await transports[sessionId].close();
+          delete transports[sessionId];
+        }
         logger.log("Done");
         res.statusCode = 200;
         res.end();
       }
-      req.signal.addEventListener("abort", () =>
-        resolveTimeout("client hang up")
-      );
-
+      req.signal.addEventListener("abort", async () => {
+        await cleanup();
+      });
       await server.connect(transport);
-      const closeReason = await waitPromise;
-      logger.log(closeReason);
-      await cleanup();
     } else if (url.pathname === sseMessageEndpoint) {
       logger.log("Received message");
 
@@ -282,9 +273,8 @@ export function initializeMcpApiHandler(
         res.end("No sessionId provided");
         return;
       }
-      const requestId = crypto.randomUUID();
       const serializedRequest: SerializedRequest = {
-        requestId,
+        sessionId,
         url: req.url || "",
         method: req.method || "",
         body: parsedBody,
@@ -296,13 +286,11 @@ export function initializeMcpApiHandler(
       handleMessage(JSON.stringify(serializedRequest));
       logger.log(`Published requests:${sessionId}`, serializedRequest);
 
-      const timeout = setTimeout(async () => {
-        res.statusCode = 408;
-        res.end("Request timed out");
-      }, 10 * 1000);
-
       res.on("close", async () => {
-        clearTimeout(timeout);
+        if (transports[sessionId]) {
+          await transports[sessionId].close();
+          delete transports[sessionId];
+        }
       });
     } else {
       res.statusCode = 404;

@@ -37,6 +37,14 @@ export async function POST(req: NextRequest) {
     start(controller) {
       console.log("Client connected");
       controller.enqueue(encoder.encode(`data: client connected\n\n`));
+      controller.enqueue(
+        encoder.encode(
+          `event: infor\ndata: ${JSON.stringify({
+            name: "deep-research",
+            version: "0.1.0",
+          })}\n\n`
+        )
+      );
 
       const deepResearch = new DeepResearch({
         query,

@@ -9,6 +9,19 @@ import {
   getSearchProviderApiKey,
 } from "../../utils";
 
+export const runtime = "edge";
+export const dynamic = "force-dynamic";
+export const preferredRegion = [
+  "cle1",
+  "iad1",
+  "pdx1",
+  "sfo1",
+  "sin1",
+  "syd1",
+  "hnd1",
+  "kix1",
+];
+
 const AI_PROVIDER = process.env.MCP_AI_PROVIDER || "";
 const SEARCH_PROVIDER = process.env.MCP_SEARCH_PROVIDER || "";
 const THINKING_MODEL = process.env.MCP_THINKING_MODEL || "";
@@ -86,6 +99,7 @@ const handler = createMcpRouteHandler(
   // Optional: Comes from the createMcpRouteHandler config
   {
     basePath: "/api/mcp",
+    verboseLogs: true,
   }
 );
 
