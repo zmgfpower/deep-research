@@ -12,8 +12,6 @@ import {
 } from "./types";
 import type { ReadableStreamController } from "stream/web";
 
-const nanoid = customAlphabet("1234567890abcdef");
-
 export type StreamId = string;
 export type EventId = string;
 
@@ -72,7 +70,11 @@ export interface StreamableHTTPServerTransportOptions {
    * If provided, resumability will be enabled, allowing clients to reconnect and resume messages
    */
   eventStore?: EventStore;
+
+  cors?: boolean;
 }
+
+const nanoid = customAlphabet("1234567890abcdef");
 
 /**
  * Server transport for Streamable HTTP adapted for Next.js API Routes.
@@ -187,6 +189,7 @@ export class StreamableHTTPServerTransport implements Transport {
   private _standaloneSseStreamId: string = "_GET_stream"; // Fixed ID for GET SSE stream
   private _eventStore?: EventStore;
   private _onsessioninitialized?: (sessionId: string) => void;
+  private _cors: boolean;
 
   sessionId?: string | undefined; // Current active session ID
   onclose?: () => void;
@@ -199,6 +202,11 @@ export class StreamableHTTPServerTransport implements Transport {
     this._enableJsonResponse = options.enableJsonResponse ?? false;
     this._eventStore = options.eventStore;
     this._onsessioninitialized = options.onsessioninitialized;
+    this._cors = !!options.cors;
+  }
+
+  get corsHeader() {
+    return this._cors ? { "Access-Control-Allow-Origin": "*" } : undefined;
   }
 
   /**
@@ -269,15 +277,9 @@ export class StreamableHTTPServerTransport implements Transport {
     }
 
     const headers: Record<string, string> = {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache, no-transform", // Note: Original GET used no-transform, POST used no-cache. Using no-cache, no-transform for consistency with GET spec.
-      Connection: "keep-alive",
+      "Content-Type": "application/json",
+      ...this.corsHeader,
     };
-
-    // After initialization, always include the session ID if we have one
-    if (this.sessionId !== undefined) {
-      headers["mcp-session-id"] = this.sessionId;
-    }
 
     // Handle resumability: check for Last-Event-ID header
     const lastEventId = req.headers.get("last-event-id") as string | undefined;
@@ -299,7 +301,10 @@ export class StreamableHTTPServerTransport implements Transport {
             },
             id: null,
           }),
-          { status: 409, headers: { "Content-Type": "application/json" } }
+          {
+            status: 409,
+            headers,
+          }
         );
       }
 
@@ -322,15 +327,33 @@ export class StreamableHTTPServerTransport implements Transport {
           },
           id: null,
         }),
-        { status: 409, headers: { "Content-Type": "application/json" } }
+        {
+          status: 409,
+          headers,
+        }
       );
     }
 
     // Create and return the new standalone SSE stream
     const stream = this.createSSEStream(this._standaloneSseStreamId, req);
 
+    const responseHeaders: Record<string, string> = {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+      ...this.corsHeader,
+    };
+    // After initialization, always include the session ID if we have one
+    if (this.sessionId !== undefined) {
+      responseHeaders["mcp-session-id"] = this.sessionId;
+    }
+
     // Note: Headers are sent when the stream starts pushing data
-    return new NextResponse(stream, { status: 200, headers });
+    return new NextResponse(stream, {
+      status: 200,
+      headers: responseHeaders,
+    });
   }
 
   /**
@@ -510,6 +533,7 @@ export class StreamableHTTPServerTransport implements Transport {
         headers: {
           Allow: "GET, POST, DELETE",
           "Content-Type": "application/json",
+          ...this.corsHeader,
         },
       }
     );
@@ -520,6 +544,11 @@ export class StreamableHTTPServerTransport implements Transport {
    * This method now awaits responses if enableJsonResponse is true.
    */
   private async handlePostRequest(req: NextRequest): Promise<NextResponse> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...this.corsHeader,
+    };
+
     try {
       // Validate Content-Type header
       const ct = req.headers.get("content-type");
@@ -534,7 +563,10 @@ export class StreamableHTTPServerTransport implements Transport {
             },
             id: null,
           }),
-          { status: 415, headers: { "Content-Type": "application/json" } }
+          {
+            status: 415,
+            headers,
+          }
         );
       }
 
@@ -558,7 +590,10 @@ export class StreamableHTTPServerTransport implements Transport {
             },
             id: null,
           }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
+          {
+            status: 400,
+            headers,
+          }
         );
       }
 
@@ -585,7 +620,10 @@ export class StreamableHTTPServerTransport implements Transport {
             },
             id: null, // Or the id from the message if available before validation failed
           }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
+          {
+            status: 400,
+            headers,
+          }
         );
       }
 
@@ -605,7 +643,10 @@ export class StreamableHTTPServerTransport implements Transport {
               },
               id: null,
             }),
-            { status: 400, headers: { "Content-Type": "application/json" } }
+            {
+              status: 400,
+              headers,
+            }
           );
         }
         if (messages.length > 1) {
@@ -620,7 +661,10 @@ export class StreamableHTTPServerTransport implements Transport {
               },
               id: null,
             }),
-            { status: 400, headers: { "Content-Type": "application/json" } }
+            {
+              status: 400,
+              headers,
+            }
           );
         }
 
@@ -687,7 +731,10 @@ export class StreamableHTTPServerTransport implements Transport {
                 },
                 id: null,
               }),
-              { status: 400, headers: { "Content-Type": "application/json" } }
+              {
+                status: 400,
+                headers,
+              }
             );
           }
           requestIds.push(request.id);
@@ -722,23 +769,24 @@ export class StreamableHTTPServerTransport implements Transport {
         });
 
         // Construct the final JSON response
-        const headers: Record<string, string> = {
+        const responseHeaders: Record<string, string> = {
           "Content-Type": "application/json",
+          ...this.corsHeader,
         };
         if (this.sessionId !== undefined) {
-          headers["mcp-session-id"] = this.sessionId;
+          responseHeaders["mcp-session-id"] = this.sessionId;
         }
 
         const responseBody = responses.length === 1 ? responses[0] : responses;
 
         return new NextResponse(JSON.stringify(responseBody), {
           status: 200, // Assuming all responses were successful JSON-RPC responses or errors
-          headers,
+          headers: responseHeaders,
         });
       } else {
         // --- SSE Streaming Mode ---
         // Create a unique stream ID for this batch of requests
-        const streamId = nanoid();
+        const streamId = nanoid(32);
 
         // Create the SSE stream. The controller will be stored in _streamMapping inside createSSEStream.
         const stream = this.createSSEStream(streamId, req);
@@ -769,16 +817,21 @@ export class StreamableHTTPServerTransport implements Transport {
         });
 
         // Return the SSE response immediately. Data is sent via the stream asynchronously.
-        const headers: Record<string, string> = {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache", // Use no-cache for POST SSE according to original code
+        const responseHeaders: Record<string, string> = {
+          "Content-Type": "text/event-stream; charset=utf-8",
+          "Cache-Control": "no-cache, no-transform",
           Connection: "keep-alive",
+          "X-Accel-Buffering": "no",
+          ...this.corsHeader,
         };
         if (this.sessionId !== undefined) {
-          headers["mcp-session-id"] = this.sessionId;
+          responseHeaders["mcp-session-id"] = this.sessionId;
         }
 
-        return new NextResponse(stream, { status: 200, headers });
+        return new NextResponse(stream, {
+          status: 200,
+          headers: responseHeaders,
+        });
       }
     } catch (error) {
       // Catch any errors occurring *before* a response is returned (e.g., during parsing, validation, initialization logic)
@@ -804,7 +857,7 @@ export class StreamableHTTPServerTransport implements Transport {
         }),
         {
           status: 400, // Bad Request for -32700/-32600, maybe 500 for -32603
-          headers: { "Content-Type": "application/json" },
+          headers,
         }
       );
     }
@@ -820,7 +873,7 @@ export class StreamableHTTPServerTransport implements Transport {
     }
 
     await this.close(); // Close the transport, which closes all streams for this session
-    return new NextResponse(null, { status: 200 }); // Return success response
+    return new NextResponse(null, { status: 200, headers: this.corsHeader }); // Return success response
   }
 
   /**
@@ -832,6 +885,12 @@ export class StreamableHTTPServerTransport implements Transport {
       // If the sessionIdGenerator is undefined, session management is disabled
       return true; // Always valid in stateless mode
     }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...this.corsHeader,
+    };
+
     if (!this._initialized) {
       // Server must be initialized in stateful mode before receiving non-init requests
       return new NextResponse(
@@ -843,7 +902,10 @@ export class StreamableHTTPServerTransport implements Transport {
           },
           id: null,
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers,
+        }
       );
     }
 
@@ -861,7 +923,10 @@ export class StreamableHTTPServerTransport implements Transport {
           },
           id: null,
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers,
+        }
       );
       // Note: req.headers.get() handles multiple headers by returning the first one,
       // so Array.isArray check is not needed for NextRequest headers.
@@ -873,7 +938,10 @@ export class StreamableHTTPServerTransport implements Transport {
           error: { code: -32001, message: "Session not found" }, // Spec uses 404 for session not found
           id: null,
         }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        {
+          status: 404,
+          headers,
+        }
       );
     }
 

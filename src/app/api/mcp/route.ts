@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
     const transport: StreamableHTTPServerTransport =
       new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined,
+        cors: true,
       });
 
     transport.onclose = () => {

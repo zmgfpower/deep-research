@@ -4,6 +4,11 @@ import { customAlphabet } from "nanoid";
 import { Transport } from "./shared/transport";
 import { JSONRPCMessage, JSONRPCMessageSchema } from "./types";
 
+interface SSEServerTransportOptions {
+  endpoint: string;
+  cors?: boolean;
+}
+
 const nanoid = customAlphabet("1234567890abcdef");
 
 /**
@@ -114,6 +119,7 @@ export class SSEServerTransport implements Transport {
   // Counter for generating SSE event IDs (optional but good practice for SSE)
   private _messageIdCounter: number = 0;
   private _endpoint: string;
+  private _cors: boolean;
 
   onclose?: () => void;
   onerror?: (error: Error) => void;
@@ -126,10 +132,15 @@ export class SSEServerTransport implements Transport {
    *
    * @param _postEndpointPath The URL path clients should use for POSTing messages (e.g., '/api/messages').
    */
-  constructor(endpoint: string) {
-    this._endpoint = endpoint;
-    this._sessionId = nanoid(); // Generate unique session ID for this instance
+  constructor(options: SSEServerTransportOptions) {
+    this._endpoint = options.endpoint;
+    this._cors = !!options.cors;
+    this._sessionId = nanoid(32); // Generate unique session ID for this instance
     // The 'res' parameter from the original constructor is removed as NextResponse is returned.
+  }
+
+  get corsHeader() {
+    return this._cors ? { "Access-Control-Allow-Origin": "*" } : undefined;
   }
 
   async start(): Promise<void> {
@@ -151,9 +162,11 @@ export class SSEServerTransport implements Transport {
    */
   async handleGetRequest(): Promise<NextResponse> {
     const headers: Record<string, string> = {
-      "Content-Type": "text/event-stream",
+      "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+      ...this.corsHeader,
     };
 
     // Create the ReadableStream for the SSE body
@@ -208,10 +221,10 @@ export class SSEServerTransport implements Transport {
    * @returns A Promise resolving to a NextResponse (e.g., 202 Accepted or an error).
    */
   async handlePostMessage(req: NextRequest): Promise<NextResponse> {
-    // The session ID validation from the URL query param should ideally
-    // happen in the API route handler *before* calling this method,
-    // as the route handler needs the ID to find the correct transport instance.
-    // However, adding a check here provides a safeguard within the instance itself.
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...this.corsHeader,
+    };
 
     const sessionIdFromUrl = req.nextUrl.searchParams.get("sessionId");
 
@@ -232,7 +245,7 @@ export class SSEServerTransport implements Transport {
           },
           id: null,
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers }
       );
     }
 
@@ -254,7 +267,7 @@ export class SSEServerTransport implements Transport {
           },
           id: null,
         }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers }
       );
     }
 
@@ -276,7 +289,7 @@ export class SSEServerTransport implements Transport {
           error: { code: -32700, message: "Parse error", data: String(error) },
           id: null,
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers }
       );
     }
 
@@ -304,7 +317,7 @@ export class SSEServerTransport implements Transport {
           },
           id: (rawMessage as any)?.id ?? null, // Include ID if available in the failed message
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers }
       );
     }
 
@@ -312,8 +325,7 @@ export class SSEServerTransport implements Transport {
     console.log(`[${this._sessionId}] POST message accepted.`);
     return new NextResponse(null, {
       status: 202,
-      // Optionally include session ID in POST response headers? Spec doesn't require.
-      // headers: { 'mcp-session-id': this._sessionId }
+      headers: { ...headers, "mcp-session-id": this._sessionId },
     });
   }
 
