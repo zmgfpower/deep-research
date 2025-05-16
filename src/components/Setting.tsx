@@ -67,6 +67,7 @@ import {
   BOCHA_BASE_URL,
   SEARXNG_BASE_URL,
 } from "@/constants/urls";
+import locales from "@/constants/locales";
 import {
   filterThinkingModelList,
   filterNetworkingModelList,
@@ -3171,8 +3172,13 @@ function Setting({ open, onClose }: SettingProps) {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="en-US">English</SelectItem>
-                            <SelectItem value="zh-CN">简体中文</SelectItem>
+                            {Object.entries(locales).map(([code, name]) => {
+                              return (
+                                <SelectItem key={code} value={code}>
+                                  {name}
+                                </SelectItem>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
                       </FormControl>
