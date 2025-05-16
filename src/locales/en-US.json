@@ -138,8 +138,21 @@
     "addEmojis": "Add Emojis",
     "send": "Send"
   },
+  "knowledgeGraph": {
+    "action": "Generate Knowledge Graph",
+    "regenerate": "Regenerate",
+    "edit": "Edit",
+    "view": "View"
+  },
   "editor": {
     "copy": "Copy",
+    "mermaid": {
+      "downloadSvg": "Download as Image",
+      "copyText": "Copy Text",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "resize": "Resize"
+    },
     "tooltip": {
       "bold": "Bold",
       "italic": "Italic",

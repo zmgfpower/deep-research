@@ -16,6 +16,7 @@ export interface TaskStore {
   title: string;
   finalReport: string;
   sources: Source[];
+  knowledgeGraph: string;
 }
 
 interface TaskFunction {
@@ -36,6 +37,7 @@ interface TaskFunction {
   updateFinalReport: (report: string) => void;
   setSources: (sources: Source[]) => void;
   setFeedback: (feedback: string) => void;
+  updateKnowledgeGraph: (knowledgeGraph: string) => void;
   clear: () => void;
   reset: () => void;
   backup: () => TaskStore;
@@ -56,6 +58,7 @@ const defaultValues: TaskStore = {
   title: "",
   finalReport: "",
   sources: [],
+  knowledgeGraph: "",
 };
 
 export const useTaskStore = create(
@@ -100,6 +103,7 @@ export const useTaskStore = create(
       updateFinalReport: (report) => set(() => ({ finalReport: report })),
       setSources: (sources) => set(() => ({ sources })),
       setFeedback: (feedback) => set(() => ({ feedback })),
+      updateKnowledgeGraph: (knowledgeGraph) => set(() => ({ knowledgeGraph })),
       clear: () => set(() => ({ tasks: [] })),
       reset: () => set(() => ({ ...defaultValues })),
       backup: () => {

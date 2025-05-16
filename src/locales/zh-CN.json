@@ -138,8 +138,21 @@
     "addEmojis": "添加表情",
     "send": "发送"
   },
+  "knowledgeGraph": {
+    "action": "生成知识图谱",
+    "regenerate": "重新生成",
+    "edit": "编辑",
+    "view": "查看"
+  },
   "editor": {
     "copy": "复制",
+    "mermaid": {
+      "downloadSvg": "下载为图片",
+      "copyText": "复制文本",
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "resize": "重置大小"
+    },
     "tooltip": {
       "bold": "粗体",
       "italic": "斜体",

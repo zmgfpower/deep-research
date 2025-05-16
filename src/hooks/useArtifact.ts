@@ -102,7 +102,7 @@ function useArtifact({ value, onChange }: ArtifactProps) {
       prompt: continuationPrompt(value, systemInstruction),
       onError: handleError,
     });
-    let text = value;
+    let text = value + "\n";
     for await (const textPart of result.textStream) {
       text += textPart;
       onChange(text);

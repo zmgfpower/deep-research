@@ -49,6 +49,14 @@
   .animate-fade-in {
     animation: fadeIn 0.2s ease-in;
   }
+  .react-transform-wrapper {
+    @apply w-auto h-auto;
+  }
+  &.mermaid-view {
+    .react-transform-wrapper {
+      @apply w-auto min-h-80;
+    }
+  }
 }
 
 @keyframes fadeIn {
