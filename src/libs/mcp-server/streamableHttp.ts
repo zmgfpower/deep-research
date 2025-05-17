@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from "next/server";
 import { customAlphabet } from "nanoid";
 import { Transport } from "./shared/transport";
 import {
@@ -78,7 +77,7 @@ const nanoid = customAlphabet("1234567890abcdef");
 
 /**
  * Server transport for Streamable HTTP adapted for Next.js API Routes.
- * It supports both SSE streaming and direct HTTP responses using NextRequest and NextResponse.
+ * It supports both SSE streaming and direct HTTP responses using Request and Response.
  *
  * Usage example in a Next.js API route (e.g., `app/api/mcp/route.ts`):
  *
@@ -130,21 +129,21 @@ const nanoid = customAlphabet("1234567890abcdef");
  * transport.start().catch(console.error);
  *
  * // Your API route handler function
- * export async function GET(req: NextRequest) {
+ * export async function GET(req: Request) {
  *   // In a real app, add auth logic here if needed and pass info to handleRequest
  *   // const authInfo = await getAuthInfo(req);
  *   // (req as any).auth = authInfo; // Example: adding auth info
  *   return transport.handleRequest(req);
  * }
  *
- * export async function POST(req: NextRequest) {
+ * export async function POST(req: Request) {
  *   // In a real app, add auth logic here if needed and pass info to handleRequest
  *   // const authInfo = await getAuthInfo(req);
  *   // (req as any).auth = authInfo; // Example: adding auth info
  *   return transport.handleRequest(req);
  * }
  *
- * export async function DELETE(req: NextRequest) {
+ * export async function DELETE(req: Request) {
  *   // In a real app, add auth logic here if needed and pass info to handleRequest
  *   // const authInfo = await getAuthInfo(req);
  *   // (req as any).auth = authInfo; // Example: adding auth info
@@ -152,7 +151,7 @@ const nanoid = customAlphabet("1234567890abcdef");
  * }
  *
  * // Add other HTTP methods if your spec supports them, otherwise handleUnsupportedRequest will return 405
- * // export async function PUT(req: NextRequest) { return transport.handleRequest(req); }
+ * // export async function PUT(req: Request) { return transport.handleRequest(req); }
  * ```
  *
  * In stateful mode:
@@ -224,9 +223,9 @@ export class StreamableHTTPServerTransport implements Transport {
 
   /**
    * Handles an incoming HTTP request, whether GET, POST, or DELETE.
-   * Returns a NextResponse to be sent back to the client.
+   * Returns a Response to be sent back to the client.
    */
-  async handleRequest(req: NextRequest): Promise<NextResponse> {
+  async handleRequest(req: Request): Promise<Response> {
     try {
       // Note: req.auth requires middleware or wrapper to add it to the request object.
       // If not using a wrapper, authInfo would need to be retrieved here from headers/cookies etc.
@@ -246,7 +245,7 @@ export class StreamableHTTPServerTransport implements Transport {
       // Catch any unexpected errors during request processing
       this.onerror?.(error as Error);
       // Return a standard internal server error response
-      return new NextResponse(
+      return new Response(
         JSON.stringify({
           jsonrpc: "2.0",
           error: {
@@ -265,9 +264,9 @@ export class StreamableHTTPServerTransport implements Transport {
   }
 
   /**
-   * Handles GET requests for SSE stream, returns a NextResponse with a ReadableStream.
+   * Handles GET requests for SSE stream, returns a Response with a ReadableStream.
    */
-  private async handleGetRequest(req: NextRequest): Promise<NextResponse> {
+  private async handleGetRequest(req: Request): Promise<Response> {
     // If an Mcp-Session-Id is returned by the server during initialization,
     // clients using the Streamable HTTP transport MUST include it
     // in the Mcp-Session-Id header on all of their subsequent HTTP requests.
@@ -292,7 +291,7 @@ export class StreamableHTTPServerTransport implements Transport {
       // Let's check if an active stream already exists before replaying.
       if (this._streamMapping.has(this._standaloneSseStreamId)) {
         // Only one GET SSE stream allowed per session
-        return new NextResponse(
+        return new Response(
           JSON.stringify({
             jsonrpc: "2.0",
             error: {
@@ -309,16 +308,16 @@ export class StreamableHTTPServerTransport implements Transport {
       }
 
       // Create stream, replay will happen in the stream's start method
-      const stream = this.createSSEStream(this._standaloneSseStreamId, req, {
+      const stream = this.createSSEStream(this._standaloneSseStreamId, {
         lastEventId,
       });
-      return new NextResponse(stream, { status: 200, headers });
+      return new Response(stream, { status: 200, headers });
     }
 
     // Check if there's already an active standalone SSE stream for this session
     if (this._streamMapping.has(this._standaloneSseStreamId)) {
       // Only one GET SSE stream allowed per session
-      return new NextResponse(
+      return new Response(
         JSON.stringify({
           jsonrpc: "2.0",
           error: {
@@ -335,7 +334,7 @@ export class StreamableHTTPServerTransport implements Transport {
     }
 
     // Create and return the new standalone SSE stream
-    const stream = this.createSSEStream(this._standaloneSseStreamId, req);
+    const stream = this.createSSEStream(this._standaloneSseStreamId);
 
     const responseHeaders: Record<string, string> = {
       "Content-Type": "text/event-stream; charset=utf-8",
@@ -350,7 +349,7 @@ export class StreamableHTTPServerTransport implements Transport {
     }
 
     // Note: Headers are sent when the stream starts pushing data
-    return new NextResponse(stream, {
+    return new Response(stream, {
       status: 200,
       headers: responseHeaders,
     });
@@ -362,7 +361,6 @@ export class StreamableHTTPServerTransport implements Transport {
    */
   private createSSEStream(
     streamId: string,
-    req: NextRequest,
     options?: { lastEventId?: string }
   ): ReadableStream<string> {
     let controller: ReadableStreamController<string>;
@@ -516,10 +514,10 @@ export class StreamableHTTPServerTransport implements Transport {
   }
 
   /**
-   * Handles unsupported requests (PUT, PATCH, etc.), returns a NextResponse 405.
+   * Handles unsupported requests (PUT, PATCH, etc.), returns a Response 405.
    */
-  private handleUnsupportedRequest(): NextResponse {
-    return new NextResponse(
+  private handleUnsupportedRequest(): Response {
+    return new Response(
       JSON.stringify({
         jsonrpc: "2.0",
         error: {
@@ -540,10 +538,10 @@ export class StreamableHTTPServerTransport implements Transport {
   }
 
   /**
-   * Handles POST requests containing JSON-RPC messages, returns a NextResponse.
+   * Handles POST requests containing JSON-RPC messages, returns a Response.
    * This method now awaits responses if enableJsonResponse is true.
    */
-  private async handlePostRequest(req: NextRequest): Promise<NextResponse> {
+  private async handlePostRequest(req: Request): Promise<Response> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...this.corsHeader,
@@ -553,7 +551,7 @@ export class StreamableHTTPServerTransport implements Transport {
       // Validate Content-Type header
       const ct = req.headers.get("content-type");
       if (!ct || !ct.includes("application/json")) {
-        return new NextResponse(
+        return new Response(
           JSON.stringify({
             jsonrpc: "2.0",
             error: {
@@ -573,14 +571,14 @@ export class StreamableHTTPServerTransport implements Transport {
       // Read and parse the request body as JSON
       let rawMessage: any;
       try {
-        // NextRequest.json() handles parsing and checks Content-Type internally
+        // Request.json() handles parsing and checks Content-Type internally
         // It might also respect serverless function body size limits automatically
         rawMessage = await req.json();
         // Potential improvement: Manually check body size if req.json() doesn't enforce MAXIMUM_MESSAGE_SIZE
       } catch (parseError) {
         // Handle JSON parsing errors
         this.onerror?.(parseError as Error);
-        return new NextResponse(
+        return new Response(
           JSON.stringify({
             jsonrpc: "2.0",
             error: {
@@ -610,7 +608,7 @@ export class StreamableHTTPServerTransport implements Transport {
       } catch (validationError) {
         // Handle message validation errors (e.g. Zod errors)
         this.onerror?.(validationError as Error);
-        return new NextResponse(
+        return new Response(
           JSON.stringify({
             jsonrpc: "2.0",
             error: {
@@ -634,7 +632,7 @@ export class StreamableHTTPServerTransport implements Transport {
         // Initialization request handling
         if (this._initialized && this.sessionId !== undefined) {
           // Server already initialized, reject re-initialization
-          return new NextResponse(
+          return new Response(
             JSON.stringify({
               jsonrpc: "2.0",
               error: {
@@ -651,7 +649,7 @@ export class StreamableHTTPServerTransport implements Transport {
         }
         if (messages.length > 1) {
           // Initialization must be a single message
-          return new NextResponse(
+          return new Response(
             JSON.stringify({
               jsonrpc: "2.0",
               error: {
@@ -699,7 +697,7 @@ export class StreamableHTTPServerTransport implements Transport {
         if (this.sessionId !== undefined) {
           headers["mcp-session-id"] = this.sessionId;
         }
-        return new NextResponse(null, { status: 202, headers });
+        return new Response(null, { status: 202, headers });
       }
 
       // If there are requests, handle based on enableJsonResponse
@@ -721,7 +719,7 @@ export class StreamableHTTPServerTransport implements Transport {
             );
             // Reject the whole batch or return a specific error? Spec implies all or nothing for batch.
             // Let's return a batch error for simplicity for now.
-            return new NextResponse(
+            return new Response(
               JSON.stringify({
                 jsonrpc: "2.0",
                 error: {
@@ -779,7 +777,7 @@ export class StreamableHTTPServerTransport implements Transport {
 
         const responseBody = responses.length === 1 ? responses[0] : responses;
 
-        return new NextResponse(JSON.stringify(responseBody), {
+        return new Response(JSON.stringify(responseBody), {
           status: 200, // Assuming all responses were successful JSON-RPC responses or errors
           headers: responseHeaders,
         });
@@ -789,7 +787,7 @@ export class StreamableHTTPServerTransport implements Transport {
         const streamId = nanoid(32);
 
         // Create the SSE stream. The controller will be stored in _streamMapping inside createSSEStream.
-        const stream = this.createSSEStream(streamId, req);
+        const stream = this.createSSEStream(streamId);
 
         // Link all requests in this batch to this stream ID
         requests.forEach((request) => {
@@ -828,7 +826,7 @@ export class StreamableHTTPServerTransport implements Transport {
           responseHeaders["mcp-session-id"] = this.sessionId;
         }
 
-        return new NextResponse(stream, {
+        return new Response(stream, {
           status: 200,
           headers: responseHeaders,
         });
@@ -837,7 +835,7 @@ export class StreamableHTTPServerTransport implements Transport {
       // Catch any errors occurring *before* a response is returned (e.g., during parsing, validation, initialization logic)
       this.onerror?.(error as Error);
       // Return a JSON-RPC formatted error response
-      return new NextResponse(
+      return new Response(
         JSON.stringify({
           jsonrpc: "2.0",
           error: {
@@ -864,23 +862,23 @@ export class StreamableHTTPServerTransport implements Transport {
   }
 
   /**
-   * Handles DELETE requests to terminate sessions, returns a NextResponse 200.
+   * Handles DELETE requests to terminate sessions, returns a Response 200.
    */
-  private async handleDeleteRequest(req: NextRequest): Promise<NextResponse> {
+  private async handleDeleteRequest(req: Request): Promise<Response> {
     const sessionValidation = this.validateSession(req);
     if (sessionValidation !== true) {
       return sessionValidation; // Return the error response
     }
 
     await this.close(); // Close the transport, which closes all streams for this session
-    return new NextResponse(null, { status: 200, headers: this.corsHeader }); // Return success response
+    return new Response(null, { status: 200, headers: this.corsHeader }); // Return success response
   }
 
   /**
    * Validates session ID for non-initialization requests.
-   * Returns a NextResponse error if validation fails, otherwise returns true.
+   * Returns a Response error if validation fails, otherwise returns true.
    */
-  private validateSession(req: NextRequest): NextResponse | true {
+  private validateSession(req: Request): Response | true {
     if (this.sessionIdGenerator === undefined) {
       // If the sessionIdGenerator is undefined, session management is disabled
       return true; // Always valid in stateless mode
@@ -893,7 +891,7 @@ export class StreamableHTTPServerTransport implements Transport {
 
     if (!this._initialized) {
       // Server must be initialized in stateful mode before receiving non-init requests
-      return new NextResponse(
+      return new Response(
         JSON.stringify({
           jsonrpc: "2.0",
           error: {
@@ -909,12 +907,12 @@ export class StreamableHTTPServerTransport implements Transport {
       );
     }
 
-    // Use req.headers.get() to get header values in NextRequest
+    // Use req.headers.get() to get header values in Request
     const sessionId = req.headers.get("mcp-session-id");
 
     if (!sessionId) {
       // Mcp-Session-Id header is required in stateful mode after initialization
-      return new NextResponse(
+      return new Response(
         JSON.stringify({
           jsonrpc: "2.0",
           error: {
@@ -929,10 +927,10 @@ export class StreamableHTTPServerTransport implements Transport {
         }
       );
       // Note: req.headers.get() handles multiple headers by returning the first one,
-      // so Array.isArray check is not needed for NextRequest headers.
+      // so Array.isArray check is not needed for Request headers.
     } else if (sessionId !== this.sessionId) {
       // Provided session ID does not match the active server session ID
-      return new NextResponse(
+      return new Response(
         JSON.stringify({
           jsonrpc: "2.0",
           error: { code: -32001, message: "Session not found" }, // Spec uses 404 for session not found
@@ -1001,7 +999,7 @@ export class StreamableHTTPServerTransport implements Transport {
     message: JSONRPCMessage,
     options?: { relatedRequestId?: RequestId }
   ): Promise<void> {
-    // This method does NOT return a NextResponse. It modifies internal state or pushes data.
+    // This method does NOT return a Response. It modifies internal state or pushes data.
 
     let requestId = options?.relatedRequestId;
     if (isJSONRPCResponse(message) || isJSONRPCError(message)) {

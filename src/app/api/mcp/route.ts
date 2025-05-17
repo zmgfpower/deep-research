@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
     };
 
     await server.connect(transport);
-    return transport.handleRequest(req);
+    const response = await transport.handleRequest(req);
+    return new NextResponse(response.body, response);
   } catch (error) {
     if (error instanceof Error) {
       console.error(error);

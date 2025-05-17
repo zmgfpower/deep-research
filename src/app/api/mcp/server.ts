@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { McpServer } from "@/libs/mcp-server";
+import { McpServer } from "@/libs/mcp-server/mcp";
 import DeepResearch from "@/utils/deep-research";
 import { multiApiKeyPolling } from "@/utils/model";
 import {

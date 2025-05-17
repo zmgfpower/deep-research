@@ -51,7 +51,8 @@ export async function GET(): Promise<NextResponse> {
 
   await server.connect(transport);
   // Call the transport method to handle the GET request and return the SSE response
-  return transport.handleGetRequest();
+  const response = await transport.handleGetRequest();
+  return new NextResponse(response.body, response);
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -86,5 +87,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // Delegate the POST message handling to the specific transport instance
-  return transport.handlePostMessage(req);
+  const response = await transport.handlePostMessage(req);
+  return new NextResponse(response.body, response);
 }

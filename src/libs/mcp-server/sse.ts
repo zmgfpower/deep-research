@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import type { ReadableStreamController } from "stream/web";
 import { customAlphabet } from "nanoid";
 import { Transport } from "./shared/transport";
+import type { ReadableStreamController } from "stream/web";
 import { JSONRPCMessage, JSONRPCMessageSchema } from "./types";
 
 interface SSEServerTransportOptions {
@@ -21,7 +20,7 @@ const nanoid = customAlphabet("1234567890abcdef");
  * Usage example in Next.js API routes:
  *
  * // api/sse-stream/route.ts (GET handler)
- * import { NextRequest, NextResponse } from 'next/server';
+ * import { Request, Response } from 'next/server';
  * import { SSEServerTransport } from './SSEServerTransport'; // Assuming relative path
  *
  * // In-memory storage for active transport sessions.
@@ -31,7 +30,7 @@ const nanoid = customAlphabet("1234567890abcdef");
  * // The API route path clients will POST messages to
  * const POST_ENDPOINT_PATH = '/api/sse-post'; // This must match your POST API route path
  *
- * export async function GET(req: NextRequest): Promise<NextResponse> {
+ * export async function GET(req: Request): Promise<Response> {
  *   // Create a new transport instance for this session
  *   const transport = new SSEServerTransport(POST_ENDPOINT_PATH);
  *   const sessionId = transport.sessionId;
@@ -75,15 +74,15 @@ const nanoid = customAlphabet("1234567890abcdef");
  * }
  *
  * // api/sse-post/route.ts (POST handler)
- * import { NextRequest, NextResponse } from 'next/server';
+ * import { Request, Response } from 'next/server';
  * import { activeTransports } from '../sse-stream/route'; // Import the map from the GET route file
  *
- * export async function POST(req: NextRequest): Promise<NextResponse> {
+ * export async function POST(req: Request): Promise<Response> {
  *   // Extract the session ID from the query parameter sent by the client
  *   const sessionId = req.nextUrl.searchParams.get('sessionId');
  *
  *   if (!sessionId) {
- *      return new NextResponse(JSON.stringify({
+ *      return new Response(JSON.stringify({
  *          jsonrpc: "2.0",
  *          error: { code: -32600, message: "Missing sessionId query parameter" },
  *          id: null
@@ -96,7 +95,7 @@ const nanoid = customAlphabet("1234567890abcdef");
  *   if (!transport) {
  *      // Session not found or already closed
  *      console.warn(`Received POST for unknown session ID: ${sessionId}`);
- *      return new NextResponse(JSON.stringify({
+ *      return new Response(JSON.stringify({
  *          jsonrpc: "2.0",
  *          error: { code: -32001, message: "Session not found" },
  *          id: null
@@ -136,7 +135,7 @@ export class SSEServerTransport implements Transport {
     this._endpoint = options.endpoint;
     this._cors = !!options.cors;
     this._sessionId = nanoid(32); // Generate unique session ID for this instance
-    // The 'res' parameter from the original constructor is removed as NextResponse is returned.
+    // The 'res' parameter from the original constructor is removed as Response is returned.
   }
 
   get corsHeader() {
@@ -154,13 +153,13 @@ export class SSEServerTransport implements Transport {
 
   /**
    * Handles the initial GET request to establish the SSE stream.
-   * Creates a ReadableStream and returns a NextResponse.
+   * Creates a ReadableStream and returns a Response.
    *
    * This should be called by the GET API route handler.
-   * @param req The incoming NextRequest.
-   * @returns A Promise resolving to the NextResponse containing the SSE stream.
+   * @param req The incoming Request.
+   * @returns A Promise resolving to the Response containing the SSE stream.
    */
-  async handleGetRequest(): Promise<NextResponse> {
+  async handleGetRequest(): Promise<Response> {
     const headers: Record<string, string> = {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
@@ -208,8 +207,8 @@ export class SSEServerTransport implements Transport {
       },
     });
 
-    // Return the NextResponse with the stream body
-    return new NextResponse(stream, { status: 200, headers });
+    // Return the Response with the stream body
+    return new Response(stream, { status: 200, headers });
   }
 
   /**
@@ -217,16 +216,16 @@ export class SSEServerTransport implements Transport {
    * Validates the session ID from the URL and processes the message.
    *
    * This should be called by the POST API route handler.
-   * @param req The incoming NextRequest.
-   * @returns A Promise resolving to a NextResponse (e.g., 202 Accepted or an error).
+   * @param req The incoming Request.
+   * @returns A Promise resolving to a Response (e.g., 202 Accepted or an error).
    */
-  async handlePostMessage(req: NextRequest): Promise<NextResponse> {
+  async handlePostMessage(req: Request): Promise<Response> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...this.corsHeader,
     };
 
-    const sessionIdFromUrl = req.nextUrl.searchParams.get("sessionId");
+    const sessionIdFromUrl = new URL(req.url).searchParams.get("sessionId");
 
     if (sessionIdFromUrl !== this._sessionId) {
       // This indicates a mismatch between the session ID in the URL
@@ -236,7 +235,7 @@ export class SSEServerTransport implements Transport {
       console.warn(
         `[${this._sessionId}] POST received with mismatched or missing sessionId in URL. Expected: ${this._sessionId}, Received: ${sessionIdFromUrl}`
       );
-      return new NextResponse(
+      return new Response(
         JSON.stringify({
           jsonrpc: "2.0",
           error: {
@@ -258,7 +257,7 @@ export class SSEServerTransport implements Transport {
       console.warn(
         `[${this._sessionId}] Received POST but SSE stream is not active.`
       );
-      return new NextResponse(
+      return new Response(
         JSON.stringify({
           jsonrpc: "2.0",
           error: {
@@ -273,7 +272,7 @@ export class SSEServerTransport implements Transport {
 
     let rawMessage: any;
     try {
-      // NextRequest.json() handles content-type and parses JSON
+      // Request.json() handles content-type and parses JSON
       rawMessage = await req.json();
       // Add size limit check if req.json() doesn't strictly enforce it based on serverless provider
       // const bodyText = await req.text();
@@ -283,7 +282,7 @@ export class SSEServerTransport implements Transport {
       console.error(`[${this._sessionId}] Failed to parse POST body:`, error);
       this.onerror?.(error as Error);
       // Return a JSON-RPC parse error response
-      return new NextResponse(
+      return new Response(
         JSON.stringify({
           jsonrpc: "2.0",
           error: { code: -32700, message: "Parse error", data: String(error) },
@@ -303,7 +302,7 @@ export class SSEServerTransport implements Transport {
       );
       // If handleMessage throws (likely due to Zod validation error or onmessage handler error)
       // Return a JSON-RPC Invalid Request error response
-      return new NextResponse(
+      return new Response(
         JSON.stringify({
           jsonrpc: "2.0",
           error: {
@@ -323,7 +322,7 @@ export class SSEServerTransport implements Transport {
 
     // If processing succeeds, return 202 Accepted
     console.log(`[${this._sessionId}] POST message accepted.`);
-    return new NextResponse(null, {
+    return new Response(null, {
       status: 202,
       headers: { ...headers, "mcp-session-id": this._sessionId },
     });

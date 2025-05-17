@@ -86,7 +86,7 @@ export class UriTemplate {
         const operator = this.getOperator(expr);
         const exploded = expr.includes("*");
         const names = this.getNames(expr);
-        const name = names[0];
+        const name = names[0] || "";
 
         // Validate variable name length
         for (const name of names) {
@@ -237,7 +237,7 @@ export class UriTemplate {
 
     if (part.operator === "?" || part.operator === "&") {
       for (let i = 0; i < part.names.length; i++) {
-        const name = part.names[i];
+        const name = part.names[i] || "";
         const prefix = i === 0 ? "\\" + part.operator : "&";
         patterns.push({
           pattern: prefix + this.escapeRegExp(name) + "=([^&]+)",
@@ -302,8 +302,8 @@ export class UriTemplate {
 
     const result: Variables = {};
     for (let i = 0; i < names.length; i++) {
-      const { name, exploded } = names[i];
-      const value = match[i + 1];
+      const { name, exploded } = names[i] || { name: "", exploded: false };
+      const value = match[i + 1] || "";
       const cleanName = name.replace("*", "");
 
       if (exploded && value.includes(",")) {
