@@ -1,6 +1,6 @@
 export function completePath(url: string, newPath?: string) {
   try {
-    const urlObj = new URL(url);
+    const urlObj = new URL(url, location.href);
     let pathname = urlObj.pathname;
 
     // Remove the trailing slash if present

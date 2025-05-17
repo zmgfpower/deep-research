@@ -208,6 +208,7 @@ function useDeepResearch() {
           let content = "";
           let searchResult;
           let sources: Source[] = [];
+          let images: ImageSource[] = [];
           taskStore.updateTask(item.query, { state: "processing" });
           if (resources.length > 0) {
             const knowledges = await searchLocalKnowledges(
@@ -225,7 +226,9 @@ function useDeepResearch() {
           if (enableSearch) {
             if (searchProvider !== "model") {
               try {
-                sources = await search(item.query);
+                const results = await search(item.query);
+                sources = results.sources;
+                images = results.images;
 
                 if (sources.length === 0) {
                   throw new Error("Invalid Search Results");
@@ -329,6 +332,7 @@ function useDeepResearch() {
             state: "completed",
             learning: content,
             sources,
+            images,
           });
           return content;
         });
@@ -398,7 +402,11 @@ function useDeepResearch() {
     setSources([]);
     const learnings = tasks.map((item) => item.learning);
     const sources: Source[] = unique(
-      flat(tasks.map((item) => (item.sources ? item.sources : []))),
+      flat(tasks.map((item) => item.sources)),
+      (item) => item.url
+    );
+    const images: ImageSource[] = unique(
+      flat(tasks.map((item) => item.images)),
       (item) => item.url
     );
     const result = streamText({
@@ -409,6 +417,7 @@ function useDeepResearch() {
           reportPlan,
           learnings,
           sources.map((item) => pick(item, ["title", "url"])),
+          images,
           requirement
         ),
         getResponseLanguagePrompt(language),

@@ -111,6 +111,7 @@ export function writeFinalReportPrompt(
   plan: string,
   learning: string[],
   source: Source[],
+  images: ImageSource[],
   requirement: string
 ) {
   const learnings = learning.map(
@@ -120,9 +121,13 @@ export function writeFinalReportPrompt(
     (item, idx) =>
       `<source index="${idx + 1}" url="${item.url}">\n${item.title}\n</source>`
   );
+  const imageList = images.map(
+    (source, idx) => `${idx + 1}. ![${source.description}](${source.url})`
+  );
   return finalReportPrompt
     .replace("{plan}", plan)
     .replace("{learnings}", learnings.join("\n"))
     .replace("{sources}", sources.join("\n"))
+    .replace("{images}", imageList.join("\n"))
     .replace("{requirement}", requirement);
 }

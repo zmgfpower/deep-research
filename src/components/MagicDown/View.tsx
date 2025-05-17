@@ -109,6 +109,27 @@ function Magicdown({ children: content, ...rest }: Options) {
             </a>
           );
         },
+        img: (props) => {
+          const { className, src, alt, ...rest } = props;
+          return (
+            <picture
+              className={clsx(
+                "my-2 flex justify-center items-center w-4/5 max-sm:w-full h-[50vw] max-sm:h-80 m-auto",
+                className
+              )}
+            >
+              <img
+                className="size-full object-cover rounded transition-all duration-200 ease-out"
+                {...omit(rest, ["node"])}
+                src={src}
+                alt={alt}
+                title={alt}
+                referrerPolicy="no-referrer"
+                rel="noopener noreferrer"
+              />
+            </picture>
+          );
+        },
         ...components,
       }}
     >

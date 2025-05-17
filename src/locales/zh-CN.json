@@ -15,7 +15,7 @@
       "restartResearch": "重新研究",
       "writeReport": "撰写报告",
       "continueResearch": "继续研究",
-      "indepthResearch": "深度研究",
+      "indepthResearch": "进一步研究",
       "rewriteReport": "重写报告",
       "sources": "资料来源",
       "thinking": "思考中...",
@@ -49,7 +49,8 @@
       "emptyTip": "等待分配研究任务...",
       "suggestionLabel": "研究建议（可选）",
       "suggestionPlaceholder": "是否增加或者调整研究方向...",
-      "references": "参考文献"
+      "references": "参考文献",
+      "relatedImages": "相关图片"
     },
     "finalReport": {
       "title": "4. 最终报告",

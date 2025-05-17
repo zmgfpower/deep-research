@@ -40,6 +40,7 @@ import { downloadFile } from "@/utils/file";
 
 const MagicDown = dynamic(() => import("@/components/MagicDown"));
 const MagicDownView = dynamic(() => import("@/components/MagicDown/View"));
+const Lightbox = dynamic(() => import("@/components/Internal/Lightbox"));
 
 const formSchema = z.object({
   suggestion: z.string().optional(),
@@ -137,6 +138,7 @@ function SearchResult() {
       researchGoal,
       learning: "",
       sources: [],
+      images: [],
       state: "unprocessed",
     };
     updateTask(query, newTask);
@@ -246,6 +248,13 @@ function SearchResult() {
                         </>
                       }
                     ></MagicDown>
+                    {item.images?.length > 0 ? (
+                      <>
+                        <hr className="my-6" />
+                        <h4>{t("research.searchResult.relatedImages")}</h4>
+                        <Lightbox data={item.images}></Lightbox>
+                      </>
+                    ) : null}
                     {item.sources?.length > 0 ? (
                       <>
                         <hr className="my-6" />

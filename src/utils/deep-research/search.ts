@@ -7,7 +7,7 @@ import {
 } from "@/constants/urls";
 import { rewritingPrompt } from "@/constants/prompts";
 import { completePath } from "@/utils/url";
-import { pick } from "radash";
+import { pick, sort } from "radash";
 
 type TavilySearchResult = {
   title: string;
@@ -53,6 +53,7 @@ type ExaSearchResult = {
   subpages?: ExaSearchResult[];
   extras?: {
     links?: string[];
+    imageLinks?: string[];
   };
 };
 
@@ -70,6 +71,24 @@ type BochaSearchResult = {
   language: string | null;
   isFamilyFriendly: boolean | null;
   isNavigational: boolean | null;
+};
+
+type BochaImage = {
+  webSearchUrl: string;
+  name: string;
+  thumbnailUrl: string;
+  datePublished: string;
+  contentUrl: string;
+  hostPageUrl: string;
+  contentSize: number;
+  encodingFormat: string;
+  hostPageDisplayUrl: string;
+  width: number;
+  height: number;
+  thumbnail: {
+    width: number;
+    height: number;
+  };
 };
 
 type SearxngSearchResult = {
@@ -126,22 +145,29 @@ export async function createSearchProvider({
         credentials: "omit",
         body: JSON.stringify({
           query,
-          searchDepth: "basic",
+          search_depth: "advanced",
           topic: "general",
-          days: 3,
-          maxResults: Number(maxResult),
-          includeImages: false,
-          includeImageDescriptions: false,
-          includeAnswer: false,
-          includeRawContent: false,
-          chunksPerSource: 3,
+          max_results: Number(maxResult),
+          include_images: true,
+          include_image_descriptions: true,
+          include_answer: false,
+          include_raw_content: true,
         }),
       }
     );
-    const { results = [] } = await response.json();
-    return (results as TavilySearchResult[])
-      .filter((item) => item.content && item.url)
-      .map((result) => pick(result, ["title", "content", "url"])) as Source[];
+    const { results = [], images = [] } = await response.json();
+    return {
+      sources: (results as TavilySearchResult[])
+        .filter((item) => item.content && item.url)
+        .map((result) => {
+          return {
+            title: result.title,
+            content: result.rawContent || result.content,
+            url: result.url,
+          };
+        }) as Source[],
+      images: images as ImageSource[],
+    };
   } else if (provider === "firecrawl") {
     const response = await fetch(
       `${completePath(baseURL || FIRECRAWL_BASE_URL, "/v1")}/search`,
@@ -161,13 +187,16 @@ export async function createSearchProvider({
       }
     );
     const { data = [] } = await response.json();
-    return (data as FirecrawlDocument[])
-      .filter((item) => item.description && item.url)
-      .map((result) => ({
-        content: result.markdown || result.description,
-        url: result.url,
-        title: result.title,
-      })) as Source[];
+    return {
+      sources: (data as FirecrawlDocument[])
+        .filter((item) => item.description && item.url)
+        .map((result) => ({
+          content: result.markdown || result.description,
+          url: result.url,
+          title: result.title,
+        })) as Source[],
+      images: [],
+    };
   } else if (provider === "exa") {
     const response = await fetch(
       `${completePath(baseURL || EXA_BASE_URL)}/search`,
@@ -185,18 +214,35 @@ export async function createSearchProvider({
             },
             numResults: Number(maxResult) * 5,
             livecrawl: "auto",
+            extras: {
+              imageLinks: 3,
+            },
           },
         }),
       }
     );
     const { results = [] } = await response.json();
-    return (results as ExaSearchResult[])
-      .filter((item) => (item.summary || item.text) && item.url)
-      .map((result) => ({
-        content: result.summary || result.text,
-        url: result.url,
-        title: result.title,
-      })) as Source[];
+    const images: ImageSource[] = [];
+    return {
+      sources: (results as ExaSearchResult[])
+        .filter((item) => (item.summary || item.text) && item.url)
+        .map((result) => {
+          if (
+            result.extras?.imageLinks &&
+            result.extras?.imageLinks.length > 0
+          ) {
+            result.extras.imageLinks.forEach((url) => {
+              images.push({ url, description: result.text });
+            });
+          }
+          return {
+            content: result.summary || result.text,
+            url: result.url,
+            title: result.title,
+          };
+        }) as Source[],
+      images,
+    };
   } else if (provider === "bocha") {
     const response = await fetch(
       `${completePath(baseURL || BOCHA_BASE_URL, "/v1")}/web-search`,
@@ -214,18 +260,38 @@ export async function createSearchProvider({
     );
     const { data = {} } = await response.json();
     const results = data.webPages?.value || [];
-    return (results as BochaSearchResult[])
-      .filter((item) => item.snippet && item.url)
-      .map((result) => ({
-        content: result.summary || result.snippet,
-        url: result.url,
-        title: result.name,
-      })) as Source[];
+    const imageResults = data.images?.value || [];
+    return {
+      sources: (results as BochaSearchResult[])
+        .filter((item) => item.snippet && item.url)
+        .map((result) => ({
+          content: result.summary || result.snippet,
+          url: result.url,
+          title: result.name,
+        })) as Source[],
+      images: (imageResults as BochaImage[]).map((item) => {
+        const matchingResult = (results as BochaSearchResult[]).find(
+          (result) => result.url === item.hostPageUrl
+        );
+        return {
+          url: item.contentUrl,
+          description: item.name || matchingResult?.name,
+        };
+      }) as ImageSource[],
+    };
   } else if (provider === "searxng") {
     const params = {
       q: query,
-      categories: ["general", "web"],
-      engines: ["google", "bing", "duckduckgo", "brave", "wikipedia"],
+      categories: ["general", "images"],
+      engines: [
+        "google",
+        "bing",
+        "duckduckgo",
+        "brave",
+        "wikipedia",
+        "bing_images",
+        "google_images",
+      ],
       lang: "auto",
       format: "json",
       autocomplete: "google",
@@ -242,12 +308,36 @@ export async function createSearchProvider({
       { method: "POST", credentials: "omit", headers }
     );
     const { results = [] } = await response.json();
-    return (results as SearxngSearchResult[])
-      .filter(
-        (item, idx) =>
-          item.content && item.url && idx < maxResult * 5 && item.score >= 0.5
-      )
-      .map((result) => pick(result, ["title", "content", "url"])) as Source[];
+    const rearrangedResults = sort(
+      results as SearxngSearchResult[],
+      (item) => item.score,
+      true
+    );
+    return {
+      sources: rearrangedResults
+        .filter(
+          (item, idx) =>
+            item.category === "general" &&
+            item.content &&
+            item.url &&
+            idx < maxResult * 5 &&
+            item.score >= 0.5
+        )
+        .map((result) => pick(result, ["title", "content", "url"])) as Source[],
+      images: rearrangedResults
+        .filter(
+          (item, idx) =>
+            item.category === "images" &&
+            idx < maxResult * 5 &&
+            item.score >= 0.5
+        )
+        .map((result) => {
+          return {
+            url: result.img_src,
+            description: result.title,
+          };
+        }) as ImageSource[],
+    };
   } else {
     throw new Error("Unsupported Provider: " + provider);
   }

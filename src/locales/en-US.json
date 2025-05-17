@@ -15,7 +15,7 @@
       "restartResearch": "Restart Research",
       "writeReport": "Write Report",
       "continueResearch": "Continue Research",
-      "indepthResearch": "In-depth Research",
+      "indepthResearch": "Further Research",
       "rewriteReport": "Rewrite Report",
       "sources": "Sources",
       "thinking": "Thinking...",
@@ -49,7 +49,8 @@
       "emptyTip": "Waiting for research task...",
       "suggestionLabel": "Research suggestions (Optional)",
       "suggestionPlaceholder": "Whether to add or adjust research directions...",
-      "references": "References"
+      "references": "References",
+      "relatedImages": "Related Images"
     },
     "finalReport": {
       "title": "4. Final Report",

@@ -16,6 +16,7 @@ export interface TaskStore {
   title: string;
   finalReport: string;
   sources: Source[];
+  images: ImageSource[];
   knowledgeGraph: string;
 }
 
@@ -36,6 +37,7 @@ interface TaskFunction {
   updateReportPlan: (plan: string) => void;
   updateFinalReport: (report: string) => void;
   setSources: (sources: Source[]) => void;
+  setImages: (images: Source[]) => void;
   setFeedback: (feedback: string) => void;
   updateKnowledgeGraph: (knowledgeGraph: string) => void;
   clear: () => void;
@@ -58,6 +60,7 @@ const defaultValues: TaskStore = {
   title: "",
   finalReport: "",
   sources: [],
+  images: [],
   knowledgeGraph: "",
 };
 
@@ -102,6 +105,7 @@ export const useTaskStore = create(
       updateReportPlan: (plan) => set(() => ({ reportPlan: plan })),
       updateFinalReport: (report) => set(() => ({ finalReport: report })),
       setSources: (sources) => set(() => ({ sources })),
+      setImages: (images) => set(() => ({ images })),
       setFeedback: (feedback) => set(() => ({ feedback })),
       updateKnowledgeGraph: (knowledgeGraph) => set(() => ({ knowledgeGraph })),
       clear: () => set(() => ({ tasks: [] })),
