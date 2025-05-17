@@ -305,7 +305,9 @@ export async function createSearchProvider({
       `${completePath(
         baseURL || SEARXNG_BASE_URL
       )}/search?${searchQuery.toString()}`,
-      { method: "POST", credentials: "omit", headers }
+      baseURL?.startsWith("/api/search/searxng")
+        ? { method: "POST", credentials: "omit", headers }
+        : { method: "GET", credentials: "omit" }
     );
     const { results = [] } = await response.json();
     const rearrangedResults = sort(
@@ -316,21 +318,17 @@ export async function createSearchProvider({
     return {
       sources: rearrangedResults
         .filter(
-          (item, idx) =>
+          (item) =>
             item.category === "general" &&
             item.content &&
             item.url &&
-            idx < maxResult * 5 &&
             item.score >= 0.5
         )
+        .slice(0, maxResult * 5)
         .map((result) => pick(result, ["title", "content", "url"])) as Source[],
       images: rearrangedResults
-        .filter(
-          (item, idx) =>
-            item.category === "images" &&
-            idx < maxResult * 5 &&
-            item.score >= 0.5
-        )
+        .filter((item) => item.category === "images" && item.score >= 0.5)
+        .slice(0, maxResult)
         .map((result) => {
           return {
             url: result.img_src,
