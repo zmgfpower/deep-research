@@ -41,18 +41,13 @@ export function initMcpServer() {
         .string()
         .optional()
         .describe("The final report text language."),
-      parallel: z
-        .number()
-        .optional()
-        .default(1)
-        .describe("The number of parallel searches."),
       maxResult: z
         .number()
         .optional()
         .default(5)
         .describe("Maximum number of search results."),
     },
-    async ({ query, language, parallel, maxResult }) => {
+    async ({ query, language, maxResult }) => {
       const deepResearch = new DeepResearch({
         query,
         language,
@@ -67,7 +62,6 @@ export function initMcpServer() {
           baseURL: getSearchProviderBaseURL(SEARCH_PROVIDER),
           apiKey: multiApiKeyPolling(getSearchProviderApiKey(SEARCH_PROVIDER)),
           provider: SEARCH_PROVIDER,
-          parallel,
           maxResult,
         },
         onMessage: (event, data) => {

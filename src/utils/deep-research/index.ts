@@ -1,4 +1,4 @@
-import { generateText } from "ai";
+import { streamText, generateText } from "ai";
 import { type GoogleGenerativeAIProviderMetadata } from "@ai-sdk/google";
 import { createAIProvider } from "./provider";
 import { createSearchProvider } from "./search";
@@ -27,12 +27,18 @@ export interface DeepResearchOptions {
     baseURL?: string;
     apiKey?: string;
     provider: string;
-    parallel?: number;
     maxResult?: number;
   };
   query: string;
   language?: string;
   onMessage?: (event: string, data: any) => void;
+}
+
+interface FinalReportResult {
+  title: string;
+  finalReport: string;
+  learnings: string[];
+  sources: Source[];
 }
 
 export function removeJsonMarkdown(text: string) {
@@ -48,6 +54,13 @@ export function removeJsonMarkdown(text: string) {
     text = text.slice(0, -3);
   }
   return text.trim();
+}
+
+function addQuoteBeforeAllLine(text: string) {
+  return text
+    .split("\n")
+    .map((line) => `> ${line}`)
+    .join("\n");
 }
 
 class DeepResearch {
@@ -91,8 +104,9 @@ class DeepResearch {
       : `**Respond in the same language as the user's query**`;
   }
 
-  async writeReportPlan(query: string) {
-    const { text } = await generateText({
+  async writeReportPlan(query: string): Promise<string> {
+    this.onMessage("progress", { step: "report-plan", status: "start" });
+    const result = streamText({
       model: await this.getThinkingModel(),
       system: getSystemPrompt(),
       prompt: [
@@ -100,11 +114,23 @@ class DeepResearch {
         this.getResponseLanguagePrompt(),
       ].join("\n\n"),
     });
-    this.onMessage("report-plan", text);
-    return text;
+    let content = "";
+    this.onMessage("message", "<report-plan>\n");
+    for await (const textPart of result.textStream) {
+      content += textPart;
+      this.onMessage("message", textPart);
+    }
+    this.onMessage("message", "</report-plan>\n\n");
+    this.onMessage("progress", {
+      step: "report-plan",
+      status: "end",
+      data: content,
+    });
+    return content;
   }
 
-  async generateSERPQuery(reportPlan: string) {
+  async generateSERPQuery(reportPlan: string): Promise<SearchTask[]> {
+    this.onMessage("progress", { step: "serp-query", status: "start" });
     const { text } = await generateText({
       model: await this.getThinkingModel(),
       system: getSystemPrompt(),
@@ -117,24 +143,35 @@ class DeepResearch {
     const data = JSON.parse(removeJsonMarkdown(text));
     const result = querySchema.safeParse(data);
     if (result.success) {
-      const tasks = data.map(
+      const tasks: SearchTask[] = data.map(
         (item: { query: string; researchGoal: string }) => ({
           state: "unprocessed",
           learning: "",
           ...pick(item, ["query", "researchGoal"]),
         })
       );
-      this.onMessage("serp-query", tasks);
+      this.onMessage("progress", {
+        step: "serp-query",
+        status: "end",
+        data: tasks,
+      });
       return tasks;
     } else {
       throw new Error(result.error.message);
     }
   }
 
-  async runSearchTask(tasks: SearchTask[]) {
+  async runSearchTask(tasks: SearchTask[]): Promise<SearchTask[]> {
+    this.onMessage("progress", { step: "task-list", status: "start" });
     const results: SearchTask[] = [];
     for await (const item of tasks) {
-      let searchResult: string;
+      this.onMessage("progress", {
+        step: "search-task",
+        status: "start",
+        name: item.query,
+      });
+      let content = "";
+      let searchResult;
       let sources: Source[] = [];
       let images: ImageSource[] = [];
       if (this.options.searchProvider.provider === "model") {
@@ -177,11 +214,7 @@ class DeepResearch {
           }
         };
 
-        const {
-          text,
-          providerMetadata,
-          sources: rawSources,
-        } = await generateText({
+        searchResult = streamText({
           model: await this.getTaskModel(),
           system: getSystemPrompt(),
           prompt: [
@@ -191,36 +224,6 @@ class DeepResearch {
           tools: await getTools(),
           providerOptions: getProviderOptions(),
         });
-
-        searchResult = text;
-        sources = rawSources;
-        this.onMessage("search-result", { sources: rawSources, images: [] });
-
-        if (providerMetadata?.google) {
-          const { groundingMetadata } = providerMetadata.google;
-          const googleGroundingMetadata =
-            groundingMetadata as GoogleGenerativeAIProviderMetadata["groundingMetadata"];
-          if (googleGroundingMetadata?.groundingSupports) {
-            googleGroundingMetadata.groundingSupports.forEach(
-              ({ segment, groundingChunkIndices }) => {
-                if (segment.text && groundingChunkIndices) {
-                  const index = groundingChunkIndices.map(
-                    (idx: number) => `[${idx + 1}]`
-                  );
-                  searchResult = searchResult.replaceAll(
-                    segment.text,
-                    `${segment.text}${index.join("")}`
-                  );
-                }
-              }
-            );
-          }
-        } else if (providerMetadata?.openai) {
-          // Fixed the problem that OpenAI cannot generate markdown reference link syntax properly in Chinese context
-          searchResult = searchResult
-            .replaceAll("【", "[")
-            .replaceAll("】", "]");
-        }
       } else {
         try {
           const result = await createSearchProvider({
@@ -230,16 +233,13 @@ class DeepResearch {
 
           sources = result.sources;
           images = result.images;
-          this.onMessage("search-result", result);
         } catch (err) {
-          console.error(err);
-          throw new Error(
-            `[${this.options.searchProvider.provider}]: ${
-              err instanceof Error ? err.message : "Search Failed"
-            }`
-          );
+          const errorMessage = `[${this.options.searchProvider.provider}]: ${
+            err instanceof Error ? err.message : "Search Failed"
+          }`;
+          throw new Error(errorMessage);
         }
-        const { text } = await generateText({
+        searchResult = streamText({
           model: await this.getTaskModel(),
           system: getSystemPrompt(),
           prompt: [
@@ -247,23 +247,65 @@ class DeepResearch {
             this.getResponseLanguagePrompt(),
           ].join("\n\n"),
         });
-        searchResult = text;
+      }
+
+      this.onMessage("message", "<search-task>\n");
+      this.onMessage("message", `## ${item.query}\n\n`);
+      this.onMessage(
+        "message",
+        `${addQuoteBeforeAllLine(item.researchGoal)}\n\n`
+      );
+      for await (const part of searchResult.fullStream) {
+        if (part.type === "text-delta") {
+          content += part.textDelta;
+          this.onMessage("message", part.textDelta);
+        } else if (part.type === "reasoning") {
+          this.onMessage("reasoning", part.textDelta);
+        } else if (part.type === "source") {
+          sources.push(part.source);
+        } else if (part.type === "finish") {
+          if (part.providerMetadata?.google) {
+            const { groundingMetadata } = part.providerMetadata.google;
+            const googleGroundingMetadata =
+              groundingMetadata as GoogleGenerativeAIProviderMetadata["groundingMetadata"];
+            if (googleGroundingMetadata?.groundingSupports) {
+              googleGroundingMetadata.groundingSupports.forEach(
+                ({ segment, groundingChunkIndices }) => {
+                  if (segment.text && groundingChunkIndices) {
+                    const index = groundingChunkIndices.map(
+                      (idx: number) => `[${idx + 1}]`
+                    );
+                    content = content.replaceAll(
+                      segment.text,
+                      `${segment.text}${index.join("")}`
+                    );
+                  }
+                }
+              );
+            }
+          } else if (part.providerMetadata?.openai) {
+            // Fixed the problem that OpenAI cannot generate markdown reference link syntax properly in Chinese context
+            content = content.replaceAll("【", "[").replaceAll("】", "]");
+          }
+        }
       }
 
       if (images.length > 0) {
-        searchResult +=
-          "\n\n" +
-          item.images
+        const imageContent =
+          "\n---\n\n" +
+          images
             .map(
               (source) =>
                 `![${source.description || source.url}](${source.url})`
             )
             .join("\n");
+        content += imageContent;
+        this.onMessage("message", imageContent);
       }
 
       if (sources.length > 0) {
-        searchResult +=
-          "\n\n" +
+        const sourceContent =
+          "\n---\n\n" +
           sources
             .map(
               (item, idx) =>
@@ -272,24 +314,36 @@ class DeepResearch {
                 }`
             )
             .join("\n");
+        content += sourceContent;
+        this.onMessage("message", sourceContent);
       }
+      this.onMessage("message", "</search-task>\n\n");
 
       const task: SearchTask = {
         query: item.query,
         researchGoal: item.researchGoal,
         state: "completed",
-        learning: searchResult,
+        learning: content,
         sources,
         images,
       };
       results.push(task);
-      this.onMessage("search-task", task);
+      this.onMessage("progress", {
+        step: "search-task",
+        status: "end",
+        name: item.query,
+        data: task,
+      });
     }
+    this.onMessage("progress", { step: "task-list", status: "end" });
     return results;
   }
 
-  async writeFinalReport(reportPlan: string, tasks: SearchTask[]) {
-    let finalReport = "";
+  async writeFinalReport(
+    reportPlan: string,
+    tasks: SearchTask[]
+  ): Promise<FinalReportResult> {
+    this.onMessage("progress", { step: "final-report", status: "start" });
     const learnings = tasks.map((item) => item.learning);
     const sources: Source[] = unique(
       flat(tasks.map((item) => (item.sources ? item.sources : []))),
@@ -299,7 +353,7 @@ class DeepResearch {
       flat(tasks.map((item) => item.images)),
       (item) => item.url
     );
-    const { text } = await generateText({
+    const result = streamText({
       model: await this.getThinkingModel(),
       system: [getSystemPrompt(), outputGuidelinesPrompt].join("\n\n"),
       prompt: [
@@ -313,10 +367,15 @@ class DeepResearch {
         this.getResponseLanguagePrompt(),
       ].join("\n\n"),
     });
-    finalReport = text;
+    let content = "";
+    this.onMessage("message", "<final-report>\n");
+    for await (const textPart of result.textStream) {
+      content += textPart;
+      this.onMessage("message", textPart);
+    }
     if (sources.length > 0) {
-      finalReport +=
-        "\n\n" +
+      const sourceContent =
+        "\n---\n\n" +
         sources
           .map(
             (item, idx) =>
@@ -325,21 +384,29 @@ class DeepResearch {
               }`
           )
           .join("\n");
+      content += sourceContent;
+      this.onMessage("message", sourceContent);
     }
-    const title = text
+    this.onMessage("message", "</final-report>\n\n");
+
+    const title = content
       .split("\n")[0]
       .replaceAll("#", "")
       .replaceAll("*", "")
       .trim();
 
-    const result = {
+    const finalReportResult: FinalReportResult = {
       title,
-      finalReport,
+      finalReport: content,
       learnings,
       sources,
     };
-    this.onMessage("final-report", result);
-    return result;
+    this.onMessage("progress", {
+      step: "final-report",
+      status: "end",
+      data: finalReportResult,
+    });
+    return finalReportResult;
   }
 
   async run() {
@@ -350,10 +417,9 @@ class DeepResearch {
       const finalReport = await this.writeFinalReport(reportPlan, results);
       return finalReport;
     } catch (err) {
-      this.onMessage(
-        "error",
-        err instanceof Error ? err.message : "Unknown error"
-      );
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      console.error(errorMessage);
+      this.onMessage("error", errorMessage);
     }
   }
 }

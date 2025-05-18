@@ -443,7 +443,7 @@ function Setting({ open, onClose }: SettingProps) {
                           <SelectTrigger className="col-span-3">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="max-sm:max-h-72">
                             {!isDisabledAIProvider("google") ? (
                               <SelectItem value="google">
                                 Google AI Studio

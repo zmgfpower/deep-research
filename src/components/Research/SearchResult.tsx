@@ -46,6 +46,13 @@ const formSchema = z.object({
   suggestion: z.string().optional(),
 });
 
+function addQuoteBeforeAllLine(text: string) {
+  return text
+    .split("\n")
+    .map((line) => `> ${line}`)
+    .join("\n");
+}
+
 function TaskState({ state }: { state: SearchTask["state"] }) {
   if (state === "completed") {
     return <CircleCheck className="h-5 w-5" />;
@@ -84,7 +91,7 @@ function SearchResult() {
   function getSearchResultContent(item: SearchTask) {
     return [
       `## ${item.query}`,
-      `> ${item.researchGoal}`,
+      addQuoteBeforeAllLine(item.researchGoal),
       "---",
       item.learning,
       item.images?.length > 0
@@ -182,7 +189,9 @@ function SearchResult() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="prose prose-slate dark:prose-invert max-w-full min-h-20">
-                    <MagicDownView>{`> ${item.researchGoal}`}</MagicDownView>
+                    <MagicDownView>
+                      {addQuoteBeforeAllLine(item.researchGoal)}
+                    </MagicDownView>
                     <Separator className="mb-4" />
                     <MagicDown
                       value={item.learning}

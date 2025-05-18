@@ -7,6 +7,7 @@ import {
   getSearchProviderBaseURL,
   getSearchProviderApiKey,
 } from "../utils";
+import { omit } from "radash";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -29,14 +30,12 @@ export async function POST(req: NextRequest) {
     taskModel,
     searchProvider,
     language,
-    parallel,
     maxResult,
   } = await req.json();
   const encoder = new TextEncoder();
   const readableStream = new ReadableStream({
-    start(controller) {
+    start: async (controller) => {
       console.log("Client connected");
-      controller.enqueue(encoder.encode(`data: client connected\n\n`));
       controller.enqueue(
         encoder.encode(
           `event: infor\ndata: ${JSON.stringify({
@@ -45,6 +44,10 @@ export async function POST(req: NextRequest) {
           })}\n\n`
         )
       );
+
+      req.signal.addEventListener("abort", () => {
+        console.log("Client disconnected");
+      });
 
       const deepResearch = new DeepResearch({
         query,
@@ -60,34 +63,42 @@ export async function POST(req: NextRequest) {
           baseURL: getSearchProviderBaseURL(searchProvider),
           apiKey: multiApiKeyPolling(getSearchProviderApiKey(searchProvider)),
           provider: searchProvider,
-          parallel,
           maxResult,
         },
         onMessage: (event, data) => {
-          const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-          controller.enqueue(encoder.encode(message));
-          if (event === "final-report") {
-            controller.close();
-            console.log(`Step: ${event}`);
+          if (event === "message") {
+            controller.enqueue(
+              encoder.encode(
+                `event: ${event}\ndata: ${JSON.stringify({
+                  type: "text",
+                  text: data,
+                })}\n\n`
+              )
+            );
+          } else if (event === "progress") {
+            console.log(`Progress: ${JSON.stringify(omit(data, ["data"]))}`);
+            controller.enqueue(
+              encoder.encode(
+                `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
+              )
+            );
+            if (data.step === "final-report") {
+              controller.close();
+            }
           } else if (event === "error") {
             console.error(event, data);
+            controller.enqueue(
+              encoder.encode(`event: ${event}\ndata: ${data}\n\n`)
+            );
             controller.close();
           } else {
-            console.log(`Step: ${event}`);
+            console.warn(`Unknown event: ${event}`);
           }
         },
       });
 
-      deepResearch.run();
-
-      req.signal.addEventListener("abort", () => {
-        controller.enqueue(encoder.encode(`data: client disconnected\n\n`));
-        controller.close();
-        console.log("Client disconnected");
-      });
-    },
-    cancel() {
-      console.log("Stream cancelled");
+      await deepResearch.run();
+      controller.close();
     },
   });
 
