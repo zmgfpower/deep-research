@@ -306,10 +306,9 @@ Citation Rules:
 - Do not have more than 3 reference link in a paragraph, and keep only the most relevant ones.
 - **Do not add references at the end of the report.**`;
 
-export const rewritingPrompt = `You are tasked with re-writing the following content to markdown. Ensure you do not change the meaning or story behind the content.
+export const rewritingPrompt = `You are tasked with re-writing the following text to markdown. Ensure you do not change the meaning or story behind the text. 
 
-**Including meaningful images from the content in the markdown is very helpful.** Include images using \`![Image Description](image_url)\` in a separate section.
-**Respond only to updated content, and no additional text before or after.**`;
+**Respond only the updated markdown text, and no additional text before or after.**`;
 
 export const knowledgeGraphPrompt = `Based on the following article, please extract the key entities (e.g., names of people, places, organizations, concepts, events, etc.) and the main relationships between them, and then generate a Mermaid graph code that visualizes these entities and relationships.
 

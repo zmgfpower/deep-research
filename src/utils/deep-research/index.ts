@@ -136,6 +136,7 @@ class DeepResearch {
     for await (const item of tasks) {
       let searchResult: string;
       let sources: Source[] = [];
+      let images: ImageSource[] = [];
       if (this.options.searchProvider.provider === "model") {
         const getTools = async () => {
           // Enable OpenAI's built-in search tool
@@ -193,7 +194,7 @@ class DeepResearch {
 
         searchResult = text;
         sources = rawSources;
-        this.onMessage("search-result", rawSources);
+        this.onMessage("search-result", { sources: rawSources, images: [] });
 
         if (providerMetadata?.google) {
           const { groundingMetadata } = providerMetadata.google;
@@ -222,16 +223,14 @@ class DeepResearch {
         }
       } else {
         try {
-          sources = await createSearchProvider({
+          const result = await createSearchProvider({
             query: item.query,
             ...this.options.searchProvider,
           });
 
-          this.onMessage("search-result", sources);
-
-          if (sources.length === 0) {
-            throw new Error("Invalid Search Results");
-          }
+          sources = result.sources;
+          images = result.images;
+          this.onMessage("search-result", result);
         } catch (err) {
           console.error(err);
           throw new Error(
@@ -249,6 +248,17 @@ class DeepResearch {
           ].join("\n\n"),
         });
         searchResult = text;
+      }
+
+      if (images.length > 0) {
+        searchResult +=
+          "\n\n" +
+          item.images
+            .map(
+              (source) =>
+                `![${source.description || source.url}](${source.url})`
+            )
+            .join("\n");
       }
 
       if (sources.length > 0) {
@@ -270,6 +280,7 @@ class DeepResearch {
         state: "completed",
         learning: searchResult,
         sources,
+        images,
       };
       results.push(task);
       this.onMessage("search-task", task);
@@ -284,6 +295,10 @@ class DeepResearch {
       flat(tasks.map((item) => (item.sources ? item.sources : []))),
       (item) => item.url
     );
+    const images: ImageSource[] = unique(
+      flat(tasks.map((item) => item.images)),
+      (item) => item.url
+    );
     const { text } = await generateText({
       model: await this.getThinkingModel(),
       system: [getSystemPrompt(), outputGuidelinesPrompt].join("\n\n"),
@@ -292,6 +307,7 @@ class DeepResearch {
           reportPlan,
           learnings,
           sources.map((item) => pick(item, ["title", "url"])),
+          images,
           ""
         ),
         this.getResponseLanguagePrompt(),

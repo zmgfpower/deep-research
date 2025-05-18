@@ -87,6 +87,14 @@ function SearchResult() {
       `> ${item.researchGoal}`,
       "---",
       item.learning,
+      item.images?.length > 0
+        ? `#### ${t("research.searchResult.relatedImages")}\n\n${item.images
+            .map(
+              (source) =>
+                `![${source.description || source.url}](${source.url})`
+            )
+            .join("\n")}`
+        : "",
       item.sources?.length > 0
         ? `#### ${t("research.common.sources")}\n\n${item.sources
             .map(

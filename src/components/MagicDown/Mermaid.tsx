@@ -65,10 +65,10 @@ function Mermaid({ children }: Props) {
 
   return (
     <div className="relative cursor-pointer justify-center w-full overflow-auto rounded">
-      <TransformWrapper initialScale={1} smooth>
+      <TransformWrapper initialScale={2} smooth>
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
-            <div className="absolute top-0 right-0 z-50 flex gap-1">
+            <div className="absolute top-0 right-0 z-50 flex gap-1 print:hidden">
               <Button
                 className="w-6 h-6"
                 size="icon"
@@ -92,7 +92,7 @@ function Mermaid({ children }: Props) {
                 )}
               </Button>
             </div>
-            <div className="absolute bottom-0 right-0 z-50 flex gap-1">
+            <div className="absolute bottom-0 right-0 z-50 flex gap-1 print:hidden">
               <Button
                 className="w-6 h-6"
                 size="icon"

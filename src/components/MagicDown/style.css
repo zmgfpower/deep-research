@@ -54,7 +54,7 @@
   }
   &.mermaid-view {
     .react-transform-wrapper {
-      @apply w-auto min-h-80;
+      @apply w-auto h-[50vh];
     }
   }
 }

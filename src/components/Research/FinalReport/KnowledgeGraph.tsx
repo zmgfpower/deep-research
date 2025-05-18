@@ -78,27 +78,24 @@ function KnowledgeGraph({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-lg:max-w-screen-sm max-w-screen-md gap-2">
+      <DialogContent className="max-lg:max-w-screen-md max-w-screen-lg gap-2">
         <DialogTitle className="hidden"></DialogTitle>
         {loading ? (
-          <div className="flex justify-center items-center w-full min-h-80 max-h-96">
+          <div className="flex justify-center items-center w-full min-h-80">
             <LoaderCircle className="flex flex-col justify-center items-center w-14 h-14 animate-spin" />
           </div>
         ) : (
           <>
             <ScrollArea
-              className={cn(
-                "magicdown-view mermaid-view min-h-80 max-h-96 max-w-full",
-                {
-                  hidden: mode === "editor",
-                }
-              )}
+              className={cn("magicdown-view mermaid-view max-w-full", {
+                hidden: mode === "editor",
+              })}
             >
               <MagicDownView>{taskStore.knowledgeGraph}</MagicDownView>
             </ScrollArea>
-            <div className={cn("max-w-full", { hidden: mode === "view" })}>
+            <div className={cn("max-w-full my-4", { hidden: mode === "view" })}>
               <MagicDownEditor
-                className="magicdown-editor min-h-80 max-h-96 overflow-y-auto"
+                className="magicdown-editor min-h-80 h-[50vh] overflow-y-auto"
                 defaultValue={taskStore.knowledgeGraph}
                 onChange={(value) => taskStore.updateKnowledgeGraph(value)}
                 hideView

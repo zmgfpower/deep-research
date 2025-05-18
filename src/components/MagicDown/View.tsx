@@ -6,8 +6,9 @@ import remarkMath from "remark-math";
 import remarkBreaks from "remark-breaks";
 import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
+import { useSettingStore } from "@/store/setting";
 import { clsx } from "clsx";
-import { animateText } from "@/utils/animateText";
+import { animateText } from "@/utils/animate-text";
 import { omit } from "radash";
 
 import "katex/dist/katex.min.css";
@@ -18,6 +19,8 @@ const Code = dynamic(() => import("./Code"));
 const Mermaid = dynamic(() => import("./Mermaid"));
 
 function Magicdown({ children: content, ...rest }: Options) {
+  const { language } = useSettingStore();
+
   const remarkPlugins = useMemo(
     () => rest.remarkPlugins ?? [],
     [rest.remarkPlugins]
@@ -35,7 +38,7 @@ function Magicdown({ children: content, ...rest }: Options) {
       rehypePlugins={[
         [rehypeHighlight, { detect: true, ignoreMissing: true }],
         rehypeKatex,
-        animateText,
+        animateText(language),
         ...rehypePlugins,
       ]}
       components={{
