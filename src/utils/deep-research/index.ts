@@ -29,7 +29,6 @@ export interface DeepResearchOptions {
     provider: string;
     maxResult?: number;
   };
-  query: string;
   language?: string;
   onMessage?: (event: string, data: any) => void;
 }
@@ -39,6 +38,25 @@ interface FinalReportResult {
   finalReport: string;
   learnings: string[];
   sources: Source[];
+}
+
+export interface DeepResearchSearchTask {
+  query: string;
+  researchGoal: string;
+}
+
+export interface DeepResearchSearchResult {
+  query: string;
+  researchGoal: string;
+  learning: string;
+  sources?: {
+    url: string;
+    title?: string;
+  }[];
+  images?: {
+    url: string;
+    description?: string;
+  }[];
 }
 
 export function removeJsonMarkdown(text: string) {
@@ -115,12 +133,12 @@ class DeepResearch {
       ].join("\n\n"),
     });
     let content = "";
-    this.onMessage("message", "<report-plan>\n");
+    this.onMessage("message", { type: "text", text: "<report-plan>\n" });
     for await (const textPart of result.textStream) {
       content += textPart;
-      this.onMessage("message", textPart);
+      this.onMessage("message", { type: "text", text: textPart });
     }
-    this.onMessage("message", "</report-plan>\n\n");
+    this.onMessage("message", { type: "text", text: "</report-plan>\n\n" });
     this.onMessage("progress", {
       step: "report-plan",
       status: "end",
@@ -129,7 +147,9 @@ class DeepResearch {
     return content;
   }
 
-  async generateSERPQuery(reportPlan: string): Promise<SearchTask[]> {
+  async generateSERPQuery(
+    reportPlan: string
+  ): Promise<DeepResearchSearchTask[]> {
     this.onMessage("progress", { step: "serp-query", status: "start" });
     const { text } = await generateText({
       model: await this.getThinkingModel(),
@@ -143,11 +163,10 @@ class DeepResearch {
     const data = JSON.parse(removeJsonMarkdown(text));
     const result = querySchema.safeParse(data);
     if (result.success) {
-      const tasks: SearchTask[] = data.map(
-        (item: { query: string; researchGoal: string }) => ({
-          state: "unprocessed",
-          learning: "",
-          ...pick(item, ["query", "researchGoal"]),
+      const tasks: DeepResearchSearchTask[] = data.map(
+        (item: { query: string; researchGoal?: string }) => ({
+          query: item.query,
+          researchGoal: item.researchGoal || "",
         })
       );
       this.onMessage("progress", {
@@ -161,7 +180,7 @@ class DeepResearch {
     }
   }
 
-  async runSearchTask(tasks: SearchTask[]): Promise<SearchTask[]> {
+  async runSearchTask(tasks: DeepResearchSearchTask[]): Promise<SearchTask[]> {
     this.onMessage("progress", { step: "task-list", status: "start" });
     const results: SearchTask[] = [];
     for await (const item of tasks) {
@@ -249,18 +268,18 @@ class DeepResearch {
         });
       }
 
-      this.onMessage("message", "<search-task>\n");
-      this.onMessage("message", `## ${item.query}\n\n`);
-      this.onMessage(
-        "message",
-        `${addQuoteBeforeAllLine(item.researchGoal)}\n\n`
-      );
+      this.onMessage("message", { type: "text", text: "<search-task>\n" });
+      this.onMessage("message", { type: "text", text: `## ${item.query}\n\n` });
+      this.onMessage("message", {
+        type: "text",
+        text: `${addQuoteBeforeAllLine(item.researchGoal)}\n\n`,
+      });
       for await (const part of searchResult.fullStream) {
         if (part.type === "text-delta") {
           content += part.textDelta;
-          this.onMessage("message", part.textDelta);
+          this.onMessage("message", { type: "text", text: part.textDelta });
         } else if (part.type === "reasoning") {
-          this.onMessage("reasoning", part.textDelta);
+          this.onMessage("reasoning", { type: "text", text: part.textDelta });
         } else if (part.type === "source") {
           sources.push(part.source);
         } else if (part.type === "finish") {
@@ -300,7 +319,7 @@ class DeepResearch {
             )
             .join("\n");
         content += imageContent;
-        this.onMessage("message", imageContent);
+        this.onMessage("message", { type: "text", text: imageContent });
       }
 
       if (sources.length > 0) {
@@ -315,9 +334,9 @@ class DeepResearch {
             )
             .join("\n");
         content += sourceContent;
-        this.onMessage("message", sourceContent);
+        this.onMessage("message", { type: "text", text: sourceContent });
       }
-      this.onMessage("message", "</search-task>\n\n");
+      this.onMessage("message", { type: "text", text: "</search-task>\n\n" });
 
       const task: SearchTask = {
         query: item.query,
@@ -341,16 +360,16 @@ class DeepResearch {
 
   async writeFinalReport(
     reportPlan: string,
-    tasks: SearchTask[]
+    tasks: DeepResearchSearchResult[]
   ): Promise<FinalReportResult> {
     this.onMessage("progress", { step: "final-report", status: "start" });
     const learnings = tasks.map((item) => item.learning);
     const sources: Source[] = unique(
-      flat(tasks.map((item) => (item.sources ? item.sources : []))),
+      flat(tasks.map((item) => item.sources || [])),
       (item) => item.url
     );
     const images: ImageSource[] = unique(
-      flat(tasks.map((item) => item.images)),
+      flat(tasks.map((item) => item.images || [])),
       (item) => item.url
     );
     const result = streamText({
@@ -368,26 +387,32 @@ class DeepResearch {
       ].join("\n\n"),
     });
     let content = "";
-    this.onMessage("message", "<final-report>\n");
-    for await (const textPart of result.textStream) {
-      content += textPart;
-      this.onMessage("message", textPart);
+    this.onMessage("message", { type: "text", text: "<final-report>\n" });
+    for await (const part of result.fullStream) {
+      if (part.type === "text-delta") {
+        content += part.textDelta;
+        this.onMessage("message", { type: "text", text: part.textDelta });
+      } else if (part.type === "reasoning") {
+        this.onMessage("reasoning", { type: "text", text: part.textDelta });
+      } else if (part.type === "source") {
+        sources.push(part.source);
+      } else if (part.type === "finish") {
+        if (sources.length > 0) {
+          const sourceContent =
+            "\n---\n\n" +
+            sources
+              .map(
+                (item, idx) =>
+                  `[${idx + 1}]: ${item.url}${
+                    item.title ? ` "${item.title.replaceAll('"', " ")}"` : ""
+                  }`
+              )
+              .join("\n");
+          content += sourceContent;
+        }
+      }
     }
-    if (sources.length > 0) {
-      const sourceContent =
-        "\n---\n\n" +
-        sources
-          .map(
-            (item, idx) =>
-              `[${idx + 1}]: ${item.url}${
-                item.title ? ` "${item.title.replaceAll('"', " ")}"` : ""
-              }`
-          )
-          .join("\n");
-      content += sourceContent;
-      this.onMessage("message", sourceContent);
-    }
-    this.onMessage("message", "</final-report>\n\n");
+    this.onMessage("message", { type: "text", text: "</final-report>\n\n" });
 
     const title = content
       .split("\n")[0]
@@ -409,17 +434,17 @@ class DeepResearch {
     return finalReportResult;
   }
 
-  async run() {
+  async start(query: string) {
     try {
-      const reportPlan = await this.writeReportPlan(this.options.query);
+      const reportPlan = await this.writeReportPlan(query);
       const tasks = await this.generateSERPQuery(reportPlan);
       const results = await this.runSearchTask(tasks);
       const finalReport = await this.writeFinalReport(reportPlan, results);
       return finalReport;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      console.error(errorMessage);
-      this.onMessage("error", errorMessage);
+      this.onMessage("error", { message: errorMessage });
+      throw new Error(errorMessage);
     }
   }
 }

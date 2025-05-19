@@ -226,6 +226,10 @@ export class StreamableHTTPServerTransport implements Transport {
    * Returns a Response to be sent back to the client.
    */
   async handleRequest(req: Request): Promise<Response> {
+    req.signal.addEventListener("abort", () => {
+      this.close();
+    });
+
     try {
       // Note: req.auth requires middleware or wrapper to add it to the request object.
       // If not using a wrapper, authInfo would need to be retrieved here from headers/cookies etc.

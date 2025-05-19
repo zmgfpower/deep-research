@@ -37,7 +37,7 @@ Deep Research uses a variety of powerful AI models to generate in-depth research
 - **Knowledge Graph:** It supports one-click generation of knowledge graph, allowing you to have a systematic understanding of the report content.
 - **Research History:** Support preservation of research history, you can review previous research results at any time and conduct in-depth research again.
 - **Local & Server API Support:** Offers flexibility with both local and server-side API calling options to suit your needs.
-- **Support for SaaS and MCP:** You can use this project as a deep research service (SaaS) through the SSE API, or use it in other AI services through MCP server.
+- **Support for SaaS and MCP:** You can use this project as a deep research service (SaaS) through the SSE API, or use it in other AI services through MCP service.
 - **Support PWA:** With Progressive Web App (PWA) technology, you can use the project like a software.
 - **Support Multi-Key payload:** Support Multi-Key payload to improve API response efficiency.
 - **Multi-language Support**: English, 简体中文, Español.
@@ -266,7 +266,9 @@ SSE server endpoint: `/api/mcp/sse`, transport type: `sse`
   "mcpServers": {
     "deep-research": {
       "url": "http://127.0.0.1:3000/api/mcp",
-      "transportType": "streamable-http"
+      "transportType": "streamable-http",
+      // Since deep studies take a long time to execute, you need to set a longer timeout to avoid interrupting the study.
+      "timeout": 600
     }
   }
 }
@@ -280,6 +282,7 @@ If your server sets `ACCESS_PASSWORD`, the MCP service will be protected and you
     "deep-research": {
       "url": "http://127.0.0.1:3000/api/mcp",
       "transportType": "streamable-http",
+      "timeout": 600,
       "headers": {
         "Authorization": "Bearer YOUR_ACCESS_PASSWORD"
       }

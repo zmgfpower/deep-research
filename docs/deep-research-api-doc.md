@@ -18,7 +18,7 @@ data: JSON_String
 
 ```
 
-- `event`: Specifies the type of event being sent (e.g., `infor`, `message`, `progress`, `error`).
+- `event`: Specifies the type of event being sent (e.g., `infor`, `message`, `reasoning`, `progress`, `error`).
 - `data`: A string containing a JSON object relevant to the event type.
 - A double newline (`\n\n`) signifies the end of an event block.
 
@@ -81,6 +81,7 @@ The following event types are supported:
 
 - `infor`
 - `message`
+- `reasoning`
 - `progress`
 - `error`
 
@@ -120,7 +121,7 @@ data: {"name":"deep-research","version":"0.1.0"}
 
 ### `message` Event
 
-Used for sending general messages or textual updates to the client. These messages might be informational, warnings, or other relevant text.
+Used to send text content of deep research to the client.
 
 **Description:** Delivers textual messages during the research process.
 
@@ -145,6 +146,38 @@ interface MessageEvent {
 ```text
 event: message
 data: {"type":"text","text":"This is a **markdown** string."}
+
+```
+
+---
+
+### `reasoning` Event
+
+Used to send thinking content of deep research to the client. Some thinking models support output thinking process.
+
+**Description:** Delivers textual messages during the research process.
+
+**Data Structure (`data` field):** A JSON string representing the following structure:
+
+| Parameter | Type   | Description                              | Notes                                 |
+| :-------- | :----- | :--------------------------------------- | :------------------------------------ |
+| `type`    | string | Type of the reasoning content            | Currently only `"text"` is supported. |
+| `text`    | string | The reasoning content (Markdown format). | Required for `"text"`.                |
+
+```typescript
+interface ReasoningEvent {
+  // Reasoning type, currently only "text" is supported
+  type: "text";
+  // Textual data
+  text: string;
+}
+```
+
+**Example:**
+
+```text
+event: message
+data: {"type":"text","text":"Output thinking process"}
 
 ```
 

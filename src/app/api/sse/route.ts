@@ -7,7 +7,6 @@ import {
   getSearchProviderBaseURL,
   getSearchProviderApiKey,
 } from "../utils";
-import { omit } from "radash";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -32,6 +31,7 @@ export async function POST(req: NextRequest) {
     language,
     maxResult,
   } = await req.json();
+
   const encoder = new TextEncoder();
   const readableStream = new ReadableStream({
     start: async (controller) => {
@@ -50,7 +50,6 @@ export async function POST(req: NextRequest) {
       });
 
       const deepResearch = new DeepResearch({
-        query,
         language,
         AIProvider: {
           baseURL: getAIProviderBaseURL(provider),
@@ -66,34 +65,34 @@ export async function POST(req: NextRequest) {
           maxResult,
         },
         onMessage: (event, data) => {
-          let eventData: string = "";
-          if (event === "message") {
-            eventData = JSON.stringify({
-              type: "text",
-              text: data,
-            });
-          } else if (event === "progress") {
-            console.log(`Progress: ${JSON.stringify(omit(data, ["data"]))}`);
-            eventData = JSON.stringify(data);
+          if (event === "progress") {
+            console.log(
+              `[${data.step}]: ${data.name ? `"${data.name}" ` : ""}${
+                data.status
+              }`
+            );
             if (data.step === "final-report") {
               controller.close();
             }
           } else if (event === "error") {
-            console.error(event, data);
-            eventData = JSON.stringify({
-              message: data,
-            });
+            console.error(data);
             controller.close();
           } else {
             console.warn(`Unknown event: ${event}`);
           }
           controller.enqueue(
-            encoder.encode(`event: ${event}\ndata: ${eventData})}\n\n`)
+            encoder.encode(
+              `event: ${event}\ndata: ${JSON.stringify(data)})}\n\n`
+            )
           );
         },
       });
 
-      await deepResearch.run();
+      req.signal.addEventListener("abort", () => {
+        controller.close();
+      });
+
+      await deepResearch.start(query);
       controller.close();
     },
   });

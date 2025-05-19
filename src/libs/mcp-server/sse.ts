@@ -270,6 +270,10 @@ export class SSEServerTransport implements Transport {
       );
     }
 
+    req.signal.addEventListener("abort", () => {
+      this.close();
+    });
+
     let rawMessage: any;
     try {
       // Request.json() handles content-type and parses JSON
