@@ -402,11 +402,11 @@ function useDeepResearch() {
     setSources([]);
     const learnings = tasks.map((item) => item.learning);
     const sources: Source[] = unique(
-      flat(tasks.map((item) => item.sources)),
+      flat(tasks.map((item) => item.sources || [])),
       (item) => item.url
     );
     const images: ImageSource[] = unique(
-      flat(tasks.map((item) => item.images)),
+      flat(tasks.map((item) => item.images || [])),
       (item) => item.url
     );
     const result = streamText({
