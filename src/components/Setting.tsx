@@ -8,7 +8,8 @@ import {
   useEffect,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { RefreshCw, CircleHelp } from "lucide-react";
+import { usePWAInstall } from "react-use-pwa-install";
+import { RefreshCw, CircleHelp, MonitorDown } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -207,6 +208,7 @@ function Setting({ open, onClose }: SettingProps) {
   const { t } = useTranslation();
   const { mode, provider, searchProvider, update } = useSettingStore();
   const { modelList, refresh } = useModel();
+  const pwaInstall = usePWAInstall();
   const [unprotected, setUnprotected] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
@@ -288,6 +290,13 @@ function Setting({ open, onClose }: SettingProps) {
     },
     [mode]
   );
+
+  const installPWA = async () => {
+    if ("serviceWorker" in navigator) {
+      await window.serwist?.register();
+    }
+    if (pwaInstall) await pwaInstall();
+  };
 
   function handleClose(open: boolean) {
     if (!open) onClose();
@@ -3243,6 +3252,22 @@ function Setting({ open, onClose }: SettingProps) {
                     </FormItem>
                   )}
                 />
+                <div className="from-item">
+                  <Label>
+                    <HelpTip tip={t("setting.PWATip")}>
+                      {t("setting.PWA")}
+                    </HelpTip>
+                  </Label>
+                  <Button
+                    className="col-span-3"
+                    type="button"
+                    variant="ghost"
+                    onClick={() => installPWA()}
+                  >
+                    <MonitorDown className="mr-1.5 h-4 w-4" />
+                    {t("setting.installlPWA")}
+                  </Button>
+                </div>
                 <div className="from-item">
                   <Label>{t("setting.version")}</Label>
                   <div className="col-span-3 text-center leading-9">

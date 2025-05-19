@@ -8,15 +8,44 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const HEAD_SCRIPTS = process.env.HEAD_SCRIPTS as string;
+const APP_NAME = "Deep Research";
+const APP_DEFAULT_TITLE = "Deep Research";
+const APP_TITLE_TEMPLATE = "%s - PWA App";
+const APP_DESCRIPTION =
+  "Use any LLMs (Large Language Models) for Deep Research.";
 
 export const metadata: Metadata = {
-  title: "Deep Research",
-  description: "Use any LLMs (Large Language Models) for Deep Research.",
-  icons: {
-    icon: {
-      type: "image/svg+xml",
-      url: "./logo.svg",
+  applicationName: APP_NAME,
+  title: {
+    default: APP_DEFAULT_TITLE,
+    template: APP_TITLE_TEMPLATE,
+  },
+  description: APP_DESCRIPTION,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_DEFAULT_TITLE,
+    // startUpImage: [],
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: APP_NAME,
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
     },
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
   },
 };
 
@@ -27,6 +56,7 @@ export const viewport: Viewport = {
   maximumScale: 1.0,
   viewportFit: "cover",
   userScalable: false,
+  themeColor: "#FFFFFF",
 };
 
 export default function RootLayout({

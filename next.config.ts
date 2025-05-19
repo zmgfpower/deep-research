@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import withSerwistInit from "@serwist/next";
 import pkg from "./package.json";
 
 const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE;
@@ -139,4 +140,12 @@ if (BUILD_MODE === "export") {
   };
 }
 
-export default nextConfig;
+const withSerwist = withSerwistInit({
+  // Note: This is only an example. If you use Pages Router,
+  // use something else that works, such as "service-worker/index.ts".
+  swSrc: "src/app/sw.ts",
+  swDest: "public/sw.js",
+  register: false,
+});
+
+export default withSerwist(nextConfig);
