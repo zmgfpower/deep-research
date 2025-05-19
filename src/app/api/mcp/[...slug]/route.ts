@@ -29,7 +29,6 @@ export async function GET(): Promise<NextResponse> {
   // Create a new transport instance for this session
   const transport = new SSEServerTransport({
     endpoint: POST_ENDPOINT_PATH,
-    cors: true,
   });
   const sessionId = transport.sessionId;
 

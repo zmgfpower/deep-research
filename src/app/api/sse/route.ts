@@ -66,34 +66,30 @@ export async function POST(req: NextRequest) {
           maxResult,
         },
         onMessage: (event, data) => {
+          let eventData: string = "";
           if (event === "message") {
-            controller.enqueue(
-              encoder.encode(
-                `event: ${event}\ndata: ${JSON.stringify({
-                  type: "text",
-                  text: data,
-                })}\n\n`
-              )
-            );
+            eventData = JSON.stringify({
+              type: "text",
+              text: data,
+            });
           } else if (event === "progress") {
             console.log(`Progress: ${JSON.stringify(omit(data, ["data"]))}`);
-            controller.enqueue(
-              encoder.encode(
-                `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
-              )
-            );
+            eventData = JSON.stringify(data);
             if (data.step === "final-report") {
               controller.close();
             }
           } else if (event === "error") {
             console.error(event, data);
-            controller.enqueue(
-              encoder.encode(`event: ${event}\ndata: ${data}\n\n`)
-            );
+            eventData = JSON.stringify({
+              message: data,
+            });
             controller.close();
           } else {
             console.warn(`Unknown event: ${event}`);
           }
+          controller.enqueue(
+            encoder.encode(`event: ${event}\ndata: ${eventData})}\n\n`)
+          );
         },
       });
 

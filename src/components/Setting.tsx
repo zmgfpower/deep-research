@@ -5,7 +5,6 @@ import {
   useCallback,
   useMemo,
   type ReactNode,
-  useEffect,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { usePWAInstall } from "react-use-pwa-install";
@@ -209,7 +208,6 @@ function Setting({ open, onClose }: SettingProps) {
   const { mode, provider, searchProvider, update } = useSettingStore();
   const { modelList, refresh } = useModel();
   const pwaInstall = usePWAInstall();
-  const [unprotected, setUnprotected] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const thinkingModelList = useMemo(() => {
@@ -349,13 +347,6 @@ function Setting({ open, onClose }: SettingProps) {
       },
     });
   }
-
-  useEffect(() => {
-    if (modelList.length > 0) {
-      const { accessPassword } = useSettingStore.getState();
-      if (accessPassword === "") setUnprotected(true);
-    }
-  }, [modelList]);
 
   useLayoutEffect(() => {
     if (open && !preLoading) {
@@ -1107,18 +1098,15 @@ function Setting({ open, onClose }: SettingProps) {
                         <FormLabel className="col-span-1">
                           <HelpTip tip={t("setting.accessPasswordTip")}>
                             {t("setting.accessPassword")}
-                            {!unprotected ? (
-                              <span className="ml-1 text-red-500 max-sm:hidden">
-                                *
-                              </span>
-                            ) : null}
+                            <span className="ml-1 text-red-500 max-sm:hidden">
+                              *
+                            </span>
                           </HelpTip>
                         </FormLabel>
                         <FormControl className="col-span-3">
                           <Password
                             type="text"
                             placeholder={t("setting.accessPasswordPlaceholder")}
-                            disabled={unprotected}
                             {...field}
                             onBlur={() =>
                               updateSetting(

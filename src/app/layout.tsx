@@ -20,6 +20,12 @@ export const metadata: Metadata = {
     default: APP_DEFAULT_TITLE,
     template: APP_TITLE_TEMPLATE,
   },
+  icons: {
+    icon: {
+      type: "image/svg+xml",
+      url: "./logo.svg",
+    },
+  },
   description: APP_DESCRIPTION,
   appleWebApp: {
     capable: true,
