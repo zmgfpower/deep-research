@@ -1,7 +1,7 @@
 const MAX_TEXT_CHUNK_LENGTH = 2000; // 你可以根据需要调整这个值
 
 export function splitText(
-  text: string,
+  text: string = "",
   maxLength: number = MAX_TEXT_CHUNK_LENGTH
 ): string[] {
   const paragraphs = text.split("\n");

@@ -144,6 +144,7 @@ function useDeepResearch() {
       searchProvider,
       parallelSearch,
       searchMaxResult,
+      references,
       language,
     } = useSettingStore.getState();
     const { resources } = useTaskStore.getState();
@@ -242,6 +243,7 @@ function useDeepResearch() {
                 );
                 return plimit.clearQueue();
               }
+              const enableReferences = references === "enable";
               searchResult = streamText({
                 model: await createModel(networkingModel),
                 system: getSystemPrompt(),
@@ -249,7 +251,8 @@ function useDeepResearch() {
                   processSearchResultPrompt(
                     item.query,
                     item.researchGoal,
-                    sources
+                    sources,
+                    enableReferences
                   ),
                   getResponseLanguagePrompt(language),
                 ].join("\n\n"),
@@ -384,7 +387,7 @@ function useDeepResearch() {
   }
 
   async function writeFinalReport() {
-    const { language } = useSettingStore.getState();
+    const { citationImage, references, language } = useSettingStore.getState();
     const {
       reportPlan,
       tasks,
@@ -409,6 +412,8 @@ function useDeepResearch() {
       flat(tasks.map((item) => item.images || [])),
       (item) => item.url
     );
+    const enableCitationImage = citationImage === "enable";
+    const enableReferences = references === "enable";
     const result = streamText({
       model: await createModelProvider(thinkingModel),
       system: [getSystemPrompt(), outputGuidelinesPrompt].join("\n\n"),
@@ -418,7 +423,9 @@ function useDeepResearch() {
           learnings,
           sources.map((item) => pick(item, ["title", "url"])),
           images,
-          requirement
+          requirement,
+          enableCitationImage,
+          enableReferences
         ),
         getResponseLanguagePrompt(language),
       ].join("\n\n"),
@@ -442,7 +449,7 @@ function useDeepResearch() {
           .join("\n");
       updateFinalReport(content);
     }
-    const title = content
+    const title = (content || "")
       .split("\n")[0]
       .replaceAll("#", "")
       .replaceAll("*", "")

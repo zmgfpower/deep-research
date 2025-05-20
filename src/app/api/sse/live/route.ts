@@ -6,7 +6,7 @@ import {
   getAIProviderApiKey,
   getSearchProviderBaseURL,
   getSearchProviderApiKey,
-} from "../utils";
+} from "../../utils";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -21,31 +21,26 @@ export const preferredRegion = [
   "kix1",
 ];
 
-export async function POST(req: NextRequest) {
-  const {
-    query,
-    provider,
-    thinkingModel,
-    taskModel,
-    searchProvider,
-    language,
-    maxResult,
-    enableCitationImage = true,
-    enableReferences = true,
-  } = await req.json();
+export async function GET(req: NextRequest) {
+  function getValueFromSearchParams(key: string) {
+    return req.nextUrl.searchParams.get(key);
+  }
+  const query = getValueFromSearchParams("query") || "";
+  const provider = getValueFromSearchParams("provider") || "";
+  const thinkingModel = getValueFromSearchParams("thinkingModel") || "";
+  const taskModel = getValueFromSearchParams("taskModel") || "";
+  const searchProvider = getValueFromSearchParams("searchProvider") || "";
+  const language = getValueFromSearchParams("language") || "";
+  const maxResult = Number(getValueFromSearchParams("maxResult")) || 5;
+  const enableCitationImage =
+    getValueFromSearchParams("enableCitationImage") === "false";
+  const enableReferences =
+    getValueFromSearchParams("enableReferences") === "false";
 
   const encoder = new TextEncoder();
   const readableStream = new ReadableStream({
     start: async (controller) => {
       console.log("Client connected");
-      controller.enqueue(
-        encoder.encode(
-          `event: infor\ndata: ${JSON.stringify({
-            name: "deep-research",
-            version: "0.1.0",
-          })}\n\n`
-        )
-      );
 
       req.signal.addEventListener("abort", () => {
         console.log("Client disconnected");
@@ -79,14 +74,10 @@ export async function POST(req: NextRequest) {
           } else if (event === "error") {
             console.error(data);
             controller.close();
-          } else {
-            console.warn(`Unknown event: ${event}`);
           }
-          controller.enqueue(
-            encoder.encode(
-              `event: ${event}\ndata: ${JSON.stringify(data)})}\n\n`
-            )
-          );
+          if (event === "message") {
+            controller.enqueue(encoder.encode(data.text));
+          }
         },
       });
 

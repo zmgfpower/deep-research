@@ -216,9 +216,7 @@ You need to think like a human researcher.
 Generate a list of learnings from the contexts.
 Make sure each learning is unique and not similar to each other.
 The learnings should be to the point, as detailed and information dense as possible.
-Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.
-
-${citationRulesPrompt}`;
+Make sure to include any entities like people, places, companies, products, things, etc in the learnings, as well as any specific entities, metrics, numbers, and dates when available. The learnings will be used to research the topic further.`;
 
 export const searchKnowledgeResultPrompt = `Given the following contents from a local knowledge base search for the query:
 <QUERY>
@@ -263,6 +261,21 @@ If you believe no further research is needed, you can output an empty queries.
 
 ${serpQuerySchemaPrompt}`;
 
+export const finalReportCitationImagePrompt = `Image Rules:
+
+- Images related to the paragraph content at the appropriate location in the article according to the image description.
+- Include images using \`![Image Description](image_url)\` in a separate section.
+- **Do not add any images at the end of the article.**`;
+
+export const finalReportReferencesPrompt = `Citation Rules:
+
+- Please cite research references at the end of your paragraphs when appropriate.
+- If the citation is from the reference, please **ignore**. Include only references from sources.
+- Please use the reference format [number], to reference the learnings link in corresponding parts of your answer.
+- If a paragraphs comes from multiple learnings reference link, please list all relevant citation numbers, e.g., [1][2]. Remember not to group citations at the end but list them in the corresponding parts of your answer. Control the number of footnotes.
+- Do not have more than 3 reference link in a paragraph, and keep only the most relevant ones.
+- **Do not add references at the end of the report.**`;
+
 export const finalReportPrompt = `This is the report plan after user confirmation:
 <PLAN>
 {plan}
@@ -291,20 +304,7 @@ Please write according to the user's writing requirements:
 Write a final report based on the report plan using the learnings from research.
 Make it as as detailed as possible, aim for 5 pages or more, the more the better, include ALL the learnings from research.
 **Including meaningful images from the previous research in the report is very helpful.**
-**Respond only the final report content, and no additional text before or after.**
-
-Image Rules:
-- Images related to the paragraph content at the appropriate location in the article according to the image description.
-- Include images using \`![Image Description](image_url)\` in a separate section.
-- **Do not add any images at the end of the article.**
-
-Citation Rules:
-- Please cite research references at the end of your paragraphs when appropriate.
-- If the citation is from the reference, please **ignore**. Include only references from sources.
-- Please use the reference format [number], to reference the learnings link in corresponding parts of your answer.
-- If a paragraphs comes from multiple learnings reference link, please list all relevant citation numbers, e.g., [1][2]. Remember not to group citations at the end but list them in the corresponding parts of your answer. Control the number of footnotes.
-- Do not have more than 3 reference link in a paragraph, and keep only the most relevant ones.
-- **Do not add references at the end of the report.**`;
+**Respond only the final report content, and no additional text before or after.**`;
 
 export const rewritingPrompt = `You are tasked with re-writing the following text to markdown. Ensure you do not change the meaning or story behind the text. 
 

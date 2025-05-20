@@ -108,8 +108,25 @@ export function initMcpServer() {
         .optional()
         .default(5)
         .describe("Maximum number of search results."),
+      enableCitationImage: z
+        .boolean()
+        .default(true)
+        .optional()
+        .describe(
+          "Whether to include content-related images in the final report."
+        ),
+      enableReferences: z
+        .boolean()
+        .default(true)
+        .optional()
+        .describe(
+          "Whether to include citation links in search results and final reports."
+        ),
     },
-    async ({ query, language, maxResult }, { signal }) => {
+    async (
+      { query, language, maxResult, enableCitationImage, enableReferences },
+      { signal }
+    ) => {
       signal.addEventListener("abort", () => {
         throw new Error("The client closed unexpectedly!");
       });
@@ -119,7 +136,11 @@ export function initMcpServer() {
           language,
           maxResult,
         });
-        const result = await deepResearch.start(query);
+        const result = await deepResearch.start(
+          query,
+          enableCitationImage,
+          enableReferences
+        );
         return {
           content: [{ type: "text", text: JSON.stringify(result) }],
         };
@@ -227,15 +248,28 @@ export function initMcpServer() {
         .optional()
         .default(5)
         .describe("Maximum number of search results."),
+      enableReferences: z
+        .boolean()
+        .default(true)
+        .optional()
+        .describe(
+          "Whether to include citation links in search results and final reports."
+        ),
     },
-    async ({ tasks, language, maxResult }, { signal }) => {
+    async (
+      { tasks, language, maxResult, enableReferences = true },
+      { signal }
+    ) => {
       signal.addEventListener("abort", () => {
         throw new Error("The client closed unexpectedly!");
       });
 
       try {
         const deepResearch = initDeepResearchServer({ language, maxResult });
-        const result = await deepResearch.runSearchTask(tasks);
+        const result = await deepResearch.runSearchTask(
+          tasks,
+          enableReferences
+        );
         return {
           content: [{ type: "text", text: JSON.stringify(result) }],
         };
@@ -309,15 +343,44 @@ export function initMcpServer() {
         .optional()
         .default(5)
         .describe("Maximum number of search results."),
+      enableCitationImage: z
+        .boolean()
+        .default(true)
+        .optional()
+        .describe(
+          "Whether to include content-related images in the final report."
+        ),
+      enableReferences: z
+        .boolean()
+        .default(true)
+        .optional()
+        .describe(
+          "Whether to include citation links in search results and final reports."
+        ),
     },
-    async ({ plan, tasks, language, maxResult }, { signal }) => {
+    async (
+      {
+        plan,
+        tasks,
+        language,
+        maxResult,
+        enableCitationImage = true,
+        enableReferences = true,
+      },
+      { signal }
+    ) => {
       signal.addEventListener("abort", () => {
         throw new Error("The client closed unexpectedly!");
       });
 
       try {
         const deepResearch = initDeepResearchServer({ language, maxResult });
-        const result = await deepResearch.writeFinalReport(plan, tasks);
+        const result = await deepResearch.writeFinalReport(
+          plan,
+          tasks,
+          enableCitationImage,
+          enableReferences
+        );
         return {
           content: [{ type: "text", text: JSON.stringify(result) }],
         };

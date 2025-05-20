@@ -38,6 +38,7 @@ interface FinalReportResult {
   finalReport: string;
   learnings: string[];
   sources: Source[];
+  images: ImageSource[];
 }
 
 export interface DeepResearchSearchTask {
@@ -74,7 +75,7 @@ export function removeJsonMarkdown(text: string) {
   return text.trim();
 }
 
-function addQuoteBeforeAllLine(text: string) {
+function addQuoteBeforeAllLine(text: string = "") {
   return text
     .split("\n")
     .map((line) => `> ${line}`)
@@ -138,7 +139,7 @@ class DeepResearch {
       content += textPart;
       this.onMessage("message", { type: "text", text: textPart });
     }
-    this.onMessage("message", { type: "text", text: "</report-plan>\n\n" });
+    this.onMessage("message", { type: "text", text: "\n</report-plan>\n\n" });
     this.onMessage("progress", {
       step: "report-plan",
       status: "end",
@@ -180,7 +181,10 @@ class DeepResearch {
     }
   }
 
-  async runSearchTask(tasks: DeepResearchSearchTask[]): Promise<SearchTask[]> {
+  async runSearchTask(
+    tasks: DeepResearchSearchTask[],
+    enableReferences = true
+  ): Promise<SearchTask[]> {
     this.onMessage("progress", { step: "task-list", status: "start" });
     const results: SearchTask[] = [];
     for await (const item of tasks) {
@@ -262,7 +266,12 @@ class DeepResearch {
           model: await this.getTaskModel(),
           system: getSystemPrompt(),
           prompt: [
-            processSearchResultPrompt(item.query, item.researchGoal, sources),
+            processSearchResultPrompt(
+              item.query,
+              item.researchGoal,
+              sources,
+              enableReferences
+            ),
             this.getResponseLanguagePrompt(),
           ].join("\n\n"),
         });
@@ -311,7 +320,7 @@ class DeepResearch {
 
       if (images.length > 0) {
         const imageContent =
-          "\n---\n\n" +
+          "\n\n---\n\n" +
           images
             .map(
               (source) =>
@@ -324,7 +333,7 @@ class DeepResearch {
 
       if (sources.length > 0) {
         const sourceContent =
-          "\n---\n\n" +
+          "\n\n---\n\n" +
           sources
             .map(
               (item, idx) =>
@@ -336,7 +345,7 @@ class DeepResearch {
         content += sourceContent;
         this.onMessage("message", { type: "text", text: sourceContent });
       }
-      this.onMessage("message", { type: "text", text: "</search-task>\n\n" });
+      this.onMessage("message", { type: "text", text: "\n</search-task>\n\n" });
 
       const task: SearchTask = {
         query: item.query,
@@ -360,7 +369,9 @@ class DeepResearch {
 
   async writeFinalReport(
     reportPlan: string,
-    tasks: DeepResearchSearchResult[]
+    tasks: DeepResearchSearchResult[],
+    enableCitationImage = true,
+    enableReferences = true
   ): Promise<FinalReportResult> {
     this.onMessage("progress", { step: "final-report", status: "start" });
     const learnings = tasks.map((item) => item.learning);
@@ -381,7 +392,9 @@ class DeepResearch {
           learnings,
           sources.map((item) => pick(item, ["title", "url"])),
           images,
-          ""
+          "",
+          enableCitationImage,
+          enableReferences
         ),
         this.getResponseLanguagePrompt(),
       ].join("\n\n"),
@@ -399,7 +412,7 @@ class DeepResearch {
       } else if (part.type === "finish") {
         if (sources.length > 0) {
           const sourceContent =
-            "\n---\n\n" +
+            "\n\n---\n\n" +
             sources
               .map(
                 (item, idx) =>
@@ -412,7 +425,7 @@ class DeepResearch {
         }
       }
     }
-    this.onMessage("message", { type: "text", text: "</final-report>\n\n" });
+    this.onMessage("message", { type: "text", text: "\n</final-report>\n\n" });
 
     const title = content
       .split("\n")[0]
@@ -425,6 +438,7 @@ class DeepResearch {
       finalReport: content,
       learnings,
       sources,
+      images,
     };
     this.onMessage("progress", {
       step: "final-report",
@@ -434,12 +448,21 @@ class DeepResearch {
     return finalReportResult;
   }
 
-  async start(query: string) {
+  async start(
+    query: string,
+    enableCitationImage = true,
+    enableReferences = true
+  ) {
     try {
       const reportPlan = await this.writeReportPlan(query);
       const tasks = await this.generateSERPQuery(reportPlan);
-      const results = await this.runSearchTask(tasks);
-      const finalReport = await this.writeFinalReport(reportPlan, results);
+      const results = await this.runSearchTask(tasks, enableReferences);
+      const finalReport = await this.writeFinalReport(
+        reportPlan,
+        results,
+        enableCitationImage,
+        enableReferences
+      );
       return finalReport;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";

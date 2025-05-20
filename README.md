@@ -216,6 +216,8 @@ The Deep Research API provides a real-time interface for initiating and monitori
 
 Recommended to use the API via `@microsoft/fetch-event-source`, to get the final report, you need to listen to the `message` event, the data will be returned in the form of a text stream.
 
+#### POST method
+
 Endpoint: `/api/sse`
 
 Method: `POST`
@@ -223,21 +225,25 @@ Method: `POST`
 Body:
 
 ```typescript
-interface Config {
-  // research topic
+interface SSEConfig {
+  // Research topic
   query: string;
   // AI provider, Possible values ​​include: google, openai, anthropic, deepseek, xai, mistral, azure, openrouter, openaicompatible, pollinations, ollama
   provider: string;
-  // thinking model id
+  // Thinking model id
   thinkingModel: string;
-  // task model id
+  // Task model id
   taskModel: string;
-  // search provider, Possible values ​​include: model, tavily, firecrawl, exa, bocha, searxng
+  // Search provider, Possible values ​​include: model, tavily, firecrawl, exa, bocha, searxng
   searchProvider: string;
   // Response Language, also affects the search language. (optional)
   language?: string;
-  // Maximum number of search results. (optional)
+  // Maximum number of search results. Default, `5` (optional)
   maxResult?: number;
+  // Whether to include content-related images in the final report. Default, `true`. (optional)
+  enableCitationImage?: boolean;
+  // Whether to include citation links in search results and final reports. Default, `true`. (optional)
+  enableReferences?: boolean;
 }
 ```
 
@@ -252,6 +258,26 @@ interface Headers {
 ```
 
 See the detailed [API documentation](./docs/deep-research-api-doc.md).
+
+#### GET method
+
+This is an interesting implementation. You can watch the whole process of deep research directly through the URL just like watching a video.
+
+You can access the deep research report via the following link:
+
+```text
+http://localhost:3000/api/sse/live?query=AI+trends+for+this+year&provider=pollinations&thinkingModel=openai&taskModel=openai-fast&searchProvider=searxng
+```
+
+Query Params:
+
+```typescript
+// The parameters are the same as POST parameters
+interface QueryParams extends SSEConfig {
+  // If you set the `ACCESS_PASSWORD` environment variable, this parameter is required
+  password?: string;
+}
+```
 
 ### Model Context Protocol (MCP) Server
 

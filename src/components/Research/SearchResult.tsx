@@ -46,7 +46,7 @@ const formSchema = z.object({
   suggestion: z.string().optional(),
 });
 
-function addQuoteBeforeAllLine(text: string) {
+function addQuoteBeforeAllLine(text: string = "") {
   return text
     .split("\n")
     .map((line) => `> ${line}`)

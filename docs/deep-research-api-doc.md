@@ -34,20 +34,24 @@ Body:
 
 ```typescript
 interface Config {
-  // research topic
+  // Research topic
   query: string;
   // AI provider, Possible values ​​include: google, openai, anthropic, deepseek, xai, mistral, azure, openrouter, openaicompatible, pollinations, ollama
   provider: string;
-  // thinking model id
+  // Thinking model id
   thinkingModel: string;
-  // task model id
+  // Task model id
   taskModel: string;
-  // search provider, Possible values ​​include: model, tavily, firecrawl, exa, bocha, searxng
+  // Search provider, Possible values ​​include: model, tavily, firecrawl, exa, bocha, searxng
   searchProvider: string;
   // Response Language, also affects the search language. (optional)
   language?: string;
-  // Maximum number of search results. (optional)
+  // Maximum number of search results. Default, `5` (optional)
   maxResult?: number;
+  // Whether to include content-related images in the final report. Default, `true`. (optional)
+  enableCitationImage?: boolean;
+  // Whether to include citation links in search results and final reports. Default, `true`. (optional)
+  enableReferences?: boolean;
 }
 ```
 
@@ -300,6 +304,8 @@ fetchEventSource("/api/sse", {
     searchProvider: "model",
     language: "en-US",
     maxResult: 5,
+    enableCitationImage: true,
+    enableReferences: true,
   }),
   signal: ctrl.signal,
   onmessage(msg) {
