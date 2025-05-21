@@ -293,12 +293,13 @@ SSE server endpoint: `/api/mcp/sse`, transport type: `sse`
     "deep-research": {
       "url": "http://127.0.0.1:3000/api/mcp",
       "transportType": "streamable-http",
-      // Since deep studies take a long time to execute, you need to set a longer timeout to avoid interrupting the study.
       "timeout": 600
     }
   }
 }
 ```
+
+**Note:** Since deep research take a long time to execute, you need to set a longer timeout to avoid interrupting the study.
 
 If your server sets `ACCESS_PASSWORD`, the MCP service will be protected and you need to add additional headers parameters:
 

@@ -305,7 +305,7 @@ export async function createSearchProvider({
       `${completePath(
         baseURL || SEARXNG_BASE_URL
       )}/search?${searchQuery.toString()}`,
-      baseURL?.startsWith("/api/search/searxng")
+      baseURL?.includes("/api/search/searxng")
         ? { method: "POST", credentials: "omit", headers }
         : { method: "GET", credentials: "omit" }
     );
