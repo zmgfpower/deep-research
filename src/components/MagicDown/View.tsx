@@ -7,7 +7,7 @@ import remarkMath from "remark-math";
 import remarkBreaks from "remark-breaks";
 import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
-import { useSettingStore } from "@/store/setting";
+// import { useSettingStore } from "@/store/setting";
 import { clsx } from "clsx";
 // import { animateText } from "@/utils/animate-text";
 import { omit } from "radash";
@@ -31,7 +31,7 @@ function parseMarkdownIntoBlocks(markdown: string): string[] {
 }
 
 function MarkdownBlock({ children: content, ...rest }: Options) {
-  const { language } = useSettingStore();
+  // const { language } = useSettingStore();
 
   const remarkPlugins = useMemo(
     () => rest.remarkPlugins ?? [],
