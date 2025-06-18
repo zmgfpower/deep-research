@@ -181,7 +181,9 @@ const MemoizedMarkdownBlock = memo(
   }
 );
 
-function Markdown({ children, id, className, components }: MarkdownProps) {
+MemoizedMarkdownBlock.displayName = "MemoizedMarkdownBlock";
+
+function MarkdownView({ children, id, className, components }: MarkdownProps) {
   const generatedId = useId();
   const blockId = id ?? generatedId;
   const blocks = useMemo(() => parseMarkdownIntoBlocks(children), [children]);
@@ -200,4 +202,6 @@ function Markdown({ children, id, className, components }: MarkdownProps) {
   );
 }
 
-export default memo(Markdown);
+MarkdownView.displayName = "MarkdownView";
+
+export default memo(MarkdownView);
