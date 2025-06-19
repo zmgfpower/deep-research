@@ -78,40 +78,20 @@ export async function createAIProvider({
     const { createOpenAICompatible } = await import(
       "@ai-sdk/openai-compatible"
     );
-    const local = global.location || {};
     const openaicompatible = createOpenAICompatible({
       name: "openaicompatible",
       baseURL,
       apiKey,
-      fetch: async (input, init) => {
-        const headers = (init?.headers || {}) as Record<string, string>;
-        if (!baseURL?.startsWith(local.origin)) delete headers["Authorization"];
-        return await fetch(input, {
-          ...init,
-          headers,
-          credentials: "omit",
-        });
-      },
     });
     return openaicompatible(model, settings);
   } else if (provider === "pollinations") {
     const { createOpenAICompatible } = await import(
       "@ai-sdk/openai-compatible"
     );
-    const local = global.location || {};
     const pollinations = createOpenAICompatible({
       name: "pollinations",
       baseURL,
       apiKey,
-      fetch: async (input, init) => {
-        const headers = (init?.headers || {}) as Record<string, string>;
-        if (!baseURL?.startsWith(local.origin)) delete headers["Authorization"];
-        return await fetch(input, {
-          ...init,
-          headers,
-          credentials: "omit",
-        });
-      },
     });
     return pollinations(model, settings);
   } else if (provider === "ollama") {
