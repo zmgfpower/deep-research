@@ -325,6 +325,11 @@
     "referencesTip": "Thêm liên kết tham khảo vào kết quả và báo cáo. Có thể không hỗ trợ tốt với mô hình nhỏ.",
     "citationImage": "Hình ảnh trích dẫn",
     "citationImageTip": "Bật hình ảnh tham khảo để chèn hình minh họa vào báo cáo.",
+    "textOutputMode": "Chế độ xuất văn bản",
+    "textOutputModeTip": "Hiệu ứng xuất văn bản của AI. Ký tự, xuất văn bản giống như máy đánh chữ. Từ, xuất theo từ, đầu ra hiệu quả nhất. Dòng, hiệu ứng đầu ra ổn định nhất.",
+    "character": "Ký tự",
+    "word": "Từ",
+    "line": "Dòng",
     "save": "Lưu",
     "confirm": "Xác nhận",
     "cancel": "Hủy"
