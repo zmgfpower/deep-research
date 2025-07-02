@@ -163,6 +163,7 @@ const formSchema = z.object({
   references: z.string().optional(),
   citationImage: z.string().optional(),
   smoothTextStreamType: z.enum(["character", "word", "line"]).optional(),
+  onlyUseLocalResource: z.boolean().optional(),
 });
 
 function convertModelName(name: string) {
@@ -3458,6 +3459,35 @@ function Setting({ open, onClose }: SettingProps) {
                             <SelectItem value="line">
                               {t("setting.line")}
                             </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="onlyUseLocalResource"
+                  render={({ field }) => (
+                    <FormItem className="from-item">
+                      <FormLabel className="from-label">
+                        {t("setting.useLocalResource")}
+                        <HelpTip tip={t("setting.useLocalResourceTip")} />
+                      </FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value ? "1" : "0"}
+                          onValueChange={v => {
+                            field.onChange(v === "1");
+                            form.setValue("onlyUseLocalResource", v === "1");
+                          }}
+                        >
+                          <SelectTrigger className="form-field">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">{t("setting.enable")}</SelectItem>
+                            <SelectItem value="0">{t("setting.disable")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
