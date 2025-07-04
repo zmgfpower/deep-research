@@ -263,8 +263,8 @@ function useDeepResearch() {
           let sources: Source[] = [];
           let images: ImageSource[] = [];
           taskStore.updateTask(item.query, { state: "processing" });
-          // 新增逻辑：只用本地资源
-          if (onlyUseLocalResource && resources.length > 0) {
+
+          if (resources.length > 0) {
             const knowledges = await searchLocalKnowledges(
               item.query,
               item.researchGoal
@@ -276,14 +276,18 @@ function useDeepResearch() {
               "---",
               "",
             ].join("\n\n");
-            taskStore.updateTask(item.query, {
-              state: "completed",
-              learning: content,
-              sources,
-              images,
-            });
-            return content;
+
+            if (onlyUseLocalResource) {
+              taskStore.updateTask(item.query, {
+                state: "completed",
+                learning: content,
+                sources,
+                images,
+              });
+              return content;
+            }
           }
+
           if (enableSearch) {
             if (searchProvider !== "model") {
               try {

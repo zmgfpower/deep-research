@@ -159,11 +159,11 @@ const formSchema = z.object({
   searchMaxResult: z.number().min(1).max(10),
   language: z.string().optional(),
   theme: z.string().optional(),
-  debug: z.string().optional(),
-  references: z.string().optional(),
-  citationImage: z.string().optional(),
+  debug: z.enum(["enable", "disable"]).optional(),
+  references: z.enum(["enable", "disable"]).optional(),
+  citationImage: z.enum(["enable", "disable"]).optional(),
   smoothTextStreamType: z.enum(["character", "word", "line"]).optional(),
-  onlyUseLocalResource: z.boolean().optional(),
+  onlyUseLocalResource: z.enum(["enable", "disable"]).optional(),
 });
 
 function convertModelName(name: string) {
@@ -3471,23 +3471,22 @@ function Setting({ open, onClose }: SettingProps) {
                   render={({ field }) => (
                     <FormItem className="from-item">
                       <FormLabel className="from-label">
-                        {t("setting.useLocalResource")}
-                        <HelpTip tip={t("setting.useLocalResourceTip")} />
+                        <HelpTip tip={t("setting.useLocalResourceTip")}>
+                          {t("setting.useLocalResource")}
+                        </HelpTip>
                       </FormLabel>
                       <FormControl>
-                        <Select
-                          value={field.value ? "1" : "0"}
-                          onValueChange={v => {
-                            field.onChange(v === "1");
-                            form.setValue("onlyUseLocalResource", v === "1");
-                          }}
-                        >
+                        <Select {...field} onValueChange={field.onChange}>
                           <SelectTrigger className="form-field">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">{t("setting.enable")}</SelectItem>
-                            <SelectItem value="0">{t("setting.disable")}</SelectItem>
+                            <SelectItem value="enable">
+                              {t("setting.enable")}
+                            </SelectItem>
+                            <SelectItem value="disable">
+                              {t("setting.disable")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>

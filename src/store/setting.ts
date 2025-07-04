@@ -67,11 +67,11 @@ export interface SettingStore {
   crawler: string;
   language: string;
   theme: string;
-  debug: string;
-  references: string;
-  citationImage: string;
+  debug: "enable" | "disable";
+  references: "enable" | "disable";
+  citationImage: "enable" | "disable";
   smoothTextStreamType: "character" | "word" | "line";
-  onlyUseLocalResource: boolean;
+  onlyUseLocalResource: "enable" | "disable";
 }
 
 interface SettingFunction {
@@ -85,7 +85,7 @@ export const defaultValues: SettingStore = {
   apiKey: "",
   apiProxy: "",
   thinkingModel: "gemini-2.0-flash-thinking-exp",
-  networkingModel: "gemini-2.0-flash-exp",
+  networkingModel: "gemini-2.0-flash",
   openRouterApiKey: "",
   openRouterApiProxy: "",
   openRouterThinkingModel: "",
@@ -149,7 +149,7 @@ export const defaultValues: SettingStore = {
   references: "enable",
   citationImage: "enable",
   smoothTextStreamType: "word",
-  onlyUseLocalResource: false,
+  onlyUseLocalResource: "enable",
 };
 
 export const useSettingStore = create(
