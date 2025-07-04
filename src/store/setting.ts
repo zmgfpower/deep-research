@@ -149,7 +149,7 @@ export const defaultValues: SettingStore = {
   references: "enable",
   citationImage: "enable",
   smoothTextStreamType: "word",
-  onlyUseLocalResource: "enable",
+  onlyUseLocalResource: "disable",
 };
 
 export const useSettingStore = create(

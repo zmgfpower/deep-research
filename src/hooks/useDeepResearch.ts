@@ -273,8 +273,6 @@ function useDeepResearch() {
               knowledges,
               `### ${t("research.searchResult.references")}`,
               resources.map((item) => `- ${item.name}`).join("\n"),
-              "---",
-              "",
             ].join("\n\n");
 
             if (onlyUseLocalResource) {
@@ -285,6 +283,8 @@ function useDeepResearch() {
                 images,
               });
               return content;
+            } else {
+              content += "\n\n---\n\n";
             }
           }
 
