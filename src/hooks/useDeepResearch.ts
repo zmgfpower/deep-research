@@ -275,7 +275,7 @@ function useDeepResearch() {
               resources.map((item) => `- ${item.name}`).join("\n"),
             ].join("\n\n");
 
-            if (onlyUseLocalResource) {
+            if (onlyUseLocalResource === "enable") {
               taskStore.updateTask(item.query, {
                 state: "completed",
                 learning: content,
