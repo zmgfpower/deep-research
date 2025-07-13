@@ -79,7 +79,7 @@ SEARXNG_API_BASE_URL=
 
 # (Optional) MCP Server AI provider
 # Possible values ​​include: google, openai, anthropic, deepseek, xai, mistral, azure, openrouter, openaicompatible, pollinations, ollama
-MCP_AI_PROVIDER=
+MCP_AI_PROVIDER=google
 # (Optional) MCP Server search provider. Default, `model`
 # Possible values ​​include: model, tavily, firecrawl, exa, bocha, searxng
 MCP_SEARCH_PROVIDER=
