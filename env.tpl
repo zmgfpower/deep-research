@@ -1,8 +1,8 @@
 # (Optional) Server API Access Password for enhanced security
-ACCESS_PASSWORD=88112800
+ACCESS_PASSWORD=
 
 # (Optional) Server-side Gemini API Key (Required for server API calls)
-GOOGLE_GENERATIVE_AI_API_KEY=AIzaSyAwObn_jxeQXm7jV79SCavTgsNf1W54EGo
+GOOGLE_GENERATIVE_AI_API_KEY=
 # (Optional) Server-side Gemini API Proxy URL. Default, `https://generativelanguage.googleapis.com`
 GOOGLE_GENERATIVE_AI_API_BASE_URL=
 # (Deprecated) Server-side Gemini API Proxy URL. Default, `https://generativelanguage.googleapis.com`
@@ -79,14 +79,14 @@ SEARXNG_API_BASE_URL=
 
 # (Optional) MCP Server AI provider
 # Possible values ​​include: google, openai, anthropic, deepseek, xai, mistral, azure, openrouter, openaicompatible, pollinations, ollama
-MCP_AI_PROVIDER=google
+MCP_AI_PROVIDER=
 # (Optional) MCP Server search provider. Default, `model`
 # Possible values ​​include: model, tavily, firecrawl, exa, bocha, searxng
 MCP_SEARCH_PROVIDER=
 # (Optional) MCP Server thinking model id, the core model used in deep research.
-MCP_THINKING_MODEL=Gemini-2.5-Pro
+MCP_THINKING_MODEL=
 # (Optional) MCP Server task model id, used for secondary tasks, high output models are recommended.
-MCP_TASK_MODEL=Gemini-2.5-Flash
+MCP_TASK_MODEL=
 
 # (Optional) Disable server-side AI provider usage permissions
 # Possible values ​​include: google, openai, anthropic, deepseek, xai, mistral, azure, openrouter, openaicompatible, pollinations, ollama
